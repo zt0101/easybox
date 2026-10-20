@@ -126,7 +126,10 @@
     "openMenu": "打开菜单",
     "pinSidebar": "固定侧边栏",
     "unpinSidebar": "取消固定侧边栏",
-    "subFormats": "Sub Formats"
+    "subFormats": "Sub Formats",
+    "easyboxCreate": "快速创建",
+    "easyboxLines": "线路",
+    "easyboxSubscription": "订阅"
   },
   "pages": {
     "login": {
@@ -2740,5 +2743,76 @@
     "restartXray": "重启 Xray 服务",
     "restartXraySuccess": "Xray 服务已成功重启",
     "settings": "设置"
+  },
+  "easybox": {
+    "status": {
+      "CREATING": "创建中",
+      "RUNNING": "运行中",
+      "ERROR": "异常",
+      "DISABLED": "已禁用",
+      "DELETING": "删除中"
+    },
+    "steps": {
+      "prepare": "准备参数",
+      "create_inbound": "写入入站",
+      "apply_runtime": "下发到 Xray",
+      "health_check": "健康检查"
+    },
+    "create": {
+      "title": "快速创建线路",
+      "protocol": "协议",
+      "vlessHint": "REALITY · 无需域名和证书 · TCP",
+      "moreSoon": "将在下个版本提供",
+      "name": "线路名称（可不填）",
+      "namePlaceholder": "例如 US-Oracle-01",
+      "address": "服务器地址（可不填）",
+      "addressHelp": "客户端连接用的域名或 IP。不填则使用你打开面板时的地址。",
+      "submit": "创建线路",
+      "creating": "正在创建线路，需要几秒钟…",
+      "successTitle": "线路 {name} 已就绪",
+      "firewallHint": "请在服务器防火墙和云安全组中放行 {port}/TCP 端口。客户端下次刷新订阅即可获得这条线路。",
+      "failedTitle": "线路创建失败",
+      "failedReason": "原因：{reason}",
+      "failedCleanup": "已自动清理，其他线路不受影响。",
+      "retry": "重试",
+      "nameTooLong": "最多 64 个字符",
+      "addressTooLong": "最多 253 个字符",
+      "goLines": "查看线路",
+      "copySubscription": "复制订阅"
+    },
+    "lines": {
+      "title": "线路",
+      "create": "创建线路",
+      "emptyTitle": "还没有线路",
+      "emptyHint": "选一个协议，几秒钟就能建好第一条线路。",
+      "emptyAction": "创建第一条线路",
+      "colName": "名称",
+      "colProtocol": "协议",
+      "colStatus": "状态",
+      "colTraffic": "流量",
+      "colActions": "操作",
+      "copyLink": "复制链接",
+      "qr": "二维码",
+      "qrTitle": "线路二维码：{name}",
+      "qrHint": "扫码只导入这一条线路。要一次导入全部线路，请使用订阅二维码。",
+      "enable": "启用",
+      "disable": "禁用",
+      "deleteConfirm": "删除线路 {name}？对应入站会被删除，订阅地址不变。",
+      "deleted": "线路已删除",
+      "notInSubscription": "未加入订阅"
+    },
+    "subscription": {
+      "title": "我的订阅",
+      "hint": "所有客户端（v2rayN、Shadowrocket、Clash/Mihomo、sing-box）都用这一个地址，导入后会得到下面勾选的全部线路。",
+      "httpWarning": "该地址使用 HTTP，订阅内容和每条线路的凭据都会以明文传输。",
+      "universal": "通用订阅",
+      "clash": "Clash / Mihomo 订阅",
+      "clashHint": "一般不需要：通用地址会自动识别 Clash/Mihomo 客户端。",
+      "refreshHint": "客户端每 {hours} 小时自动刷新一次订阅；新增或修改线路后也可以手动刷新。",
+      "lines": "这个订阅包含的线路",
+      "noLines": "还没有线路。",
+      "qrTitle": "订阅二维码",
+      "qrHint": "扫一次即可导入这个订阅里的全部线路。"
+    }
   }
 }

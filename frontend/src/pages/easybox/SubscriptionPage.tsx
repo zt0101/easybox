@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Empty,
+  Input,
+  Result,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+} from 'antd';
+import { CopyOutlined, LinkOutlined, QrcodeOutlined } from '@ant-design/icons';
+
+import { ClipboardManager } from '@/utils';
+import { useEasyboxMutations, useEasyboxSubscription } from '@/api/queries/useEasybox';
+import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
+import LinkQrModal from './LinkQrModal';
+
+export default function SubscriptionPage() {
+  return <EasyboxShell>{(api) => <Subscription {...api} />}</EasyboxShell>;
+}
+
+function UrlRow({
+  label,
+  value,
+  onCopy,
+  onQr,
+}: {
+  label: string;
+  value: string;
+  onCopy: () => void;
+  onQr: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+      <Typography.Text strong>{label}</Typography.Text>
+      <div className="easybox-sub-row">
+        <Input className="easybox-sub-url easybox-mono" value={value} readOnly dir="ltr" />
+        <Space>
+          <Button type="primary" icon={<CopyOutlined />} onClick={onCopy}>
+            {t('copy')}
+          </Button>
+          <Button icon={<QrcodeOutlined />} aria-label="QR" onClick={onQr} />
+        </Space>
+      </div>
+    </Space>
+  );
+}
+
+function Subscription({ messageApi }: EasyboxPageApi) {
+  const { t } = useTranslation();
+  const sub = useEasyboxSubscription();
+  const { setInSubscription } = useEasyboxMutations();
+  const [qrUrl, setQrUrl] = useState('');
+
+  const copy = async (text: string) => {
+    if (text && (await ClipboardManager.copyText(text))) messageApi.success(t('copied'));
+  };
+
+  if (sub.isError) {
+    return (
+      <Result
+        status="error"
+        title={t('somethingWentWrong')}
+        subTitle={(sub.error as Error).message}
+        extra={<Button onClick={() => sub.refetch()}>{t('refresh')}</Button>}
+      />
+    );
+  }
+  if (!sub.data) return <Spin size="large" />;
+
+  const { subUrl, clashUrl, updateInterval, lines } = sub.data;
+  const visible = lines.filter((l): l is NonNullable<typeof l> => l !== null);
+  return (
+    <>
+      <Card
+        title={
+          <Space>
+            <LinkOutlined />
+            {t('easybox.subscription.title')}
+          </Space>
+        }
+      >
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Typography.Text type="secondary">{t('easybox.subscription.hint')}</Typography.Text>
+          {subUrl.startsWith('http://') && (
+            <Alert type="warning" showIcon message={t('easybox.subscription.httpWarning')} />
+          )}
+          <UrlRow
+            label={t('easybox.subscription.universal')}
+            value={subUrl}
+            onCopy={() => copy(subUrl)}
+            onQr={() => setQrUrl(subUrl)}
+          />
+          {clashUrl && (
+            <Space direction="vertical" size={2} style={{ width: '100%' }}>
+              <UrlRow
+                label={t('easybox.subscription.clash')}
+                value={clashUrl}
+                onCopy={() => copy(clashUrl)}
+                onQr={() => setQrUrl(clashUrl)}
+              />
+              <Typography.Text type="secondary">
+                {t('easybox.subscription.clashHint')}
+              </Typography.Text>
+            </Space>
+          )}
+          <Typography.Text type="secondary">
+            {t('easybox.subscription.refreshHint', { hours: updateInterval })}
+          </Typography.Text>
+        </Space>
+      </Card>
+
+      <Card title={t('easybox.subscription.lines')}>
+        {visible.length === 0 ? (
+          <Empty description={t('easybox.subscription.noLines')} />
+        ) : (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {visible.map((line) => {
+              const usable = line.inboundId > 0 && line.status !== 'ERROR';
+              return (
+                <Checkbox
+                  key={line.id}
+                  checked={usable && line.inSubscription}
+                  disabled={!usable}
+                  onChange={(e) => setInSubscription(line.id, e.target.checked)}
+                >
+                  <Space size={6}>
+                    <Typography.Text>{line.name}</Typography.Text>
+                    <Tag>{line.protocol.toUpperCase()}</Tag>
+                    {line.status !== 'RUNNING' && <Tag>{t(`easybox.status.${line.status}`)}</Tag>}
+                  </Space>
+                </Checkbox>
+              );
+            })}
+          </Space>
+        )}
+      </Card>
+
+      <LinkQrModal
+        open={qrUrl !== ''}
+        title={t('easybox.subscription.qrTitle')}
+        hint={t('easybox.subscription.qrHint')}
+        value={qrUrl}
+        onCopy={copy}
+        onClose={() => setQrUrl('')}
+      />
+    </>
+  );
+}

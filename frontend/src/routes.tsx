@@ -14,6 +14,9 @@ const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 const XrayPage = lazy(() => import('@/pages/xray/XrayPage'));
 const ApiDocsPage = lazy(() => import('@/pages/api-docs/ApiDocsPage'));
 const SponsorsPage = lazy(() => import('@/pages/sponsors/SponsorsPage'));
+const EasyboxQuickCreatePage = lazy(() => import('@/pages/easybox/QuickCreatePage'));
+const EasyboxLinesPage = lazy(() => import('@/pages/easybox/LinesPage'));
+const EasyboxSubscriptionPage = lazy(() => import('@/pages/easybox/SubscriptionPage'));
 
 function withSuspense(node: React.ReactNode) {
   return (
@@ -42,6 +45,9 @@ const routes: RouteObject[] = [
     element: <PanelLayout />,
     children: [
       { index: true, element: withSuspense(<IndexPage />) },
+      { path: 'easybox/create', element: withSuspense(<EasyboxQuickCreatePage />) },
+      { path: 'easybox/lines', element: withSuspense(<EasyboxLinesPage />) },
+      { path: 'easybox/subscription', element: withSuspense(<EasyboxSubscriptionPage />) },
       { path: 'inbounds', element: withSuspense(<InboundsPage />) },
       { path: 'clients', element: withSuspense(<ClientsPage />) },
       { path: 'groups', element: withSuspense(<GroupsPage />) },

@@ -1,5 +1,10 @@
 export const keys = {
   sponsors: () => ['sponsors'] as const,
+  easybox: {
+    root: () => ['easybox'] as const,
+    endpoints: () => ['easybox', 'endpoints'] as const,
+    subscription: () => ['easybox', 'subscription'] as const,
+  },
   server: {
     status: () => ['server', 'status'] as const,
     fail2banStatus: () => ['server', 'fail2banStatus'] as const,

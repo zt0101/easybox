@@ -20,6 +20,7 @@ import {
   GlobalOutlined,
   HeartOutlined,
   ImportOutlined,
+  LinkOutlined,
   LogoutOutlined,
   MailOutlined,
   MenuOutlined,
@@ -36,7 +37,9 @@ import {
   SwapOutlined,
   TagsOutlined,
   TeamOutlined,
+  ThunderboltOutlined,
   ToolOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 
 import { HttpUtil } from '@/utils';
@@ -61,6 +64,9 @@ let hoveredAcrossRemounts = false;
 
 type IconName =
   | 'dashboard'
+  | 'easyboxCreate'
+  | 'easyboxLines'
+  | 'easyboxSubscription'
   | 'inbound'
   | 'team'
   | 'groups'
@@ -76,6 +82,9 @@ type IconName =
 
 const iconByName: Record<IconName, ComponentType> = {
   dashboard: DashboardOutlined,
+  easyboxCreate: ThunderboltOutlined,
+  easyboxLines: UnorderedListOutlined,
+  easyboxSubscription: LinkOutlined,
   inbound: ImportOutlined,
   team: TeamOutlined,
   groups: TagsOutlined,
@@ -225,6 +234,13 @@ export default function AppSidebar() {
   const tabs = useMemo<{ key: string; icon: IconName; title: string }[]>(
     () => [
       { key: '/', icon: 'dashboard', title: t('menu.dashboard') },
+      { key: '/easybox/create', icon: 'easyboxCreate', title: t('menu.easyboxCreate') },
+      { key: '/easybox/lines', icon: 'easyboxLines', title: t('menu.easyboxLines') },
+      {
+        key: '/easybox/subscription',
+        icon: 'easyboxSubscription',
+        title: t('menu.easyboxSubscription'),
+      },
       { key: '/inbounds', icon: 'inbound', title: t('menu.inbounds') },
       { key: '/clients', icon: 'team', title: t('menu.clients') },
       { key: '/groups', icon: 'groups', title: t('menu.groups') },

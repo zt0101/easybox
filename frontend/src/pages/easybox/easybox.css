@@ -1,0 +1,59 @@
+.easybox-content {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.easybox-protocols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.easybox-protocol {
+  border: 1px solid var(--ant-color-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.easybox-protocol.is-selected {
+  border-color: var(--ant-color-primary);
+  background: var(--ant-color-primary-bg);
+}
+
+.easybox-protocol.is-disabled {
+  opacity: 0.55;
+}
+
+.easybox-protocol-hint {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.easybox-sub-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.easybox-sub-row .easybox-sub-url {
+  flex: 1;
+  min-width: 0;
+}
+
+.easybox-qr {
+  display: flex;
+  justify-content: center;
+}
+
+.easybox-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
