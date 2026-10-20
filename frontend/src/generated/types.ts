@@ -579,6 +579,7 @@ export interface EndpointView {
   down: number;
   failedStep: string;
   id: number;
+  inSubscription: boolean;
   inboundId: number;
   lastError: string;
   name: string;
@@ -1075,6 +1076,14 @@ export interface SubBalancer {
   sortOrder: number;
   strategy: string;
   updatedAt: number;
+}
+
+export interface SubscriptionView {
+  clashUrl: string;
+  lines: EndpointView | null[];
+  subId: string;
+  subUrl: string;
+  updateInterval: string;
 }
 
 export interface Traffic {

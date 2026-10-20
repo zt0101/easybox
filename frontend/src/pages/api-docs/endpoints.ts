@@ -2831,6 +2831,21 @@ export const sections: readonly Section[] = [
         params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
         body: '{\n  "enable": false\n}',
       },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/setInSubscription/:id',
+        summary:
+          'Include or exclude a line from the merged subscription (upstream excludeFromSub). The line keeps running either way.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "include": false\n}',
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/subscription/info',
+        summary:
+          'The merged subscription: one URL for every client (plus the Clash/Mihomo URL when enabled), the client refresh interval in hours, and the lines it carries.',
+        responseSchema: 'SubscriptionView',
+      },
     ],
   },
 ];

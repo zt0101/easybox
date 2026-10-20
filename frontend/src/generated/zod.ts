@@ -611,6 +611,7 @@ export const EndpointViewSchema = z.object({
   down: z.number().int(),
   failedStep: z.string(),
   id: z.number().int(),
+  inSubscription: z.boolean(),
   inboundId: z.number().int(),
   lastError: z.string(),
   name: z.string(),
@@ -1144,6 +1145,15 @@ export const SubBalancerSchema = z.object({
   updatedAt: z.number().int(),
 });
 export type SubBalancer = z.infer<typeof SubBalancerSchema>;
+
+export const SubscriptionViewSchema = z.object({
+  clashUrl: z.string(),
+  lines: z.array(z.lazy(() => EndpointViewSchema).nullable()),
+  subId: z.string(),
+  subUrl: z.string(),
+  updateInterval: z.string(),
+});
+export type SubscriptionView = z.infer<typeof SubscriptionViewSchema>;
 
 export const TrafficSchema = z.object({
   Down: z.number().int(),

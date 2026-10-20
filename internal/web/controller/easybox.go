@@ -26,6 +26,8 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	e.POST("/create", a.createEndpoint)
 	e.POST("/del/:id", a.delEndpoint)
 	e.POST("/setEnable/:id", a.setEndpointEnable)
+	e.POST("/setInSubscription/:id", a.setEndpointInSubscription)
+	g.GET("/subscription/info", a.subscriptionInfo)
 }
 
 func (a *EasyboxController) listEndpoints(c *gin.Context) {
@@ -74,4 +76,31 @@ func (a *EasyboxController) setEndpointEnable(c *gin.Context) {
 		return
 	}
 	jsonMsg(c, "", a.svc.SetEndpointEnable(id, f.Enable))
+}
+
+func (a *EasyboxController) setEndpointInSubscription(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	var f struct {
+		Include bool `json:"include" form:"include"`
+	}
+	if err := c.ShouldBind(&f); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonMsg(c, "", a.svc.SetEndpointInSubscription(id, f.Include))
+}
+
+// subscriptionInfo builds URLs for the host the admin reached the panel on,
+// matching how the panel's own settings fill in subURI.
+func (a *EasyboxController) subscriptionInfo(c *gin.Context) {
+	view, err := a.svc.GetSubscription(c.Request.Host)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
 }

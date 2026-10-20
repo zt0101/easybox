@@ -2486,6 +2486,10 @@
             "example": 1,
             "type": "integer"
           },
+          "inSubscription": {
+            "example": true,
+            "type": "boolean"
+          },
           "inboundId": {
             "example": 7,
             "type": "integer"
@@ -2525,6 +2529,7 @@
           "down",
           "failedStep",
           "id",
+          "inSubscription",
           "inboundId",
           "lastError",
           "name",
@@ -4739,6 +4744,46 @@
           "sortOrder",
           "strategy",
           "updatedAt"
+        ],
+        "type": "object"
+      },
+      "SubscriptionView": {
+        "description": "SubscriptionView is the \"My Subscription\" page (EasyBox.md §24): one URL for\nevery client, plus the lines it carries.",
+        "properties": {
+          "clashUrl": {
+            "example": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/EndpointView"
+                }
+              ],
+              "nullable": true
+            },
+            "type": "array"
+          },
+          "subId": {
+            "example": "3dllwqwd8kpj3i5e",
+            "type": "string"
+          },
+          "subUrl": {
+            "example": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+            "type": "string"
+          },
+          "updateInterval": {
+            "example": "12",
+            "type": "string"
+          }
+        },
+        "required": [
+          "clashUrl",
+          "lines",
+          "subId",
+          "subUrl",
+          "updateInterval"
         ],
         "type": "object"
       },
@@ -16642,6 +16687,7 @@
                       "down": 5242880,
                       "failedStep": "",
                       "id": 1,
+                      "inSubscription": true,
                       "inboundId": 7,
                       "lastError": "",
                       "name": "US-Oracle-01",
@@ -16707,6 +16753,7 @@
                     "down": 5242880,
                     "failedStep": "",
                     "id": 1,
+                    "inSubscription": true,
                     "inboundId": 7,
                     "lastError": "",
                     "name": "US-Oracle-01",
@@ -16810,6 +16857,104 @@
                       "type": "string"
                     },
                     "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/endpoints/setInSubscription/{id}": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Include or exclude a line from the merged subscription (upstream excludeFromSub). The line keeps running either way.",
+        "operationId": "post_panel_api_easybox_endpoints_setInSubscription_id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Line ID.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "include": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/subscription/info": {
+      "get": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "The merged subscription: one URL for every client (plus the Clash/Mihomo URL when enabled), the client refresh interval in hours, and the lines it carries.",
+        "operationId": "get_panel_api_easybox_subscription_info",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/SubscriptionView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "lines": [
+                      null
+                    ],
+                    "subId": "3dllwqwd8kpj3i5e",
+                    "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "updateInterval": "12"
                   }
                 }
               }

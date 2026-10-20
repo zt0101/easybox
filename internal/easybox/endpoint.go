@@ -52,19 +52,20 @@ type CreateEndpointRequest struct {
 // EndpointView is the API view of a line; port, enable state and traffic are read
 // live from the upstream Inbound.
 type EndpointView struct {
-	Id         int    `json:"id" example:"1"`
-	Name       string `json:"name" example:"US-Oracle-01"`
-	Protocol   string `json:"protocol" example:"vless"`
-	Template   string `json:"template" example:"vless-reality"`
-	Status     string `json:"status" example:"RUNNING"`
-	InboundId  int    `json:"inboundId" example:"7"`
-	Port       int    `json:"port" example:"20042"`
-	Address    string `json:"address" example:"node.example.com"`
-	Up         int64  `json:"up" example:"1048576"`
-	Down       int64  `json:"down" example:"5242880"`
-	FailedStep string `json:"failedStep" example:""`
-	LastError  string `json:"lastError" example:""`
-	CreatedAt  int64  `json:"createdAt" example:"1792500000000"`
+	Id             int    `json:"id" example:"1"`
+	Name           string `json:"name" example:"US-Oracle-01"`
+	Protocol       string `json:"protocol" example:"vless"`
+	Template       string `json:"template" example:"vless-reality"`
+	Status         string `json:"status" example:"RUNNING"`
+	InboundId      int    `json:"inboundId" example:"7"`
+	Port           int    `json:"port" example:"20042"`
+	Address        string `json:"address" example:"node.example.com"`
+	InSubscription bool   `json:"inSubscription" example:"true"`
+	Up             int64  `json:"up" example:"1048576"`
+	Down           int64  `json:"down" example:"5242880"`
+	FailedStep     string `json:"failedStep" example:""`
+	LastError      string `json:"lastError" example:""`
+	CreatedAt      int64  `json:"createdAt" example:"1792500000000"`
 }
 
 type Service struct {
@@ -254,6 +255,7 @@ func (s *Service) view(row *model.EasyboxEndpoint) *EndpointView {
 		return ep
 	}
 	ep.Port, ep.Up, ep.Down = ib.Port, ib.Up, ib.Down
+	ep.InSubscription = !ib.ExcludeFromSub
 	if ib.ShareAddrStrategy == "custom" {
 		ep.Address = ib.ShareAddr
 	}

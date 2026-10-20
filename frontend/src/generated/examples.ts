@@ -620,6 +620,7 @@ export const EXAMPLES: Record<string, unknown> = {
     "down": 5242880,
     "failedStep": "",
     "id": 1,
+    "inSubscription": true,
     "inboundId": 7,
     "lastError": "",
     "name": "US-Oracle-01",
@@ -1170,6 +1171,15 @@ export const EXAMPLES: Record<string, unknown> = {
     "sortOrder": 1,
     "strategy": "random",
     "updatedAt": 1710000000000
+  },
+  "SubscriptionView": {
+    "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+    "lines": [
+      null
+    ],
+    "subId": "3dllwqwd8kpj3i5e",
+    "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+    "updateInterval": "12"
   },
   "Traffic": {
     "Down": 2097152,

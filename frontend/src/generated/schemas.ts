@@ -2460,6 +2460,10 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": 1,
         "type": "integer"
       },
+      "inSubscription": {
+        "example": true,
+        "type": "boolean"
+      },
       "inboundId": {
         "example": 7,
         "type": "integer"
@@ -2499,6 +2503,7 @@ export const SCHEMAS: Record<string, unknown> = {
       "down",
       "failedStep",
       "id",
+      "inSubscription",
       "inboundId",
       "lastError",
       "name",
@@ -4713,6 +4718,46 @@ export const SCHEMAS: Record<string, unknown> = {
       "sortOrder",
       "strategy",
       "updatedAt"
+    ],
+    "type": "object"
+  },
+  "SubscriptionView": {
+    "description": "SubscriptionView is the \"My Subscription\" page (EasyBox.md §24): one URL for\nevery client, plus the lines it carries.",
+    "properties": {
+      "clashUrl": {
+        "example": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "lines": {
+        "items": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EndpointView"
+            }
+          ],
+          "nullable": true
+        },
+        "type": "array"
+      },
+      "subId": {
+        "example": "3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "subUrl": {
+        "example": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "updateInterval": {
+        "example": "12",
+        "type": "string"
+      }
+    },
+    "required": [
+      "clashUrl",
+      "lines",
+      "subId",
+      "subUrl",
+      "updateInterval"
     ],
     "type": "object"
   },
