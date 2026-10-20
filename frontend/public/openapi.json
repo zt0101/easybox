@@ -16962,6 +16962,51 @@
           }
         }
       }
+    },
+    "/panel/api/easybox/endpoints/link/{id}": {
+      "get": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Share link of one line (for Copy / QR), rendered by the subscription service so it matches the subscription entry.",
+        "operationId": "get_panel_api_easybox_endpoints_link_id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Line ID.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": "vless://22222222-3333-4444-9555-666666666666@node.example.com:20042?type=tcp&security=reality&...#US-Oracle-01"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

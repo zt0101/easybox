@@ -26,6 +26,7 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	e.POST("/create", a.createEndpoint)
 	e.POST("/del/:id", a.delEndpoint)
 	e.POST("/setEnable/:id", a.setEndpointEnable)
+	e.GET("/link/:id", a.endpointLink)
 	e.POST("/setInSubscription/:id", a.setEndpointInSubscription)
 	g.GET("/subscription/info", a.subscriptionInfo)
 }
@@ -103,4 +104,18 @@ func (a *EasyboxController) subscriptionInfo(c *gin.Context) {
 		return
 	}
 	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) endpointLink(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	l, err := a.svc.GetEndpointLink(id, c.Request.Host)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, l, nil)
 }

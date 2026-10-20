@@ -2846,6 +2846,15 @@ export const sections: readonly Section[] = [
           'The merged subscription: one URL for every client (plus the Clash/Mihomo URL when enabled), the client refresh interval in hours, and the lines it carries.',
         responseSchema: 'SubscriptionView',
       },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/endpoints/link/:id',
+        summary:
+          'Share link of one line (for Copy / QR), rendered by the subscription service so it matches the subscription entry.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        response:
+          '{\n  "success": true,\n  "obj": "vless://22222222-3333-4444-9555-666666666666@node.example.com:20042?type=tcp&security=reality&...#US-Oracle-01"\n}',
+      },
     ],
   },
 ];
