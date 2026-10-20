@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# EasyBox MVP-0 end-to-end check against a running panel + real Xray:
-# Quick Create → subscription link → real proxied request through the line → disable → delete.
+# EasyBox MVP-0 end-to-end check against a running panel + real Xray: Quick Create →
+# merged subscription (raw + Mihomo) → real proxied request → exclude/include → disable → delete.
 # Run inside the dev container: bash devenv/smoke-easybox.sh
 set -euo pipefail
 
 PANEL=${PANEL:-http://127.0.0.1:2053}
-SUB=${SUB:-http://127.0.0.1:2096}
 USER_NAME=${USER_NAME:-admin}
 USER_PASS=${USER_PASS:-admin}
 PROBE_URL=${PROBE_URL:-https://www.gstatic.com/generate_204}
@@ -23,6 +22,7 @@ api()  { # method path [json]
   curl -fsS -b "$JAR" -c "$JAR" -X "$1" -H "X-CSRF-Token: $token" \
     -H 'Content-Type: application/json' ${3:+--data "$3"} "$PANEL$2"
 }
+sub_code() { curl -s -o /dev/null -w '%{http_code}' "$sub_url"; }
 cleanup() {
   [ -n "$client_pid" ] && kill "$client_pid" 2>/dev/null || true
   [ -n "$line_id" ] && api POST "/panel/api/easybox/endpoints/del/$line_id" >/dev/null 2>&1 || true
@@ -37,17 +37,25 @@ curl -fsS -b "$JAR" -c "$JAR" -H "X-CSRF-Token: $token" \
   --data-urlencode "username=$USER_NAME" --data-urlencode "password=$USER_PASS" \
   "$PANEL/login" | jq -e '.success == true' >/dev/null || fail "login"
 ok "login"
-sub_path=$(api POST /panel/api/setting/all | jq -r .obj.subPath)
 
 res=$(api POST /panel/api/easybox/endpoints/create '{"name":"smoke-line","address":"127.0.0.1"}')
 jq -e '.success == true and .obj.status == "RUNNING"' <<<"$res" >/dev/null || fail "Quick Create: $res"
 line_id=$(jq -r .obj.id <<<"$res"); port=$(jq -r .obj.port <<<"$res")
 ok "Quick Create → RUNNING (line $line_id, port $port)"
 
-sub_id=$(sqlite3 /etc/x-ui/x-ui.db "select sub_id from easybox_subscriptions where is_default = 1;")
-link=$(curl -fsS "$SUB${sub_path}$sub_id" | base64 -d | grep "^vless://.*:$port?" | head -1)
+info=$(api GET /panel/api/easybox/subscription/info)
+sub_url=$(jq -r .obj.subUrl <<<"$info"); clash_url=$(jq -r .obj.clashUrl <<<"$info")
+[ -n "$sub_url" ] && [ "$sub_url" != null ] || fail "subscription info: $info"
+ok "subscription info: $sub_url"
+
+link=$(curl -fsS "$sub_url" | base64 -d | grep "^vless://.*:$port?" | head -1)
 [ -n "$link" ] || fail "subscription has no link for port $port"
-ok "merged subscription contains the line"
+[ "${link##*#}" = "smoke-line" ] || fail "link name is '${link##*#}', want the line name smoke-line"
+ok "merged subscription contains the line, named after it"
+
+[ -n "$clash_url" ] || fail "Clash/Mihomo subscription not enabled"
+curl -fsS -A "mihomo/1.19" "$clash_url" | grep -q "name: smoke-line" || fail "Clash/Mihomo YAML lacks the line"
+ok "Clash/Mihomo subscription serves the line"
 
 # Build an Xray client from the link: proves REALITY + Vision really proxy traffic.
 uuid=${link#vless://}; uuid=${uuid%%@*}
@@ -69,9 +77,14 @@ code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 --socks5-hostname 12
 ok "real request through the line: $PROBE_URL → 204"
 kill "$client_pid"; client_pid=""
 
+api POST "/panel/api/easybox/endpoints/setInSubscription/$line_id" '{"include":false}' | jq -e '.success == true' >/dev/null || fail "exclude"
+[ "$(sub_code)" = 404 ] || fail "subscription with only an excluded line returned $(sub_code) (want 404)"
+api POST "/panel/api/easybox/endpoints/setInSubscription/$line_id" '{"include":true}' | jq -e '.success == true' >/dev/null || fail "include"
+[ "$(sub_code)" = 200 ] || fail "subscription after re-include returned $(sub_code)"
+ok "exclude / include toggles the line in the subscription"
+
 api POST "/panel/api/easybox/endpoints/setEnable/$line_id" '{"enable":false}' | jq -e '.success == true' >/dev/null || fail "disable"
-code=$(curl -s -o /dev/null -w '%{http_code}' "$SUB${sub_path}$sub_id")
-[ "$code" = 404 ] || fail "subscription with only a disabled line returned $code (want 404)"
+[ "$(sub_code)" = 404 ] || fail "subscription with only a disabled line returned $(sub_code) (want 404)"
 ok "disabled line leaves the subscription"
 
 api POST "/panel/api/easybox/endpoints/del/$line_id" | jq -e '.success == true' >/dev/null || fail "delete"
