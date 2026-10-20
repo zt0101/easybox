@@ -2445,6 +2445,97 @@
         ],
         "type": "object"
       },
+      "CreateEndpointRequest": {
+        "properties": {
+          "address": {
+            "example": "node.example.com",
+            "type": "string"
+          },
+          "name": {
+            "example": "US-Oracle-01",
+            "type": "string"
+          }
+        },
+        "required": [
+          "address",
+          "name"
+        ],
+        "type": "object"
+      },
+      "EndpointView": {
+        "description": "EndpointView is the API view of a line; port, enable state and traffic are read\nlive from the upstream Inbound.",
+        "properties": {
+          "address": {
+            "example": "node.example.com",
+            "type": "string"
+          },
+          "createdAt": {
+            "example": 1792500000000,
+            "format": "int64",
+            "type": "integer"
+          },
+          "down": {
+            "example": 5242880,
+            "format": "int64",
+            "type": "integer"
+          },
+          "failedStep": {
+            "type": "string"
+          },
+          "id": {
+            "example": 1,
+            "type": "integer"
+          },
+          "inboundId": {
+            "example": 7,
+            "type": "integer"
+          },
+          "lastError": {
+            "type": "string"
+          },
+          "name": {
+            "example": "US-Oracle-01",
+            "type": "string"
+          },
+          "port": {
+            "example": 20042,
+            "type": "integer"
+          },
+          "protocol": {
+            "example": "vless",
+            "type": "string"
+          },
+          "status": {
+            "example": "RUNNING",
+            "type": "string"
+          },
+          "template": {
+            "example": "vless-reality",
+            "type": "string"
+          },
+          "up": {
+            "example": 1048576,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "address",
+          "createdAt",
+          "down",
+          "failedStep",
+          "id",
+          "inboundId",
+          "lastError",
+          "name",
+          "port",
+          "protocol",
+          "status",
+          "template",
+          "up"
+        ],
+        "type": "object"
+      },
       "FallbackParentInfo": {
         "description": "FallbackParentInfo carries everything the frontend needs to rewrite a\nchild inbound's client link: where to connect (the master's address\nand port) and which path matched on the master's fallbacks array.\nThe frontend already has the master inbound in its dbInbounds list,\nso we only ship identifiers + the match path here.",
         "properties": {
@@ -4872,6 +4963,10 @@
     {
       "name": "WebSocket",
       "description": "Real-time status updates via WebSocket. Connect once at <code>ws://<panel>/ws</code> to receive a stream of JSON messages without polling. Requires an authenticated session cookie (Bearer token auth is not supported). Each message has a <code>type</code> field that identifies the payload shape."
+    },
+    {
+      "name": "EasyBox",
+      "description": "EasyBox lines: one-click VLESS + REALITY endpoints built on upstream inbounds and merged into one subscription. All endpoints under /panel/api/easybox."
     }
   ],
   "paths": {
@@ -16507,6 +16602,220 @@
             }
           }
         ]
+      }
+    },
+    "/panel/api/easybox/endpoints/list": {
+      "get": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "List EasyBox lines. Port, enable state and traffic are read live from each line inbound; a line whose inbound was removed outside EasyBox reports ERROR.",
+        "operationId": "get_panel_api_easybox_endpoints_list",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EndpointView"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": [
+                    {
+                      "address": "node.example.com",
+                      "createdAt": 1792500000000,
+                      "down": 5242880,
+                      "failedStep": "",
+                      "id": 1,
+                      "inboundId": 7,
+                      "lastError": "",
+                      "name": "US-Oracle-01",
+                      "port": 20042,
+                      "protocol": "vless",
+                      "status": "RUNNING",
+                      "template": "vless-reality",
+                      "up": 1048576
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/endpoints/create": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Quick Create: generate port, REALITY keys and target, add the inbound, apply it and health-check it. On failure the inbound is removed and the returned line carries failedStep and lastError.",
+        "operationId": "post_panel_api_easybox_endpoints_create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "name": "US-Oracle-01",
+                "address": "node.example.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/EndpointView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "address": "node.example.com",
+                    "createdAt": 1792500000000,
+                    "down": 5242880,
+                    "failedStep": "",
+                    "id": 1,
+                    "inboundId": 7,
+                    "lastError": "",
+                    "name": "US-Oracle-01",
+                    "port": 20042,
+                    "protocol": "vless",
+                    "status": "RUNNING",
+                    "template": "vless-reality",
+                    "up": 1048576
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/endpoints/del/{id}": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Delete a line and its inbound. The subscription URL does not change.",
+        "operationId": "post_panel_api_easybox_endpoints_del_id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Line ID.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/endpoints/setEnable/{id}": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Enable or disable a line. A disabled line is left out of the subscription.",
+        "operationId": "post_panel_api_easybox_endpoints_setEnable_id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Line ID.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "enable": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

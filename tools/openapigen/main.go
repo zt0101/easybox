@@ -124,6 +124,10 @@ func run(root, outDir string) error {
 			Path:        resolveRel(root, "internal/tuic"),
 			StructAllow: setOf("TuicServerSettings", "TuicClientSettings"),
 		},
+		{
+			Path:        resolveRel(root, "internal/easybox"),
+			StructAllow: setOf("EndpointView", "CreateEndpointRequest"),
+		},
 	}
 
 	schemas, aliases, err := walkPackages(requests)

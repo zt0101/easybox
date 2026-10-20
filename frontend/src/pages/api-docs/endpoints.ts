@@ -2796,4 +2796,41 @@ export const sections: readonly Section[] = [
       },
     ],
   },
+  {
+    id: 'easybox',
+    title: 'EasyBox',
+    description:
+      'EasyBox lines: one-click VLESS + REALITY endpoints built on upstream inbounds and merged into one subscription. All endpoints under /panel/api/easybox.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/endpoints/list',
+        summary:
+          'List EasyBox lines. Port, enable state and traffic are read live from each line inbound; a line whose inbound was removed outside EasyBox reports ERROR.',
+        responseSchema: 'EndpointView',
+        responseSchemaArray: true,
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/create',
+        summary:
+          'Quick Create: generate port, REALITY keys and target, add the inbound, apply it and health-check it. On failure the inbound is removed and the returned line carries failedStep and lastError.',
+        body: '{\n  "name": "US-Oracle-01",\n  "address": "node.example.com"\n}',
+        responseSchema: 'EndpointView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/del/:id',
+        summary: 'Delete a line and its inbound. The subscription URL does not change.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/setEnable/:id',
+        summary: 'Enable or disable a line. A disabled line is left out of the subscription.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "enable": false\n}',
+      },
+    ],
+  },
 ];

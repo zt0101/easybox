@@ -2419,6 +2419,97 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "CreateEndpointRequest": {
+    "properties": {
+      "address": {
+        "example": "node.example.com",
+        "type": "string"
+      },
+      "name": {
+        "example": "US-Oracle-01",
+        "type": "string"
+      }
+    },
+    "required": [
+      "address",
+      "name"
+    ],
+    "type": "object"
+  },
+  "EndpointView": {
+    "description": "EndpointView is the API view of a line; port, enable state and traffic are read\nlive from the upstream Inbound.",
+    "properties": {
+      "address": {
+        "example": "node.example.com",
+        "type": "string"
+      },
+      "createdAt": {
+        "example": 1792500000000,
+        "format": "int64",
+        "type": "integer"
+      },
+      "down": {
+        "example": 5242880,
+        "format": "int64",
+        "type": "integer"
+      },
+      "failedStep": {
+        "type": "string"
+      },
+      "id": {
+        "example": 1,
+        "type": "integer"
+      },
+      "inboundId": {
+        "example": 7,
+        "type": "integer"
+      },
+      "lastError": {
+        "type": "string"
+      },
+      "name": {
+        "example": "US-Oracle-01",
+        "type": "string"
+      },
+      "port": {
+        "example": 20042,
+        "type": "integer"
+      },
+      "protocol": {
+        "example": "vless",
+        "type": "string"
+      },
+      "status": {
+        "example": "RUNNING",
+        "type": "string"
+      },
+      "template": {
+        "example": "vless-reality",
+        "type": "string"
+      },
+      "up": {
+        "example": 1048576,
+        "format": "int64",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "address",
+      "createdAt",
+      "down",
+      "failedStep",
+      "id",
+      "inboundId",
+      "lastError",
+      "name",
+      "port",
+      "protocol",
+      "status",
+      "template",
+      "up"
+    ],
+    "type": "object"
+  },
   "FallbackParentInfo": {
     "description": "FallbackParentInfo carries everything the frontend needs to rewrite a\nchild inbound's client link: where to connect (the master's address\nand port) and which path matched on the master's fallbacks array.\nThe frontend already has the master inbound in its dbInbounds list,\nso we only ship identifiers + the match path here.",
     "properties": {

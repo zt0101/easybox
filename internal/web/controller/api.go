@@ -231,6 +231,9 @@ func (a *APIController) initRouter(g *gin.RouterGroup) {
 	// Subscription balancers — client-side balancers for the JSON sub output
 	NewSubBalancerController(api)
 
+	// EasyBox product layer (EasyBox.md §68)
+	NewEasyboxController(api.Group("/easybox"))
+
 	// Extra routes
 	api.POST("/backuptotgbot", a.BackuptoTgbot)
 }

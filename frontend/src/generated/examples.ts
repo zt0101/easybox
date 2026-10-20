@@ -610,6 +610,25 @@ export const EXAMPLES: Record<string, unknown> = {
     "onlineCount": 1,
     "total": 2000
   },
+  "CreateEndpointRequest": {
+    "address": "node.example.com",
+    "name": "US-Oracle-01"
+  },
+  "EndpointView": {
+    "address": "node.example.com",
+    "createdAt": 1792500000000,
+    "down": 5242880,
+    "failedStep": "",
+    "id": 1,
+    "inboundId": 7,
+    "lastError": "",
+    "name": "US-Oracle-01",
+    "port": 20042,
+    "protocol": "vless",
+    "status": "RUNNING",
+    "template": "vless-reality",
+    "up": 1048576
+  },
   "FallbackParentInfo": {
     "masterId": 0,
     "path": ""

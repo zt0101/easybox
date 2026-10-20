@@ -14,6 +14,11 @@ import (
 // EnsureDefaultSubscription returns the default subscription user, creating it
 // on first use with a random email, SubID (the URL token) and UUID.
 func EnsureDefaultSubscription() (Identity, error) {
+	id, _, err := ensureDefaultSubscriptionRow()
+	return id, err
+}
+
+func ensureDefaultSubscriptionRow() (Identity, int, error) {
 	var row model.EasyboxSubscription
 	err := database.GetDB().Transaction(func(tx *gorm.DB) error {
 		err := tx.Where("is_default = ?", true).First(&row).Error
@@ -29,7 +34,7 @@ func EnsureDefaultSubscription() (Identity, error) {
 		return tx.Create(&row).Error
 	})
 	if err != nil {
-		return Identity{}, err
+		return Identity{}, 0, err
 	}
-	return Identity{Email: row.Email, SubID: row.SubID, UUID: row.UUID}, nil
+	return Identity{Email: row.Email, SubID: row.SubID, UUID: row.UUID}, row.Id, nil
 }

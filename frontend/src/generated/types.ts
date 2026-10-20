@@ -568,6 +568,27 @@ export interface ClientsSummary {
   total: number;
 }
 
+export interface CreateEndpointRequest {
+  address: string;
+  name: string;
+}
+
+export interface EndpointView {
+  address: string;
+  createdAt: number;
+  down: number;
+  failedStep: string;
+  id: number;
+  inboundId: number;
+  lastError: string;
+  name: string;
+  port: number;
+  protocol: string;
+  status: string;
+  template: string;
+  up: number;
+}
+
 export interface FallbackParentInfo {
   masterId: number;
   path?: string;

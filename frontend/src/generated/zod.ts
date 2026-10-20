@@ -599,6 +599,29 @@ export const ClientsSummarySchema = z.object({
 });
 export type ClientsSummary = z.infer<typeof ClientsSummarySchema>;
 
+export const CreateEndpointRequestSchema = z.object({
+  address: z.string(),
+  name: z.string(),
+});
+export type CreateEndpointRequest = z.infer<typeof CreateEndpointRequestSchema>;
+
+export const EndpointViewSchema = z.object({
+  address: z.string(),
+  createdAt: z.number().int(),
+  down: z.number().int(),
+  failedStep: z.string(),
+  id: z.number().int(),
+  inboundId: z.number().int(),
+  lastError: z.string(),
+  name: z.string(),
+  port: z.number().int(),
+  protocol: z.string(),
+  status: z.string(),
+  template: z.string(),
+  up: z.number().int(),
+});
+export type EndpointView = z.infer<typeof EndpointViewSchema>;
+
 export const FallbackParentInfoSchema = z.object({
   masterId: z.number().int(),
   path: z.string().optional(),

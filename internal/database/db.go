@@ -89,6 +89,8 @@ func allModels() []any {
 		&model.SubBalancer{},
 		&model.TuicTrafficReceipt{},
 		&model.EasyboxSubscription{},
+		&model.EasyboxEndpoint{},
+		&model.EasyboxAuditLog{},
 	}
 }
 
