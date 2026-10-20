@@ -21,7 +21,7 @@ type RealityParams struct {
 	PublicKey   string
 	Target      string
 	ServerNames []string
-	ShortID     string
+	ShortIDs    []string
 }
 
 const vlessVisionFlow = "xtls-rprx-vision"
@@ -104,7 +104,7 @@ func BuildVlessRealityInbound(name string, port int, id Identity, r RealityParam
 			Target:      r.Target,
 			ServerNames: r.ServerNames,
 			PrivateKey:  r.PrivateKey,
-			ShortIDs:    []string{r.ShortID},
+			ShortIDs:    r.ShortIDs,
 			Settings: realityClientSettings{
 				PublicKey:   r.PublicKey,
 				Fingerprint: "chrome",

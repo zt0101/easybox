@@ -2,6 +2,7 @@ package easybox
 
 import (
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database/dbtest"
@@ -21,7 +22,7 @@ var testReality = RealityParams{
 	PublicKey:   "Tx5yj1bRcOPHkdvT2pIAQ2zh0gQ8m4OPdnzqXJxxV3o",
 	Target:      "www.microsoft.com:443",
 	ServerNames: []string{"www.microsoft.com"},
-	ShortID:     "a1b2c3d4",
+	ShortIDs:    []string{"a1b2c3d4", "e5f6"},
 }
 
 func initTestDB(t *testing.T) {
@@ -81,12 +82,15 @@ func TestVlessRealityInbound_SubscriptionLinkParsesBack(t *testing.T) {
 	wantReality := map[string]any{
 		"publicKey":  testReality.PublicKey,
 		"serverName": "www.microsoft.com",
-		"shortId":    testReality.ShortID,
 	}
 	for k, want := range wantReality {
 		if reality[k] != want {
 			t.Errorf("realitySettings.%s = %v, want %v (link %q)", k, reality[k], want, links[0])
 		}
+	}
+	// Upstream picks a random shortId per link, so assert membership, not position.
+	if sid, _ := reality["shortId"].(string); !slices.Contains(testReality.ShortIDs, sid) {
+		t.Errorf("realitySettings.shortId = %q, want one of %v", sid, testReality.ShortIDs)
 	}
 }
 
