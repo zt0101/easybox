@@ -59,6 +59,19 @@ proxy_through() { # link port
   [ "$code" = 204 ] || { cat "$WORK/client.log"; return 1; }
 }
 
+# Same check for any protocol: upstream's link parser builds the client config,
+# the way a link-importing client does (devenv/linkclient).
+proxy_through_link() { # link
+  go run ./devenv/linkclient "$1" > "$WORK/client.json" || return 1
+  "$XRAY" run -c "$WORK/client.json" > "$WORK/client.log" 2>&1 &
+  client_pid=$!
+  sleep 2
+  local code
+  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 --socks5-hostname 127.0.0.1:10808 "$PROBE_URL" || true)
+  kill "$client_pid" 2>/dev/null || true; wait "$client_pid" 2>/dev/null || true; client_pid=""
+  [ "$code" = 204 ] || { cat "$WORK/client.log"; return 1; }
+}
+
 echo "EasyBox smoke test"
 
 token=$(csrf)
@@ -125,5 +138,16 @@ api POST "/panel/api/easybox/endpoints/del/$line_id" | jq -e '.success == true' 
 line_id=""
 api GET /panel/api/easybox/endpoints/list | jq -e '[.obj[] | select(.name == "smoke-line")] | length == 0' >/dev/null || fail "list after delete"
 ok "delete removes the line"
+
+res=$(api POST /panel/api/easybox/endpoints/create '{"template":"hysteria2","name":"smoke-hy2","address":"127.0.0.1"}')
+jq -e '.success == true and .obj.status == "RUNNING" and .obj.transport == "udp"' <<<"$res" >/dev/null || fail "Hysteria2 Quick Create: $res"
+line_id=$(jq -r .obj.id <<<"$res"); port=$(jq -r .obj.port <<<"$res")
+link=$(api GET "/panel/api/easybox/endpoints/link/$line_id" | jq -r .obj)
+grep -q "pinSHA256=" <<<"$link" || fail "Hysteria2 link without certificate pin: $link"
+[ -n "$(curl -fsS "$sub_url" | base64 -d | grep "^hysteria2://.*:$port?")" ] || fail "Hysteria2 line missing from the subscription"
+proxy_through_link "$link" || fail "request through the Hysteria2 line failed"
+ok "Hysteria2 (self-signed, pinned, salamander) → RUNNING, in subscription, proxies"
+api POST "/panel/api/easybox/endpoints/del/$line_id" | jq -e '.success == true' >/dev/null || fail "delete Hysteria2 line"
+line_id=""
 
 echo "PASS"
