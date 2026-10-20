@@ -4239,6 +4239,36 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "PreviewView": {
+    "description": "PreviewView is what one client would receive from the subscription (§43).",
+    "properties": {
+      "body": {
+        "example": "{\"outbounds\": []}",
+        "type": "string"
+      },
+      "client": {
+        "example": "singbox",
+        "type": "string"
+      },
+      "format": {
+        "example": "singbox",
+        "type": "string"
+      },
+      "skipped": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "body",
+      "client",
+      "format",
+      "skipped"
+    ],
+    "type": "object"
+  },
   "ProbeResultUI": {
     "properties": {
       "cpuPct": {

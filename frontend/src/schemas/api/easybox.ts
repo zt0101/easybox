@@ -1,9 +1,14 @@
 import { z } from 'zod';
 
-import { EndpointViewSchema, SubscriptionViewSchema, TemplateViewSchema } from '@/generated/zod';
+import {
+  EndpointViewSchema,
+  PreviewViewSchema,
+  SubscriptionViewSchema,
+  TemplateViewSchema,
+} from '@/generated/zod';
 
-export { EndpointViewSchema, SubscriptionViewSchema };
-export type { EndpointView, SubscriptionView, TemplateView } from '@/generated/zod';
+export { EndpointViewSchema, PreviewViewSchema, SubscriptionViewSchema };
+export type { EndpointView, PreviewView, SubscriptionView, TemplateView } from '@/generated/zod';
 
 export const EndpointListSchema = z.array(EndpointViewSchema);
 export const TemplateListSchema = z.array(TemplateViewSchema);

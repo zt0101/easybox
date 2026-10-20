@@ -2824,7 +2824,12 @@
       "rotate": "重置订阅地址",
       "rotateConfirmTitle": "确定重置订阅地址？",
       "rotateConfirm": "订阅地址泄露时使用。旧地址立即失效，所有线路换用新凭据，每个客户端都需要重新导入新地址。",
-      "rotated": "订阅地址已重置"
+      "rotated": "订阅地址已重置",
+      "preview": "模拟客户端预览",
+      "previewHint": "查看每种客户端从上面这个地址实际拿到的内容。",
+      "previewFormat": "格式：{format}",
+      "previewSkipped": "这些线路不会发给该客户端（它无法使用）：",
+      "previewEmpty": "没有可发给该客户端的内容。"
     },
     "templates": {
       "vless-reality": "REALITY · 无需域名和证书 · TCP",

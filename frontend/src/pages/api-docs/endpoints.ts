@@ -2856,6 +2856,21 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'GET',
+        path: '/panel/api/easybox/subscription/preview',
+        summary:
+          'Preview what one client would receive from the universal subscription, rendered by the same code the subscription server uses (raw links shown decoded). skipped explains lines left out for that client.',
+        params: [
+          {
+            name: 'client',
+            in: 'query',
+            type: 'string',
+            desc: 'v2rayn, shadowrocket, passwall, mihomo or singbox.',
+          },
+        ],
+        responseSchema: 'PreviewView',
+      },
+      {
+        method: 'GET',
         path: '/panel/api/easybox/endpoints/link/:id',
         summary:
           'Share link of one line (for Copy / QR), rendered by the subscription service so it matches the subscription entry.',

@@ -30,6 +30,7 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	e.POST("/setInSubscription/:id", a.setEndpointInSubscription)
 	e.POST("/regenerate/:id", a.regenerateEndpoint)
 	g.GET("/templates", a.listTemplates)
+	g.GET("/subscription/preview", a.previewSubscription)
 	g.POST("/subscription/rotate", a.rotateSubscription)
 	g.GET("/subscription/info", a.subscriptionInfo)
 }
@@ -159,4 +160,13 @@ func (a *EasyboxController) rotateSubscription(c *gin.Context) {
 
 func (a *EasyboxController) listTemplates(c *gin.Context) {
 	jsonObj(c, a.svc.ListTemplates(), nil)
+}
+
+func (a *EasyboxController) previewSubscription(c *gin.Context) {
+	view, err := a.svc.PreviewSubscription(c.Query("client"), c.Request.Host)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
 }

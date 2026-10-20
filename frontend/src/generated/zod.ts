@@ -1028,6 +1028,14 @@ export const PeerActivitySchema = z.object({
 });
 export type PeerActivity = z.infer<typeof PeerActivitySchema>;
 
+export const PreviewViewSchema = z.object({
+  body: z.string(),
+  client: z.string(),
+  format: z.string(),
+  skipped: z.array(z.string()),
+});
+export type PreviewView = z.infer<typeof PreviewViewSchema>;
+
 export const ProbeResultUISchema = z.object({
   cpuPct: z.number(),
   error: z.string(),

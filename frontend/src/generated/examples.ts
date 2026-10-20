@@ -1046,6 +1046,14 @@ export const EXAMPLES: Record<string, unknown> = {
     "tag": "inbound-51820",
     "up": 1048576
   },
+  "PreviewView": {
+    "body": "{\"outbounds\": []}",
+    "client": "singbox",
+    "format": "singbox",
+    "skipped": [
+      ""
+    ]
+  },
   "ProbeResultUI": {
     "cpuPct": 12.5,
     "error": "",

@@ -4265,6 +4265,36 @@
         ],
         "type": "object"
       },
+      "PreviewView": {
+        "description": "PreviewView is what one client would receive from the subscription (§43).",
+        "properties": {
+          "body": {
+            "example": "{\"outbounds\": []}",
+            "type": "string"
+          },
+          "client": {
+            "example": "singbox",
+            "type": "string"
+          },
+          "format": {
+            "example": "singbox",
+            "type": "string"
+          },
+          "skipped": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "body",
+          "client",
+          "format",
+          "skipped"
+        ],
+        "type": "object"
+      },
       "ProbeResultUI": {
         "properties": {
           "cpuPct": {
@@ -17054,6 +17084,60 @@
                     "subId": "3dllwqwd8kpj3i5e",
                     "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
                     "updateInterval": "12"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/subscription/preview": {
+      "get": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Preview what one client would receive from the universal subscription, rendered by the same code the subscription server uses (raw links shown decoded). skipped explains lines left out for that client.",
+        "operationId": "get_panel_api_easybox_subscription_preview",
+        "parameters": [
+          {
+            "name": "client",
+            "in": "query",
+            "required": true,
+            "description": "v2rayn, shadowrocket, passwall, mihomo or singbox.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/PreviewView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "body": "{\"outbounds\": []}",
+                    "client": "singbox",
+                    "format": "singbox",
+                    "skipped": [
+                      ""
+                    ]
                   }
                 }
               }

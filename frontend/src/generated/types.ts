@@ -967,6 +967,13 @@ export interface PeerActivity {
   up: number;
 }
 
+export interface PreviewView {
+  body: string;
+  client: string;
+  format: string;
+  skipped: string[];
+}
+
 export interface ProbeResultUI {
   cpuPct: number;
   error: string;

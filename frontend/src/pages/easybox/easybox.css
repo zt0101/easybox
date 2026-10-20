@@ -74,3 +74,13 @@ button.easybox-protocol:focus-visible {
 button.easybox-protocol:disabled {
   cursor: not-allowed;
 }
+
+.easybox-preview {
+  max-height: 420px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--ant-color-fill-quaternary);
+  white-space: pre;
+}

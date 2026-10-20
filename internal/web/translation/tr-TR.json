@@ -2824,7 +2824,12 @@
       "rotate": "Reset subscription address",
       "rotateConfirmTitle": "Reset the subscription address?",
       "rotateConfirm": "Use this if the address leaked. The old address stops working at once and every line gets new credentials, so every client has to import the new address.",
-      "rotated": "Subscription address reset"
+      "rotated": "Subscription address reset",
+      "preview": "Preview as a client",
+      "previewHint": "See exactly what each client receives from the address above.",
+      "previewFormat": "Format: {format}",
+      "previewSkipped": "Left out for this client (it could not use them):",
+      "previewEmpty": "Nothing to send to this client."
     },
     "templates": {
       "vless-reality": "REALITY · no domain or certificate needed · TCP",

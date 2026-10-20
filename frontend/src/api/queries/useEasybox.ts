@@ -6,9 +6,11 @@ import { keys } from '@/api/queryKeys';
 import {
   EndpointListSchema,
   EndpointViewSchema,
+  PreviewViewSchema,
   SubscriptionViewSchema,
   TemplateListSchema,
   type EndpointView,
+  type PreviewView,
   type QuickCreateFormValues,
   type SubscriptionView,
   type TemplateView,
@@ -48,6 +50,27 @@ async function fetchTemplates(): Promise<TemplateView[]> {
 
 export function useEasyboxTemplates() {
   return useQuery({ queryKey: keys.easybox.templates(), queryFn: fetchTemplates });
+}
+
+async function fetchPreview(client: string): Promise<PreviewView> {
+  const msg = await HttpUtil.get(
+    '/panel/api/easybox/subscription/preview',
+    { client },
+    {
+      silent: true,
+    },
+  );
+  if (!msg?.success || !msg.obj) throw new Error(msg?.msg || 'Failed to render the preview');
+  return parseMsg(msg, PreviewViewSchema, 'easybox/subscription/preview').obj as PreviewView;
+}
+
+// Rendered on demand: only once the admin picked a client to preview as.
+export function useEasyboxPreview(client: string | null) {
+  return useQuery({
+    queryKey: keys.easybox.preview(client ?? ''),
+    queryFn: () => fetchPreview(client ?? ''),
+    enabled: client !== null,
+  });
 }
 
 export interface CreateResult {

@@ -19,6 +19,7 @@ import { ClipboardManager } from '@/utils';
 import { useEasyboxMutations, useEasyboxSubscription } from '@/api/queries/useEasybox';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 import LinkQrModal from './LinkQrModal';
+import PreviewCard from './PreviewCard';
 
 export default function SubscriptionPage() {
   return <EasyboxShell>{(api) => <Subscription {...api} />}</EasyboxShell>;
@@ -159,6 +160,8 @@ function Subscription({ messageApi, modal }: EasyboxPageApi) {
           </Space>
         )}
       </Card>
+
+      <PreviewCard />
 
       <LinkQrModal
         open={qrUrl !== ''}
