@@ -612,7 +612,8 @@ export const EXAMPLES: Record<string, unknown> = {
   },
   "CreateEndpointRequest": {
     "address": "node.example.com",
-    "name": "US-Oracle-01"
+    "name": "US-Oracle-01",
+    "template": "vless-reality"
   },
   "EndpointView": {
     "address": "node.example.com",
@@ -628,6 +629,7 @@ export const EXAMPLES: Record<string, unknown> = {
     "protocol": "vless",
     "status": "RUNNING",
     "template": "vless-reality",
+    "transport": "tcp",
     "up": 1048576
   },
   "FallbackParentInfo": {
@@ -1180,6 +1182,14 @@ export const EXAMPLES: Record<string, unknown> = {
     "subId": "3dllwqwd8kpj3i5e",
     "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
     "updateInterval": "12"
+  },
+  "TemplateView": {
+    "available": false,
+    "id": "tuic",
+    "name": "TUIC v5",
+    "protocol": "tuic",
+    "reason": "no trusted TLS certificate: set the panel certificate first",
+    "transport": "udp"
   },
   "Traffic": {
     "Down": 2097152,

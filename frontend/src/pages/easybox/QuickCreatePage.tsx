@@ -11,6 +11,7 @@ import {
   fetchEndpointLink,
   useEasyboxMutations,
   useEasyboxSubscription,
+  useEasyboxTemplates,
   type CreateResult,
 } from '@/api/queries/useEasybox';
 import { QuickCreateFormSchema, type QuickCreateFormValues } from '@/schemas/api/easybox';
@@ -18,12 +19,6 @@ import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 
 // Quick Create's steps in the order the backend runs them (EasyBox.md §12).
 const CREATE_STEPS = ['prepare', 'create_inbound', 'apply_runtime', 'health_check'] as const;
-
-const PROTOCOLS = [
-  { key: 'vless', name: 'VLESS', available: true },
-  { key: 'hysteria2', name: 'Hysteria2', available: false },
-  { key: 'tuic', name: 'TUIC', available: false },
-] as const;
 
 export default function QuickCreatePage() {
   return <EasyboxShell>{(api) => <QuickCreate {...api} />}</EasyboxShell>;
@@ -34,12 +29,14 @@ function QuickCreate({ messageApi }: EasyboxPageApi) {
   const navigate = useNavigate();
   const { create, creating } = useEasyboxMutations();
   const subscription = useEasyboxSubscription();
+  const templates = useEasyboxTemplates();
+  const [template, setTemplate] = useState('vless-reality');
   const [result, setResult] = useState<CreateResult | null>(null);
   const methods = useZodForm(QuickCreateFormSchema, { defaultValues: { name: '', address: '' } });
 
   const submit = methods.handleSubmit(async (values: QuickCreateFormValues) => {
     setResult(null);
-    setResult(await create(values));
+    setResult(await create({ ...values, template }));
   });
 
   const copy = async (text: string) => {
@@ -63,17 +60,22 @@ function QuickCreate({ messageApi }: EasyboxPageApi) {
         <div>
           <Typography.Text strong>{t('easybox.create.protocol')}</Typography.Text>
           <div className="easybox-protocols" style={{ marginTop: 8 }}>
-            {PROTOCOLS.map((p) => (
-              <div
-                key={p.key}
-                className={`easybox-protocol${p.available ? ' is-selected' : ' is-disabled'}`}
-                aria-disabled={!p.available}
+            {(templates.data ?? []).map((tpl) => (
+              <button
+                type="button"
+                key={tpl.id}
+                className={`easybox-protocol${tpl.id === template ? ' is-selected' : ''}${tpl.available ? '' : ' is-disabled'}`}
+                aria-pressed={tpl.id === template}
+                disabled={!tpl.available}
+                onClick={() => setTemplate(tpl.id)}
               >
-                <Typography.Text strong>{p.name}</Typography.Text>
+                <Typography.Text strong>{tpl.name}</Typography.Text>
                 <span className="easybox-protocol-hint">
-                  {p.available ? t('easybox.create.vlessHint') : t('easybox.create.moreSoon')}
+                  {tpl.available
+                    ? t(`easybox.templates.${tpl.id}`)
+                    : t('easybox.create.needsCertificate')}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -112,7 +114,12 @@ function QuickCreate({ messageApi }: EasyboxPageApi) {
             message={t('easybox.create.successTitle', { name: result.line.name })}
             description={
               <Space direction="vertical">
-                <span>{t('easybox.create.firewallHint', { port: result.line.port })}</span>
+                <span>
+                  {t('easybox.create.firewallHint', {
+                    port: result.line.port,
+                    transport: result.line.transport.toUpperCase(),
+                  })}
+                </span>
                 <Space wrap>
                   <Button
                     icon={<CopyOutlined />}

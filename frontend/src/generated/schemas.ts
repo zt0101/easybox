@@ -2428,11 +2428,16 @@ export const SCHEMAS: Record<string, unknown> = {
       "name": {
         "example": "US-Oracle-01",
         "type": "string"
+      },
+      "template": {
+        "example": "vless-reality",
+        "type": "string"
       }
     },
     "required": [
       "address",
-      "name"
+      "name",
+      "template"
     ],
     "type": "object"
   },
@@ -2491,6 +2496,10 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "vless-reality",
         "type": "string"
       },
+      "transport": {
+        "example": "tcp",
+        "type": "string"
+      },
       "up": {
         "example": 1048576,
         "format": "int64",
@@ -2511,6 +2520,7 @@ export const SCHEMAS: Record<string, unknown> = {
       "protocol",
       "status",
       "template",
+      "transport",
       "up"
     ],
     "type": "object"
@@ -4758,6 +4768,44 @@ export const SCHEMAS: Record<string, unknown> = {
       "subId",
       "subUrl",
       "updateInterval"
+    ],
+    "type": "object"
+  },
+  "TemplateView": {
+    "description": "TemplateView lists a template for Quick Create (EasyBox.md §69).",
+    "properties": {
+      "available": {
+        "example": false,
+        "type": "boolean"
+      },
+      "id": {
+        "example": "tuic",
+        "type": "string"
+      },
+      "name": {
+        "example": "TUIC v5",
+        "type": "string"
+      },
+      "protocol": {
+        "example": "tuic",
+        "type": "string"
+      },
+      "reason": {
+        "example": "no trusted TLS certificate: set the panel certificate first",
+        "type": "string"
+      },
+      "transport": {
+        "example": "udp",
+        "type": "string"
+      }
+    },
+    "required": [
+      "available",
+      "id",
+      "name",
+      "protocol",
+      "reason",
+      "transport"
     ],
     "type": "object"
   },

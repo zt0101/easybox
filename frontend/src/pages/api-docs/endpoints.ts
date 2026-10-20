@@ -2804,6 +2804,14 @@ export const sections: readonly Section[] = [
     endpoints: [
       {
         method: 'GET',
+        path: '/panel/api/easybox/templates',
+        summary:
+          'Line templates for Quick Create (vless-reality, hysteria2, tuic) with transport and availability. TUIC is unavailable until the panel has a trusted TLS certificate, since TUIC links never allow insecure TLS.',
+        responseSchema: 'TemplateView',
+        responseSchemaArray: true,
+      },
+      {
+        method: 'GET',
         path: '/panel/api/easybox/endpoints/list',
         summary:
           'List EasyBox lines. Port, enable state and traffic are read live from each line inbound; a line whose inbound was removed outside EasyBox reports ERROR.',
@@ -2815,7 +2823,7 @@ export const sections: readonly Section[] = [
         path: '/panel/api/easybox/endpoints/create',
         summary:
           'Quick Create: generate port, REALITY keys and target, add the inbound, apply it and health-check it. On failure the inbound is removed and the returned line carries failedStep and lastError.',
-        body: '{\n  "name": "US-Oracle-01",\n  "address": "node.example.com"\n}',
+        body: '{\n  "template": "vless-reality",\n  "name": "US-Oracle-01",\n  "address": "node.example.com"\n}',
         responseSchema: 'EndpointView',
       },
       {

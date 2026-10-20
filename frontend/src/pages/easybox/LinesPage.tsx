@@ -78,7 +78,7 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
           <Typography.Text strong>{line.name}</Typography.Text>
           {line.port > 0 && (
             <span className="easybox-mono">
-              {(line.address || window.location.hostname) + ':' + line.port}
+              {`${line.address || window.location.hostname}:${line.port}/${line.transport}`}
             </span>
           )}
         </Space>

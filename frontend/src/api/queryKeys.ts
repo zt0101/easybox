@@ -4,6 +4,7 @@ export const keys = {
     root: () => ['easybox'] as const,
     endpoints: () => ['easybox', 'endpoints'] as const,
     subscription: () => ['easybox', 'subscription'] as const,
+    templates: () => ['easybox', 'templates'] as const,
   },
   server: {
     status: () => ['server', 'status'] as const,

@@ -7,9 +7,11 @@ import {
   EndpointListSchema,
   EndpointViewSchema,
   SubscriptionViewSchema,
+  TemplateListSchema,
   type EndpointView,
   type QuickCreateFormValues,
   type SubscriptionView,
+  type TemplateView,
 } from '@/schemas/api/easybox';
 
 const JSON_HEADERS = { headers: { 'Content-Type': 'application/json' } };
@@ -37,6 +39,17 @@ export function useEasyboxSubscription() {
   return useQuery({ queryKey: keys.easybox.subscription(), queryFn: fetchSubscription });
 }
 
+async function fetchTemplates(): Promise<TemplateView[]> {
+  const msg = await HttpUtil.get('/panel/api/easybox/templates', undefined, { silent: true });
+  if (!msg?.success) throw new Error(msg?.msg || 'Failed to fetch templates');
+  const validated = parseMsg(msg, TemplateListSchema, 'easybox/templates');
+  return Array.isArray(validated.obj) ? validated.obj : [];
+}
+
+export function useEasyboxTemplates() {
+  return useQuery({ queryKey: keys.easybox.templates(), queryFn: fetchTemplates });
+}
+
 export interface CreateResult {
   ok: boolean;
   line: EndpointView | null;
@@ -50,7 +63,9 @@ export function useEasyboxMutations() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: keys.easybox.root() });
 
   const createMut = useMutation({
-    mutationFn: async (values: QuickCreateFormValues): Promise<CreateResult> => {
+    mutationFn: async (
+      values: QuickCreateFormValues & { template: string },
+    ): Promise<CreateResult> => {
       const msg = await HttpUtil.post('/panel/api/easybox/endpoints/create', values, {
         ...JSON_HEADERS,
         silent: true,

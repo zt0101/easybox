@@ -20,7 +20,7 @@ func newTestService(restartErr, healthErr error) *Service {
 		Ports:   PortRange{Min: 20000, Max: 20099},
 		reality: func() (RealityParams, error) { return testReality, nil },
 		restart: func() error { return restartErr },
-		health:  func(int) error { return healthErr },
+		health:  func(int, string) error { return healthErr },
 	}
 }
 

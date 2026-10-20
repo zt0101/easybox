@@ -12,7 +12,7 @@ import (
 )
 
 // EnsureDefaultSubscription returns the default subscription user, creating it
-// on first use with a random email, SubID (the URL token) and UUID.
+// on first use with a random email, SubID (the URL token) and credentials.
 func EnsureDefaultSubscription() (Identity, error) {
 	id, _, err := ensureDefaultSubscriptionRow()
 	return id, err
@@ -22,19 +22,37 @@ func ensureDefaultSubscriptionRow() (Identity, int, error) {
 	var row model.EasyboxSubscription
 	err := database.GetDB().Transaction(func(tx *gorm.DB) error {
 		err := tx.Where("is_default = ?", true).First(&row).Error
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			row = model.EasyboxSubscription{
+				Email:     "easybox-" + random.NumLower(8),
+				SubID:     random.NumLower(16),
+				UUID:      uuid.NewString(),
+				Auth:      random.NumLower(16),
+				Password:  random.NumLower(16),
+				IsDefault: true,
+			}
+			return tx.Create(&row).Error
+		case err != nil:
 			return err
+		case row.Auth == "" || row.Password == "":
+			// Rows from before Hysteria2/TUIC support carry no Auth / Password yet.
+			if row.Auth == "" {
+				row.Auth = random.NumLower(16)
+			}
+			if row.Password == "" {
+				row.Password = random.NumLower(16)
+			}
+			return tx.Save(&row).Error
 		}
-		row = model.EasyboxSubscription{
-			Email:     "easybox-" + random.NumLower(8),
-			SubID:     random.NumLower(16),
-			UUID:      uuid.NewString(),
-			IsDefault: true,
-		}
-		return tx.Create(&row).Error
+		return nil
 	})
 	if err != nil {
 		return Identity{}, 0, err
 	}
-	return Identity{Email: row.Email, SubID: row.SubID, UUID: row.UUID}, row.Id, nil
+	return identityFromRow(row), row.Id, nil
+}
+
+func identityFromRow(row model.EasyboxSubscription) Identity {
+	return Identity{Email: row.Email, SubID: row.SubID, UUID: row.UUID, Auth: row.Auth, Password: row.Password}
 }

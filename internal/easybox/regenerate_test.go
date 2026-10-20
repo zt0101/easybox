@@ -65,7 +65,7 @@ func TestRegenerateEndpoint_FailureKeepsOldLine(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	svc.health = func(int) error { return errors.New("port not accepting connections") }
+	svc.health = func(int, string) error { return errors.New("port not accepting connections") }
 	_, err = svc.RegenerateEndpoint(ep.Id, false)
 	var stepErr *StepError
 	if !errors.As(err, &stepErr) || stepErr.Step != StepHealthCheck {

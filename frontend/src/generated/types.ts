@@ -571,6 +571,7 @@ export interface ClientsSummary {
 export interface CreateEndpointRequest {
   address: string;
   name: string;
+  template: string;
 }
 
 export interface EndpointView {
@@ -587,6 +588,7 @@ export interface EndpointView {
   protocol: string;
   status: string;
   template: string;
+  transport: string;
   up: number;
 }
 
@@ -1084,6 +1086,15 @@ export interface SubscriptionView {
   subId: string;
   subUrl: string;
   updateInterval: string;
+}
+
+export interface TemplateView {
+  available: boolean;
+  id: string;
+  name: string;
+  protocol: string;
+  reason: string;
+  transport: string;
 }
 
 export interface Traffic {

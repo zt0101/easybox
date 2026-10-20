@@ -29,6 +29,7 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	e.GET("/link/:id", a.endpointLink)
 	e.POST("/setInSubscription/:id", a.setEndpointInSubscription)
 	e.POST("/regenerate/:id", a.regenerateEndpoint)
+	g.GET("/templates", a.listTemplates)
 	g.POST("/subscription/rotate", a.rotateSubscription)
 	g.GET("/subscription/info", a.subscriptionInfo)
 }
@@ -154,4 +155,8 @@ func (a *EasyboxController) rotateSubscription(c *gin.Context) {
 		return
 	}
 	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) listTemplates(c *gin.Context) {
+	jsonObj(c, a.svc.ListTemplates(), nil)
 }

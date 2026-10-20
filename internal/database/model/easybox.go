@@ -7,6 +7,8 @@ type EasyboxSubscription struct {
 	Email     string `json:"email" gorm:"uniqueIndex;not null"`
 	SubID     string `json:"subId" gorm:"uniqueIndex;not null;column:sub_id"`
 	UUID      string `json:"uuid" gorm:"not null;column:uuid"`
+	Auth      string `json:"auth" gorm:"column:auth"`
+	Password  string `json:"password" gorm:"column:password"`
 	IsDefault bool   `json:"isDefault" gorm:"index;not null;default:false"`
 	CreatedAt int64  `json:"createdAt" gorm:"autoCreateTime:milli"`
 }

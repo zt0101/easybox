@@ -14,6 +14,10 @@ type Identity struct {
 	Email string
 	SubID string
 	UUID  string
+	// Auth (Hysteria2) and Password (TUIC) sit beside UUID so one subscription
+	// user spans every protocol.
+	Auth     string
+	Password string
 }
 
 type RealityParams struct {

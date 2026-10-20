@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"gorm.io/gorm"
@@ -34,8 +35,6 @@ const (
 	StepHealthCheck   = "health_check"
 )
 
-const templateVlessReality = "vless-reality"
-
 type StepError struct {
 	Step string
 	Err  error
@@ -45,8 +44,9 @@ func (e *StepError) Error() string { return e.Step + ": " + e.Err.Error() }
 func (e *StepError) Unwrap() error { return e.Err }
 
 type CreateEndpointRequest struct {
-	Name    string `json:"name" form:"name" example:"US-Oracle-01"`
-	Address string `json:"address" form:"address" example:"node.example.com"`
+	Template string `json:"template" form:"template" example:"vless-reality"`
+	Name     string `json:"name" form:"name" example:"US-Oracle-01"`
+	Address  string `json:"address" form:"address" example:"node.example.com"`
 }
 
 // EndpointView is the API view of a line; port, enable state and traffic are read
@@ -55,6 +55,7 @@ type EndpointView struct {
 	Id             int    `json:"id" example:"1"`
 	Name           string `json:"name" example:"US-Oracle-01"`
 	Protocol       string `json:"protocol" example:"vless"`
+	Transport      string `json:"transport" example:"tcp"`
 	Template       string `json:"template" example:"vless-reality"`
 	Status         string `json:"status" example:"RUNNING"`
 	InboundId      int    `json:"inboundId" example:"7"`
@@ -77,7 +78,7 @@ type Service struct {
 	xray     service.XrayService
 	reality  func() (RealityParams, error)
 	restart  func() error
-	health   func(port int) error
+	health   func(port int, transport string) error
 }
 
 func NewService() *Service {
@@ -85,7 +86,12 @@ func NewService() *Service {
 	server := &service.ServerService{}
 	s.reality = func() (RealityParams, error) { return GenerateRealityParams(server) }
 	s.restart = func() error { return s.xray.RestartXray(false) }
-	s.health = func(port int) error { return probeLocalPort(&s.xray, port, 10*time.Second) }
+	s.health = func(port int, transport string) error {
+		if transport == transportUDP {
+			return probeLocalUDP(port, 10*time.Second)
+		}
+		return probeLocalPort(&s.xray, port, 10*time.Second)
+	}
 	return s
 }
 
@@ -99,7 +105,11 @@ func (s *Service) CreateEndpoint(req CreateEndpointRequest) (*EndpointView, erro
 
 func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error) {
 	db := database.GetDB()
-	row := &model.EasyboxEndpoint{Name: strings.TrimSpace(req.Name), Template: templateVlessReality, Status: StatusCreating}
+	tpl, ok := templateByID(req.Template)
+	if !ok {
+		return nil, fmt.Errorf("unknown line template %q", req.Template)
+	}
+	row := &model.EasyboxEndpoint{Name: strings.TrimSpace(req.Name), Template: tpl.id, Status: StatusCreating}
 	if err := db.Create(row).Error; err != nil {
 		return nil, err
 	}
@@ -109,7 +119,7 @@ func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error)
 		err = &StepError{Step: StepPrepare, Err: err}
 	} else {
 		row.SubscriptionId = subscriptionID
-		p, err = s.provision(row.Name, req.Address, id)
+		p, err = s.provision(tpl, row.Name, req.Address, id)
 	}
 	if err != nil {
 		var stepErr *StepError
@@ -136,17 +146,13 @@ type provisioned struct {
 	name      string
 }
 
-// provision brings up one new VLESS+REALITY inbound for id. On failure it
-// leaves no inbound behind and returns a *StepError naming the failed step.
-func (s *Service) provision(name, address string, id Identity) (provisioned, error) {
+// provision brings up one new inbound from tpl for id. On failure it leaves no
+// inbound behind and returns a *StepError naming the failed step.
+func (s *Service) provision(tpl lineTemplate, name, address string, id Identity) (provisioned, error) {
 	fail := func(step string, err error) (provisioned, error) {
 		return provisioned{}, &StepError{Step: step, Err: err}
 	}
-	reality, err := s.reality()
-	if err != nil {
-		return fail(StepPrepare, err)
-	}
-	ib, err := BuildVlessRealityInbound(name, 0, id, reality)
+	ib, err := tpl.build(s, name, id)
 	if err != nil {
 		return fail(StepPrepare, err)
 	}
@@ -158,7 +164,7 @@ func (s *Service) provision(name, address string, id Identity) (provisioned, err
 		return fail(StepPrepare, err)
 	}
 	if name == "" {
-		name = "VLESS-" + strconv.Itoa(port)
+		name = tpl.namePrefix + "-" + strconv.Itoa(port)
 		ib.Remark = name
 	}
 
@@ -171,7 +177,7 @@ func (s *Service) provision(name, address string, id Identity) (provisioned, err
 			return fail(StepApplyRuntime, s.compensate(created.Id, err))
 		}
 	}
-	if err := s.health(port); err != nil {
+	if err := s.health(port, tpl.transport); err != nil {
 		return fail(StepHealthCheck, s.compensate(created.Id, err))
 	}
 	return provisioned{inboundID: created.Id, port: port, name: name}, nil
@@ -261,8 +267,9 @@ func (s *Service) DeleteEndpoint(id int) error {
 }
 
 func (s *Service) view(row *model.EasyboxEndpoint) *EndpointView {
+	tpl, _ := templateByID(row.Template)
 	ep := &EndpointView{
-		Id: row.Id, Name: row.Name, Protocol: string(model.VLESS), Template: row.Template,
+		Id: row.Id, Name: row.Name, Protocol: tpl.label, Transport: tpl.transport, Template: row.Template,
 		Status: row.Status, InboundId: row.InboundId, FailedStep: row.FailedStep,
 		LastError: row.LastError, CreatedAt: row.CreatedAt,
 	}
@@ -324,6 +331,25 @@ func probeLocalPort(xray *service.XrayService, port int, timeout time.Duration) 
 		time.Sleep(300 * time.Millisecond)
 	}
 	return fmt.Errorf("port %d not accepting connections after %s: %w", port, timeout, lastErr)
+}
+
+// probeLocalUDP is the health check for QUIC lines (Hysteria2, TUIC): a UDP
+// port cannot be "connected", but binding it fails once the server holds it.
+func probeLocalUDP(port int, timeout time.Duration) error {
+	addr := net.JoinHostPort("0.0.0.0", strconv.Itoa(port))
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		conn, err := (&net.ListenConfig{}).ListenPacket(context.Background(), "udp", addr)
+		if errors.Is(err, syscall.EADDRINUSE) {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("probe UDP port %d: %w", port, err)
+		}
+		_ = conn.Close()
+		time.Sleep(300 * time.Millisecond)
+	}
+	return fmt.Errorf("nothing is listening on UDP port %d after %s", port, timeout)
 }
 
 func audit(action string, objectID int, err error) {

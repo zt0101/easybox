@@ -602,6 +602,7 @@ export type ClientsSummary = z.infer<typeof ClientsSummarySchema>;
 export const CreateEndpointRequestSchema = z.object({
   address: z.string(),
   name: z.string(),
+  template: z.string(),
 });
 export type CreateEndpointRequest = z.infer<typeof CreateEndpointRequestSchema>;
 
@@ -619,6 +620,7 @@ export const EndpointViewSchema = z.object({
   protocol: z.string(),
   status: z.string(),
   template: z.string(),
+  transport: z.string(),
   up: z.number().int(),
 });
 export type EndpointView = z.infer<typeof EndpointViewSchema>;
@@ -1154,6 +1156,16 @@ export const SubscriptionViewSchema = z.object({
   updateInterval: z.string(),
 });
 export type SubscriptionView = z.infer<typeof SubscriptionViewSchema>;
+
+export const TemplateViewSchema = z.object({
+  available: z.boolean(),
+  id: z.string(),
+  name: z.string(),
+  protocol: z.string(),
+  reason: z.string(),
+  transport: z.string(),
+});
+export type TemplateView = z.infer<typeof TemplateViewSchema>;
 
 export const TrafficSchema = z.object({
   Down: z.number().int(),

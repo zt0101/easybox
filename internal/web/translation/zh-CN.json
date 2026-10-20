@@ -2761,8 +2761,6 @@
     "create": {
       "title": "快速创建线路",
       "protocol": "协议",
-      "vlessHint": "REALITY · 无需域名和证书 · TCP",
-      "moreSoon": "将在下个版本提供",
       "name": "线路名称（可不填）",
       "namePlaceholder": "例如 US-Oracle-01",
       "address": "服务器地址（可不填）",
@@ -2770,7 +2768,7 @@
       "submit": "创建线路",
       "creating": "正在创建线路，需要几秒钟…",
       "successTitle": "线路 {name} 已就绪",
-      "firewallHint": "请在服务器防火墙和云安全组中放行 {port}/TCP 端口。客户端下次刷新订阅即可获得这条线路。",
+      "firewallHint": "请在服务器防火墙和云安全组中放行 {port}/{transport} 端口。客户端下次刷新订阅即可获得这条线路。",
       "failedTitle": "线路创建失败",
       "failedReason": "原因：{reason}",
       "failedCleanup": "已自动清理，其他线路不受影响。",
@@ -2778,7 +2776,8 @@
       "nameTooLong": "最多 64 个字符",
       "addressTooLong": "最多 253 个字符",
       "goLines": "查看线路",
-      "copySubscription": "复制订阅"
+      "copySubscription": "复制订阅",
+      "needsCertificate": "需要先为面板配置受信任的 TLS 证书"
     },
     "lines": {
       "title": "线路",
@@ -2826,6 +2825,11 @@
       "rotateConfirmTitle": "确定重置订阅地址？",
       "rotateConfirm": "订阅地址泄露时使用。旧地址立即失效，所有线路换用新凭据，每个客户端都需要重新导入新地址。",
       "rotated": "订阅地址已重置"
+    },
+    "templates": {
+      "vless-reality": "REALITY · 无需域名和证书 · TCP",
+      "hysteria2": "QUIC · 弱网下更快 · UDP",
+      "tuic": "QUIC · 低延迟 · UDP"
     }
   }
 }
