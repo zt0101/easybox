@@ -1,3 +1,5 @@
+> **EasyBox** — 本仓库是 EasyBox：基于 3X-UI 的二次开发（一键生成线路 + 一个通用订阅）。请从 [easybox-docs/README.md](easybox-docs/README.md) 开始。
+
 [English](/README.md) | [فارسی](/README.fa_IR.md) | [العربية](/README.ar_EG.md) | [中文](/README.zh_CN.md) | [Español](/README.es_ES.md) | [Русский](/README.ru_RU.md) | [Türkçe](/README.tr_TR.md)
 
 <p align="center">

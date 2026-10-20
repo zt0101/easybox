@@ -1,3 +1,5 @@
+> **EasyBox** — this repository is EasyBox, a fork of 3X-UI with one-click lines and one universal subscription. Start at [easybox-docs/README.md](easybox-docs/README.md).
+
 [English](/README.md) | [فارسی](/README.fa_IR.md) | [العربية](/README.ar_EG.md) | [中文](/README.zh_CN.md) | [Español](/README.es_ES.md) | [Русский](/README.ru_RU.md) | [Türkçe](/README.tr_TR.md)
 
 <p align="center">
