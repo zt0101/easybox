@@ -26,7 +26,10 @@ api()  { # method path [json]
 code_of() { curl -s -o /dev/null -w '%{http_code}' "$1"; }
 cleanup() {
   [ -n "$client_pid" ] && kill "$client_pid" 2>/dev/null || true
-  [ -n "$line_id" ] && api POST "/panel/api/easybox/endpoints/del/$line_id" >/dev/null 2>&1 || true
+  # Every line this run created (names start with smoke-), even after a failure.
+  for id in $(api GET /panel/api/easybox/endpoints/list 2>/dev/null | jq -r '.obj[]? | select(.name | startswith("smoke-")) | .id'); do
+    api POST "/panel/api/easybox/endpoints/del/$id" >/dev/null 2>&1 || true
+  done
   rm -rf "$JAR" "$WORK"
 }
 trap cleanup EXIT
