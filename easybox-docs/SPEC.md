@@ -4174,3 +4174,44 @@ Subscription converter
 §76          sing-box 只支持 ≥ 1.12，按 UA 版本退回 raw；快照不得自动重生成
 §85          备份文件敏感性与 Telegram 备份提示
 ```
+
+---
+
+# 附录 C. 实现状态（2026-10-21）
+
+代码：github.com/zt0101/easybox，分支 feature/quick-create（基于 upstream a8d0700 / v3.10.2）。
+
+```
+MVP-0  完成  快速创建（VLESS+REALITY）、线路列表、合并订阅、前端三页
+MVP-1  完成  Hysteria2（自签+指纹 / 面板证书）、TUIC（需面板证书，不可用时给出原因与引导）
+             重新生成（替换 / 保留旧线路）、订阅轮换（SubID + 全部凭据）
+             订阅 HTTPS（复用面板证书）、侧栏「高级」分组、EasyBox 品牌、概览卡片
+MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=singbox）
+             Canonical Node Model（由上游链接解析）、能力过滤、模拟客户端预览
+             CLIENT_COMPATIBILITY.md（只记录实测）
+文档    完成  easybox-docs/：README / ARCHITECTURE / DEVELOPMENT / HOW_TO_ADD_* / SPEC 副本
+发布    完成  install.sh / update.sh / x-ui.sh / 面板内更新改为从 zt0101/easybox 获取（否则会装回原版）
+```
+
+实测（开发容器回环，真实客户端内核经线路访问网页）：
+
+```
+                    Xray(v2rayN 内核)   sing-box 1.14.3        Mihomo 1.19.32
+VLESS + REALITY     PASS                FAIL → 已过滤 ¹        PASS
+Hysteria2 自签      PASS                PASS                   PASS
+TUIC                —（需受信任证书，待 VPS 实测）
+¹ sing-box 无法验证 X25519MLKEM768 的 REALITY 服务端（全部指纹均失败），按 §34 对 sing-box 过滤
+```
+
+与规划不同之处：
+
+```
+§9.2  默认线路端口范围定为 20000–20099
+§40   不做跨请求订阅缓存
+§42   订阅接口保持上游 404 / 500，诊断信息放在日志与预览
+§44   公开订阅页（subpage）未增加兼容客户端区块（未做）
+§57   版本标签用 v3.10.2-eb.N（easybox-v* 会被 install.sh 拒绝）
+§68   路由沿用上游风格：/endpoints/list、/create、/del/:id、/setEnable/:id、/regenerate/:id、/setInSubscription/:id、/link/:id
+```
+
+需要人工处理的事项见交付说明。
