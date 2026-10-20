@@ -20,8 +20,8 @@ services:
       # Host 2000-2099 is often reserved by Windows (Hyper-V/WinNAT), so remap.
       - "12053:2053"   # panel
       - "12096:2096"   # subscription
-      - "20000-20009:20000-20009/tcp"   # test inbounds (VLESS)
-      - "20000-20009:20000-20009/udp"   # test inbounds (Hysteria2 / TUIC)
+      - "20000-20099:20000-20099/tcp"   # EasyBox line range (TCP: VLESS)
+      - "20000-20099:20000-20099/udp"   # EasyBox line range (UDP: Hysteria2 / TUIC)
 
 volumes:
   node_modules:
