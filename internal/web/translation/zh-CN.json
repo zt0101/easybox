@@ -129,7 +129,8 @@
     "subFormats": "Sub Formats",
     "easyboxCreate": "快速创建",
     "easyboxLines": "线路",
-    "easyboxSubscription": "订阅"
+    "easyboxSubscription": "订阅",
+    "advanced": "高级"
   },
   "pages": {
     "login": {
@@ -2835,6 +2836,11 @@
       "vless-reality": "REALITY · 无需域名和证书 · TCP",
       "hysteria2": "QUIC · 弱网下更快 · UDP",
       "tuic": "QUIC · 低延迟 · UDP"
+    },
+    "overview": {
+      "title": "EasyBox 线路",
+      "total": "线路数",
+      "empty": "还没有线路，几秒钟就能建好第一条。"
     }
   }
 }

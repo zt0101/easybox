@@ -129,7 +129,8 @@
     "subFormats": "Sub Formats",
     "easyboxCreate": "Quick Create",
     "easyboxLines": "Lines",
-    "easyboxSubscription": "Subscription"
+    "easyboxSubscription": "Subscription",
+    "advanced": "Advanced"
   },
   "pages": {
     "login": {
@@ -2835,6 +2836,11 @@
       "vless-reality": "REALITY · no domain or certificate needed · TCP",
       "hysteria2": "QUIC · fast on lossy networks · UDP",
       "tuic": "QUIC · low latency · UDP"
+    },
+    "overview": {
+      "title": "EasyBox lines",
+      "total": "Lines",
+      "empty": "No lines yet. Your first line is ready in a few seconds."
     }
   }
 }

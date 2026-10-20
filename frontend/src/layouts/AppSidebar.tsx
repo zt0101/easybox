@@ -56,6 +56,17 @@ const SHORTCUT_MODIFIER = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? 'โ
 const DOCS_URL = 'https://docs.sanaei.dev/';
 const REPO_URL = 'https://github.com/zt0101/easybox';
 const LOGOUT_KEY = '__logout__';
+// EasyBox.md ยง48: upstream's expert pages live under one "Advanced" group.
+const ADVANCED_KEY = '__advanced__';
+const ADVANCED_PATHS = new Set([
+  '/inbounds',
+  '/clients',
+  '/groups',
+  '/nodes',
+  '/hosts',
+  '/outbound',
+  '/routing',
+]);
 const RAIL_WIDTH = 72;
 const SIDER_WIDTH = 220;
 const SIDEBAR_PINNED_KEY = 'sidebar-pinned';
@@ -326,15 +337,21 @@ export default function AppSidebar() {
         ? '/'
         : pathname;
 
-  const openSubmenu = settingsActive ? '/settings' : xrayActive ? '/xray' : null;
+  const openSubmenu = settingsActive
+    ? '/settings'
+    : xrayActive
+      ? '/xray'
+      : ADVANCED_PATHS.has(pathname)
+        ? ADVANCED_KEY
+        : null;
   const [openKeys, setOpenKeys] = useState<string[]>(() => (openSubmenu ? [openSubmenu] : []));
   if (openSubmenu && !openKeys.includes(openSubmenu)) {
     setOpenKeys([...openKeys, openSubmenu]);
   }
 
   const toMenuItems = useCallback(
-    (items: typeof tabs): MenuProps['items'] =>
-      items.map((tab) => {
+    (items: typeof tabs): MenuProps['items'] => {
+      const toItem = (tab: (typeof tabs)[number]) => {
         const Icon = iconByName[tab.icon];
         if (tab.key === '/settings') {
           return { key: tab.key, icon: <Icon />, label: tab.title, children: settingsChildren };
@@ -343,8 +360,24 @@ export default function AppSidebar() {
           return { key: tab.key, icon: <Icon />, label: tab.title, children: xrayChildren };
         }
         return { key: tab.key, icon: <Icon />, label: tab.title, title: '' };
-      }),
-    [settingsChildren, xrayChildren],
+      };
+      const advanced = items.filter((tab) => ADVANCED_PATHS.has(tab.key));
+      const out: NonNullable<MenuProps['items']> = [];
+      for (const tab of items) {
+        if (!ADVANCED_PATHS.has(tab.key)) {
+          out.push(toItem(tab));
+        } else if (tab === advanced[0]) {
+          out.push({
+            key: ADVANCED_KEY,
+            icon: <ApartmentOutlined />,
+            label: t('menu.advanced'),
+            children: advanced.map(toItem),
+          });
+        }
+      }
+      return out;
+    },
+    [settingsChildren, xrayChildren, t],
   );
 
   const openLink = useCallback(
@@ -398,7 +431,7 @@ export default function AppSidebar() {
       >
         <div className="sider-brand">
           <div className="brand-block">
-            <span className="brand-text">{railCollapsed ? '3X' : '3X-UI'}</span>
+            <span className="brand-text">{railCollapsed ? 'EB' : 'EasyBox'}</span>
           </div>
           {!railCollapsed && (
             <div className="brand-actions">
@@ -486,7 +519,7 @@ export default function AppSidebar() {
       >
         <div className="drawer-header">
           <div className="brand-block">
-            <span className="drawer-brand">3X-UI</span>
+            <span className="drawer-brand">EasyBox</span>
           </div>
           <div className="drawer-header-actions">
             <DocsButton ariaLabel={t('menu.docs') || 'Documentation'} />
