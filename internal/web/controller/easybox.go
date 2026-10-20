@@ -28,6 +28,8 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	e.POST("/setEnable/:id", a.setEndpointEnable)
 	e.GET("/link/:id", a.endpointLink)
 	e.POST("/setInSubscription/:id", a.setEndpointInSubscription)
+	e.POST("/regenerate/:id", a.regenerateEndpoint)
+	g.POST("/subscription/rotate", a.rotateSubscription)
 	g.GET("/subscription/info", a.subscriptionInfo)
 }
 
@@ -118,4 +120,38 @@ func (a *EasyboxController) endpointLink(c *gin.Context) {
 		return
 	}
 	jsonObj(c, l, nil)
+}
+
+func (a *EasyboxController) regenerateEndpoint(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	var f struct {
+		KeepOld bool `json:"keepOld" form:"keepOld"`
+	}
+	if err := c.ShouldBind(&f); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	ep, err := a.svc.RegenerateEndpoint(id, f.KeepOld)
+	if err != nil {
+		jsonMsgObj(c, I18nWeb(c, "somethingWentWrong"), ep, err)
+		return
+	}
+	jsonObj(c, ep, nil)
+}
+
+func (a *EasyboxController) rotateSubscription(c *gin.Context) {
+	if _, err := a.svc.RotateSubscription(); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	view, err := a.svc.GetSubscription(c.Request.Host)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
 }

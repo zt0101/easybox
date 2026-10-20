@@ -2799,7 +2799,16 @@
       "disable": "禁用",
       "deleteConfirm": "删除线路 {name}？对应入站会被删除，订阅地址不变。",
       "deleted": "线路已删除",
-      "notInSubscription": "未加入订阅"
+      "notInSubscription": "未加入订阅",
+      "regenerate": "重新生成",
+      "regenerateTitle": "重新生成 {name}",
+      "regenerateHint": "将生成新的端口和 REALITY 密钥。新线路通过健康检查之前，当前线路不受影响。",
+      "modeReplace": "替换这条线路",
+      "modeReplaceHint": "线路切换到新端口，旧的随即删除。客户端下次刷新订阅即可。",
+      "modeKeep": "保留旧线路",
+      "modeKeepHint": "在旁边新增一条线路。确认新线路可用后，再自行删除旧线路。",
+      "regenerated": "线路已重新生成",
+      "regenerateFailed": "重新生成失败，当前线路未受影响：{reason}"
     },
     "subscription": {
       "title": "我的订阅",
@@ -2812,7 +2821,11 @@
       "lines": "这个订阅包含的线路",
       "noLines": "还没有线路。",
       "qrTitle": "订阅二维码",
-      "qrHint": "扫一次即可导入这个订阅里的全部线路。"
+      "qrHint": "扫一次即可导入这个订阅里的全部线路。",
+      "rotate": "重置订阅地址",
+      "rotateConfirmTitle": "确定重置订阅地址？",
+      "rotateConfirm": "订阅地址泄露时使用。旧地址立即失效，所有线路换用新凭据，每个客户端都需要重新导入新地址。",
+      "rotated": "订阅地址已重置"
     }
   }
 }

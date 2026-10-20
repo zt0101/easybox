@@ -2799,7 +2799,16 @@
       "disable": "Disable",
       "deleteConfirm": "Delete line {name}? Its inbound is removed; the subscription address stays the same.",
       "deleted": "Line deleted",
-      "notInSubscription": "Not in subscription"
+      "notInSubscription": "Not in subscription",
+      "regenerate": "Regenerate",
+      "regenerateTitle": "Regenerate {name}",
+      "regenerateHint": "Creates a fresh port and REALITY keys. The current line keeps working until the new one passes its health check.",
+      "modeReplace": "Replace this line",
+      "modeReplaceHint": "The line moves to the new port and the old one is removed. Clients pick it up on their next subscription refresh.",
+      "modeKeep": "Keep the old line",
+      "modeKeepHint": "Adds a new line next to this one. Delete the old line yourself once the new one works.",
+      "regenerated": "Line regenerated",
+      "regenerateFailed": "Regenerate failed, the current line was not changed: {reason}"
     },
     "subscription": {
       "title": "My subscription",
@@ -2812,7 +2821,11 @@
       "lines": "Lines in this subscription",
       "noLines": "No lines yet.",
       "qrTitle": "Subscription QR code",
-      "qrHint": "Scan once to import every line in this subscription."
+      "qrHint": "Scan once to import every line in this subscription.",
+      "rotate": "Reset subscription address",
+      "rotateConfirmTitle": "Reset the subscription address?",
+      "rotateConfirm": "Use this if the address leaked. The old address stops working at once and every line gets new credentials, so every client has to import the new address.",
+      "rotated": "Subscription address reset"
     }
   }
 }

@@ -2855,6 +2855,22 @@ export const sections: readonly Section[] = [
         response:
           '{\n  "success": true,\n  "obj": "vless://22222222-3333-4444-9555-666666666666@node.example.com:20042?type=tcp&security=reality&...#US-Oracle-01"\n}',
       },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/regenerate/:id',
+        summary:
+          'Give a line a fresh port and REALITY keys. Replace mode (default) swaps the line onto the new inbound only after it passed its health check; keepOld adds a separate <name>-new line and leaves the old one running.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "keepOld": false\n}',
+        responseSchema: 'EndpointView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/subscription/rotate',
+        summary:
+          'Rotate the subscription after a leak: new subscription URL (SubID) and new UUID on every line. The old URL returns 404 and the old credentials stop working; clients must import the new URL.',
+        responseSchema: 'SubscriptionView',
+      },
     ],
   },
 ];

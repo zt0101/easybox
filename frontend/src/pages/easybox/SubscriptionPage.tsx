@@ -52,15 +52,28 @@ function UrlRow({
   );
 }
 
-function Subscription({ messageApi }: EasyboxPageApi) {
+function Subscription({ messageApi, modal }: EasyboxPageApi) {
   const { t } = useTranslation();
   const sub = useEasyboxSubscription();
-  const { setInSubscription } = useEasyboxMutations();
+  const { setInSubscription, rotateSubscription } = useEasyboxMutations();
   const [qrUrl, setQrUrl] = useState('');
 
   const copy = async (text: string) => {
     if (text && (await ClipboardManager.copyText(text))) messageApi.success(t('copied'));
   };
+
+  const confirmRotate = () =>
+    modal.confirm({
+      title: t('easybox.subscription.rotateConfirmTitle'),
+      content: t('easybox.subscription.rotateConfirm'),
+      okText: t('easybox.subscription.rotate'),
+      okType: 'danger',
+      cancelText: t('cancel'),
+      onOk: async () => {
+        const msg = await rotateSubscription();
+        if (msg?.success) messageApi.success(t('easybox.subscription.rotated'));
+      },
+    });
 
   if (sub.isError) {
     return (
@@ -113,6 +126,11 @@ function Subscription({ messageApi }: EasyboxPageApi) {
           <Typography.Text type="secondary">
             {t('easybox.subscription.refreshHint', { hours: updateInterval })}
           </Typography.Text>
+          <div>
+            <Button danger onClick={confirmRotate}>
+              {t('easybox.subscription.rotate')}
+            </Button>
+          </div>
         </Space>
       </Card>
 

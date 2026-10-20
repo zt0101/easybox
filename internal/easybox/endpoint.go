@@ -94,60 +94,35 @@ func NewService() *Service {
 func (s *Service) CreateEndpoint(req CreateEndpointRequest) (*EndpointView, error) {
 	s.createMu.Lock()
 	defer s.createMu.Unlock()
+	return s.createLocked(req)
+}
+
+func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error) {
 	db := database.GetDB()
 	row := &model.EasyboxEndpoint{Name: strings.TrimSpace(req.Name), Template: templateVlessReality, Status: StatusCreating}
 	if err := db.Create(row).Error; err != nil {
 		return nil, err
 	}
-	fail := func(step string, err error) (*EndpointView, error) {
-		row.Status, row.FailedStep, row.LastError = StatusError, step, err.Error()
+	id, subscriptionID, err := ensureDefaultSubscriptionRow()
+	var p provisioned
+	if err != nil {
+		err = &StepError{Step: StepPrepare, Err: err}
+	} else {
+		row.SubscriptionId = subscriptionID
+		p, err = s.provision(row.Name, req.Address, id)
+	}
+	if err != nil {
+		var stepErr *StepError
+		errors.As(err, &stepErr)
+		row.Status, row.FailedStep, row.LastError = StatusError, stepErr.Step, stepErr.Err.Error()
 		if dbErr := db.Save(row).Error; dbErr != nil {
 			logger.Warning("easybox: save failed endpoint:", dbErr)
 		}
 		audit("endpoint.create", row.Id, err)
-		return s.view(row), &StepError{Step: step, Err: err}
+		return s.view(row), err
 	}
 
-	id, subscriptionID, err := ensureDefaultSubscriptionRow()
-	if err != nil {
-		return fail(StepPrepare, err)
-	}
-	row.SubscriptionId = subscriptionID
-	reality, err := s.reality()
-	if err != nil {
-		return fail(StepPrepare, err)
-	}
-	ib, err := BuildVlessRealityInbound(row.Name, 0, id, reality)
-	if err != nil {
-		return fail(StepPrepare, err)
-	}
-	if addr := strings.TrimSpace(req.Address); addr != "" {
-		ib.ShareAddrStrategy, ib.ShareAddr = "custom", addr
-	}
-	port, err := pickPort(ib, s.Ports, reservedPorts(), nil)
-	if err != nil {
-		return fail(StepPrepare, err)
-	}
-	if row.Name == "" {
-		row.Name = "VLESS-" + strconv.Itoa(port)
-		ib.Remark = row.Name
-	}
-
-	created, needRestart, err := s.inbounds.AddInbound(ib)
-	if err != nil {
-		return fail(StepCreateInbound, err)
-	}
-	row.InboundId = created.Id
-	if needRestart {
-		if err := s.restart(); err != nil {
-			return fail(StepApplyRuntime, s.compensate(row, err))
-		}
-	}
-	if err := s.health(port); err != nil {
-		return fail(StepHealthCheck, s.compensate(row, err))
-	}
-
-	row.Status = StatusRunning
+	row.Name, row.InboundId, row.Status = p.name, p.inboundID, StatusRunning
 	if err := db.Save(row).Error; err != nil {
 		return nil, err
 	}
@@ -155,17 +130,63 @@ func (s *Service) CreateEndpoint(req CreateEndpointRequest) (*EndpointView, erro
 	return s.view(row), nil
 }
 
-// compensate removes the inbound a failed create left behind and folds a
+type provisioned struct {
+	inboundID int
+	port      int
+	name      string
+}
+
+// provision brings up one new VLESS+REALITY inbound for id. On failure it
+// leaves no inbound behind and returns a *StepError naming the failed step.
+func (s *Service) provision(name, address string, id Identity) (provisioned, error) {
+	fail := func(step string, err error) (provisioned, error) {
+		return provisioned{}, &StepError{Step: step, Err: err}
+	}
+	reality, err := s.reality()
+	if err != nil {
+		return fail(StepPrepare, err)
+	}
+	ib, err := BuildVlessRealityInbound(name, 0, id, reality)
+	if err != nil {
+		return fail(StepPrepare, err)
+	}
+	if addr := strings.TrimSpace(address); addr != "" {
+		ib.ShareAddrStrategy, ib.ShareAddr = "custom", addr
+	}
+	port, err := pickPort(ib, s.Ports, reservedPorts(), nil)
+	if err != nil {
+		return fail(StepPrepare, err)
+	}
+	if name == "" {
+		name = "VLESS-" + strconv.Itoa(port)
+		ib.Remark = name
+	}
+
+	created, needRestart, err := s.inbounds.AddInbound(ib)
+	if err != nil {
+		return fail(StepCreateInbound, err)
+	}
+	if needRestart {
+		if err := s.restart(); err != nil {
+			return fail(StepApplyRuntime, s.compensate(created.Id, err))
+		}
+	}
+	if err := s.health(port); err != nil {
+		return fail(StepHealthCheck, s.compensate(created.Id, err))
+	}
+	return provisioned{inboundID: created.Id, port: port, name: name}, nil
+}
+
+// compensate removes the inbound a failed provision left behind and folds a
 // cleanup failure into the reported error so it is never silent.
-func (s *Service) compensate(row *model.EasyboxEndpoint, cause error) error {
-	needRestart, err := s.inbounds.DelInbound(row.InboundId)
+func (s *Service) compensate(inboundID int, cause error) error {
+	needRestart, err := s.inbounds.DelInbound(inboundID)
 	if needRestart {
 		s.xray.SetToNeedRestart()
 	}
 	if err != nil {
-		return fmt.Errorf("%w (cleanup of inbound %d also failed: %w)", cause, row.InboundId, err)
+		return fmt.Errorf("%w (cleanup of inbound %d also failed: %w)", cause, inboundID, err)
 	}
-	row.InboundId = 0
 	return cause
 }
 
@@ -306,8 +327,12 @@ func probeLocalPort(xray *service.XrayService, port int, timeout time.Duration) 
 }
 
 func audit(action string, objectID int, err error) {
+	auditObject(action, "endpoint", objectID, err)
+}
+
+func auditObject(action, object string, objectID int, err error) {
 	entry := model.EasyboxAuditLog{
-		Timestamp: time.Now().UnixMilli(), Action: action, Object: "endpoint", ObjectId: objectID, Result: "ok",
+		Timestamp: time.Now().UnixMilli(), Action: action, Object: object, ObjectId: objectID, Result: "ok",
 	}
 	if err != nil {
 		entry.Result, entry.Error = "error", err.Error()

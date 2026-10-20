@@ -8,6 +8,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   QrcodeOutlined,
+  SyncOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
 
@@ -20,6 +21,7 @@ import {
 import type { EndpointView } from '@/schemas/api/easybox';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 import LinkQrModal from './LinkQrModal';
+import RegenerateModal from './RegenerateModal';
 
 const STATUS_COLOR: Record<string, string> = {
   RUNNING: 'success',
@@ -37,8 +39,17 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const lines = useEasyboxEndpoints();
-  const { remove, setEnable } = useEasyboxMutations();
+  const { remove, setEnable, regenerate, regenerating } = useEasyboxMutations();
   const [qr, setQr] = useState<{ name: string; link: string } | null>(null);
+  const [regenLine, setRegenLine] = useState<EndpointView | null>(null);
+
+  const confirmRegenerate = async (keepOld: boolean) => {
+    if (!regenLine) return;
+    const result = await regenerate(regenLine.id, keepOld);
+    setRegenLine(null);
+    if (result.ok) messageApi.success(t('easybox.lines.regenerated'));
+    else messageApi.error(t('easybox.lines.regenerateFailed', { reason: result.message }));
+  };
 
   const copy = async (text: string) => {
     if (text && (await ClipboardManager.copyText(text))) messageApi.success(t('copied'));
@@ -121,6 +132,14 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
                 const link = await fetchEndpointLink(line.id);
                 if (link) setQr({ name: line.name, link });
               }}
+            />
+          </Tooltip>
+          <Tooltip title={t('easybox.lines.regenerate')}>
+            <Button
+              icon={<SyncOutlined />}
+              aria-label={t('easybox.lines.regenerate')}
+              disabled={!hasInbound(line)}
+              onClick={() => setRegenLine(line)}
             />
           </Tooltip>
           <Tooltip
@@ -215,6 +234,12 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
         value={qr?.link ?? ''}
         onCopy={copy}
         onClose={() => setQr(null)}
+      />
+      <RegenerateModal
+        name={regenLine?.name ?? null}
+        loading={regenerating}
+        onConfirm={confirmRegenerate}
+        onClose={() => setRegenLine(null)}
       />
     </Card>
   );

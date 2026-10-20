@@ -103,6 +103,37 @@ export function useEasyboxMutations() {
     },
   });
 
+  const regenerateMut = useMutation({
+    mutationFn: async ({
+      id,
+      keepOld,
+    }: {
+      id: number;
+      keepOld: boolean;
+    }): Promise<CreateResult> => {
+      const msg = await HttpUtil.post(
+        `/panel/api/easybox/endpoints/regenerate/${id}`,
+        { keepOld },
+        { ...JSON_HEADERS, silent: true },
+      );
+      const parsed = EndpointViewSchema.safeParse(msg?.obj);
+      return {
+        ok: Boolean(msg?.success),
+        line: parsed.success ? parsed.data : null,
+        message: msg?.msg ?? '',
+      };
+    },
+    onSettled: () => invalidate(),
+  });
+
+  const rotateMut = useMutation({
+    mutationFn: () =>
+      HttpUtil.post('/panel/api/easybox/subscription/rotate', undefined, { silentSuccess: true }),
+    onSuccess: (msg) => {
+      if (msg?.success) invalidate();
+    },
+  });
+
   return {
     create: createMut.mutateAsync,
     creating: createMut.isPending,
@@ -110,6 +141,9 @@ export function useEasyboxMutations() {
     setEnable: (id: number, enable: boolean) => setEnableMut.mutateAsync({ id, enable }),
     setInSubscription: (id: number, include: boolean) =>
       setInSubscriptionMut.mutateAsync({ id, include }),
+    regenerate: (id: number, keepOld: boolean) => regenerateMut.mutateAsync({ id, keepOld }),
+    regenerating: regenerateMut.isPending,
+    rotateSubscription: rotateMut.mutateAsync,
   };
 }
 

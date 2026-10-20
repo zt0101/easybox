@@ -17007,6 +17007,125 @@
           }
         }
       }
+    },
+    "/panel/api/easybox/endpoints/regenerate/{id}": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Give a line a fresh port and REALITY keys. Replace mode (default) swaps the line onto the new inbound only after it passed its health check; keepOld adds a separate <name>-new line and leaves the old one running.",
+        "operationId": "post_panel_api_easybox_endpoints_regenerate_id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Line ID.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "keepOld": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/EndpointView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "address": "node.example.com",
+                    "createdAt": 1792500000000,
+                    "down": 5242880,
+                    "failedStep": "",
+                    "id": 1,
+                    "inSubscription": true,
+                    "inboundId": 7,
+                    "lastError": "",
+                    "name": "US-Oracle-01",
+                    "port": 20042,
+                    "protocol": "vless",
+                    "status": "RUNNING",
+                    "template": "vless-reality",
+                    "up": 1048576
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/subscription/rotate": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Rotate the subscription after a leak: new subscription URL (SubID) and new UUID on every line. The old URL returns 404 and the old credentials stop working; clients must import the new URL.",
+        "operationId": "post_panel_api_easybox_subscription_rotate",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/SubscriptionView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "lines": [
+                      null
+                    ],
+                    "subId": "3dllwqwd8kpj3i5e",
+                    "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "updateInterval": "12"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
