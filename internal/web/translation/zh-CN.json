@@ -2778,7 +2778,9 @@
       "addressTooLong": "最多 253 个字符",
       "goLines": "查看线路",
       "copySubscription": "复制订阅",
-      "needsCertificate": "需要先为面板配置受信任的 TLS 证书"
+      "needsCertificate": "需要先为面板配置受信任的 TLS 证书",
+      "certificateGuide": "TUIC 需要受信任的 TLS 证书。安装脚本 install.sh 可以为服务器 IP 签发证书；在「面板设置」中把它设为面板证书并重启面板即可。",
+      "setCertificate": "打开面板设置"
     },
     "lines": {
       "title": "线路",

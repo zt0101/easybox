@@ -80,6 +80,19 @@ function QuickCreate({ messageApi }: EasyboxPageApi) {
           </div>
         </div>
 
+        {templates.data?.some((tpl) => !tpl.available) && (
+          <Alert
+            type="info"
+            showIcon
+            message={t('easybox.create.certificateGuide')}
+            action={
+              <Button size="small" onClick={() => navigate('/settings')}>
+                {t('easybox.create.setCertificate')}
+              </Button>
+            }
+          />
+        )}
+
         <FormProvider {...methods}>
           <form onSubmit={submit}>
             <Form layout="vertical" component={false}>

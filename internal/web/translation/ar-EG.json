@@ -2778,7 +2778,9 @@
       "addressTooLong": "At most 253 characters",
       "goLines": "View lines",
       "copySubscription": "Copy subscription",
-      "needsCertificate": "Needs a trusted TLS certificate on the panel first"
+      "needsCertificate": "Needs a trusted TLS certificate on the panel first",
+      "certificateGuide": "TUIC needs a trusted TLS certificate. install.sh can issue one for the server IP; set it as the panel certificate in Panel Settings and restart the panel.",
+      "setCertificate": "Open Panel Settings"
     },
     "lines": {
       "title": "Lines",
