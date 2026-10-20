@@ -72,6 +72,42 @@ proxy_through_link() { # link
   [ "$code" = 204 ] || { cat "$WORK/client.log"; return 1; }
 }
 
+SINGBOX=${SINGBOX:-/root/.cache/clients/sing-box}
+MIHOMO=${MIHOMO:-/root/.cache/clients/mihomo}
+
+# Runs the Clash/Mihomo subscription in a real Mihomo and asks Mihomo itself to
+# reach PROBE_URL through one proxy (its delay test), as Clash clients do.
+mihomo_through() { # sub.yaml proxy-name
+  mkdir -p "$WORK/mh"
+  { printf 'mixed-port: 10809
+external-controller: 127.0.0.1:19090
+allow-lan: false
+'
+    grep -vE '^(mixed-port|port|socks-port|external-controller|allow-lan):' "$1"; } > "$WORK/mh/config.yaml"
+  "$MIHOMO" -d "$WORK/mh" > "$WORK/mh.log" 2>&1 &
+  client_pid=$!
+  sleep 3
+  local res
+  res=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$2/delay?url=$(jq -rn --arg u "$PROBE_URL" '$u|@uri')&timeout=8000" || true)
+  kill "$client_pid" 2>/dev/null || true; wait "$client_pid" 2>/dev/null || true; client_pid=""
+  jq -e '.delay > 0' >/dev/null 2>&1 <<<"$res" || { echo "$res"; tail -5 "$WORK/mh.log"; return 1; }
+}
+
+# Runs the sing-box config a sing-box app would import, with TUN swapped for a
+# local SOCKS inbound and the selector pinned to one line, and fetches through it.
+singbox_through() { # config.json tag
+  jq --arg tag "$2" '.inbounds = [{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
+    | (.outbounds[] | select(.tag == "proxy")) .default = $tag
+    | del(.route.auto_detect_interface)' "$1" > "$WORK/sb-run.json"
+  "$SINGBOX" run -c "$WORK/sb-run.json" > "$WORK/sb.log" 2>&1 &
+  client_pid=$!
+  sleep 2
+  local code
+  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 --socks5-hostname 127.0.0.1:10808 "$PROBE_URL" || true)
+  kill "$client_pid" 2>/dev/null || true; wait "$client_pid" 2>/dev/null || true; client_pid=""
+  [ "$code" = 204 ] || { tail -5 "$WORK/sb.log"; return 1; }
+}
+
 echo "EasyBox smoke test"
 
 token=$(csrf)
@@ -129,6 +165,7 @@ new_uuid=${link#vless://}; new_uuid=${new_uuid%%@*}
 proxy_through "$link" "$port" || fail "request with the rotated credentials failed"
 ok "rotation → old URL 404, new URL + new UUID proxy"
 sub_url=$new_sub_url
+clash_url=$(jq -r .obj.clashUrl <<<"$info")
 
 api POST "/panel/api/easybox/endpoints/setEnable/$line_id" '{"enable":false}' | jq -e '.success == true' >/dev/null || fail "disable"
 [ -z "$(sub_link_for_port "$sub_url" "$port")" ] || fail "disabled line still in the subscription"
@@ -147,7 +184,40 @@ grep -q "pinSHA256=" <<<"$link" || fail "Hysteria2 link without certificate pin:
 [ -n "$(curl -fsS "$sub_url" | base64 -d | grep "^hysteria2://.*:$port?")" ] || fail "Hysteria2 line missing from the subscription"
 proxy_through_link "$link" || fail "request through the Hysteria2 line failed"
 ok "Hysteria2 (self-signed, pinned, salamander) → RUNNING, in subscription, proxies"
-api POST "/panel/api/easybox/endpoints/del/$line_id" | jq -e '.success == true' >/dev/null || fail "delete Hysteria2 line"
-line_id=""
+hy2_id=$line_id; line_id=""
+
+if [ -x "$SINGBOX" ]; then
+  res=$(api POST /panel/api/easybox/endpoints/create '{"template":"vless-reality","name":"smoke-sb-vless","address":"127.0.0.1"}')
+  vless_id=$(jq -r .obj.id <<<"$res")
+  ua="SFA/1.14.3 (8; sing-box 1.14.3; language en_US)"
+  curl -fsS -A "$ua" -D "$WORK/sb.headers" -o "$WORK/sb.json" "$sub_url" || fail "sing-box subscription fetch"
+  grep -qi '^content-type: application/json' "$WORK/sb.headers" || fail "sing-box UA did not get JSON"
+  grep -qi '^subscription-userinfo:' "$WORK/sb.headers" || fail "sing-box response lacks Subscription-Userinfo"
+  "$SINGBOX" check -c "$WORK/sb.json" || fail "sing-box rejects the served config"
+  singbox_through "$WORK/sb.json" smoke-hy2 || fail "sing-box client through smoke-hy2 failed"
+  ! jq -e '.outbounds[] | select(.tag == "smoke-sb-vless")' "$WORK/sb.json" >/dev/null || fail "REALITY line shipped to sing-box (it cannot verify X25519MLKEM768 servers)"
+  ok "sing-box UA → full config (check OK); real sing-box client proxies via Hysteria2; REALITY filtered out"
+  old=$(curl -fsS -A "SFA/1.11.9 (8; sing-box 1.11.9; language en_US)" "$sub_url" | head -c 64)
+  ! jq -e . >/dev/null 2>&1 <<<"$old" && base64 -d <<<"$old" 2>/dev/null | grep -q "://" || fail "sing-box 1.11 did not fall back to raw"
+  curl -fsS "$sub_url?target=singbox" | jq -e '.outbounds | length > 0' >/dev/null || fail "?target=singbox"
+  ok "sing-box < 1.12 falls back to raw; ?target=singbox selects the sing-box format"
+  api POST "/panel/api/easybox/endpoints/del/$vless_id" >/dev/null
+else
+  echo "  [SKIP] sing-box client checks ($SINGBOX not found)"
+fi
+
+if [ -x "$MIHOMO" ]; then
+  res=$(api POST /panel/api/easybox/endpoints/create '{"template":"vless-reality","name":"smoke-mh-vless","address":"127.0.0.1"}')
+  mh_vless=$(jq -r .obj.id <<<"$res")
+  curl -fsS -A "mihomo/1.19.32" -o "$WORK/sub.yaml" "$clash_url" || fail "Mihomo subscription fetch"
+  for name in smoke-mh-vless smoke-hy2; do
+    mihomo_through "$WORK/sub.yaml" "$name" || fail "real Mihomo through $name failed"
+  done
+  ok "real Mihomo client (Clash/Mihomo YAML) reaches the web via VLESS+REALITY and Hysteria2"
+  api POST "/panel/api/easybox/endpoints/del/$mh_vless" >/dev/null
+else
+  echo "  [SKIP] Mihomo client checks ($MIHOMO not found)"
+fi
+api POST "/panel/api/easybox/endpoints/del/$hy2_id" | jq -e '.success == true' >/dev/null || fail "delete Hysteria2 line"
 
 echo "PASS"
