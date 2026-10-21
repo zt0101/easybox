@@ -4207,7 +4207,11 @@ TUIC 面板证书       —（Xray 无 TUIC 客户端）PASS                 PAS
 ² 2026-10-21 在 VPS（v3.10.2-eb.2，Let's Encrypt IP 证书）实测，出口 IP 为 VPS
 ```
 
-真机（用户反馈，2026-10-21，VPS）：v2rayN、手机 Clash、PassWall、手机 sing-box（通用地址）均可导入并连接；Shadowrocket 未测。
+真机（用户反馈，2026-10-21，VPS）：v2rayN、手机 Clash、PassWall、手机 sing-box（通用地址）均可导入并连接；Stash（iOS）的 VLESS 可连接。
+Shadowrocket：TUIC、Hysteria2 可连接；VLESS + REALITY + Vision 不通。
+  原因：开着 Vision 时，Shadowrocket 不使用所选指纹，固定发只带 x25519 的 ClientHello，被 Xray 26.9+ REALITY 拒绝。
+  证据：VPS 抓包证实；同一入站加一个不带 Vision 的用户，再选 Chrome140 指纹，就能连通。
+  处理：不改 EasyBox（线路只保留一个标准 Vision 用户），等 Shadowrocket 修复。详见 easybox-docs/CLIENT_COMPATIBILITY.md「Known issue: Shadowrocket + Vision」。
 
 ```
 ```
