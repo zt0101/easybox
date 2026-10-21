@@ -4199,8 +4199,15 @@ MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=s
                     Xray(v2rayN 内核)   sing-box 1.14.3        Mihomo 1.19.32
 VLESS + REALITY     PASS                FAIL → 已过滤 ¹        PASS
 Hysteria2 自签      PASS                PASS                   PASS
-TUIC                —（需受信任证书，待 VPS 实测）
+Hysteria2 面板证书  PASS                PASS                   PASS          ²
+TUIC 面板证书       —（Xray 无 TUIC 客户端）PASS                 PASS          ²
 ¹ sing-box 无法验证 X25519MLKEM768 的 REALITY 服务端（全部指纹均失败），按 §34 对 sing-box 过滤
+² 2026-10-21 在 VPS（v3.10.2-eb.2，Let's Encrypt IP 证书）实测，出口 IP 为 VPS
+```
+
+真机（用户反馈，2026-10-21，VPS）：v2rayN、手机 Clash、PassWall、手机 sing-box（通用地址）均可导入并连接；Shadowrocket 未测。
+
+```
 ```
 
 与规划不同之处：
@@ -4212,6 +4219,8 @@ TUIC                —（需受信任证书，待 VPS 实测）
 §44   公开订阅页（subpage）未增加兼容客户端区块（未做）
 §57   版本标签用 v3.10.2-eb.N（easybox-v* 会被 install.sh 拒绝）
 §68   路由沿用上游风格：/endpoints/list、/create、/del/:id、/setEnable/:id、/regenerate/:id、/setInSubscription/:id、/link/:id
+§31   Clash / Mihomo 地址遇到 sing-box App（≥1.12）也返回 sing-box 配置，导错地址也能用
+§22   Hysteria 链接在指纹为空时不输出 fp=（上游会输出空的 fp=）
 ```
 
 需要人工处理的事项见交付说明。
