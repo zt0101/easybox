@@ -2291,6 +2291,8 @@ resolve limited conflicts
 在 UPSTREAM_BASE.md 更新基线
 ```
 
+可执行流程（步骤、冲突点、合并后必查、VPS 实测）：easybox-docs/UPSTREAM_SYNC.md。
+
 冲突热点：
 
 ```
@@ -4217,7 +4219,7 @@ TUIC 面板证书       —（Xray 无 TUIC 客户端）PASS                 PAS
 §40   不做跨请求订阅缓存
 §42   订阅接口保持上游 404 / 500，诊断信息放在日志与预览
 §44   公开订阅页（subpage）未增加兼容客户端区块（未做）
-§57   版本标签用 v3.10.2-eb.N（easybox-v* 会被 install.sh 拒绝）
+§57   版本标签用 v3.10.2-eb.N（easybox-v* 会被 install.sh 拒绝）；eb.4 起 release.yml 的 promote-latest job 把最高的 eb 版本标为 latest Release（上游的 Release 一律是预发布）
 §68   路由沿用上游风格：/endpoints/list、/create、/del/:id、/setEnable/:id、/regenerate/:id、/setInSubscription/:id、/link/:id
 §31   Clash / Mihomo 地址遇到 sing-box App（≥1.12）也返回 sing-box 配置，导错地址也能用
 §22   Hysteria 链接在指纹为空时不输出 fp=（上游会输出空的 fp=）

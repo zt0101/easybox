@@ -19,13 +19,13 @@ EasyBox 是基于 [3X-UI](https://github.com/MHSanaei/3x-ui)（MHSanaei/3x-ui，
 
 ## 安装（服务器）
 
-需要 GitHub 上已有 EasyBox 的 Release（见下方「发布」）。
+完整步骤（端口、交互 / 非交互安装、登录信息、验证、常见问题）见 [DEPLOY.md](DEPLOY.md)。
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/zt0101/easybox/main/install.sh)
+sudo bash -c 'bash <(curl -Ls https://raw.githubusercontent.com/zt0101/easybox/<版本>/install.sh) <版本>'
 ```
 
-安装脚本会随机生成面板端口、路径和账号，并可通过 acme.sh 为服务器 IP 签发 Let's Encrypt 证书（需开放 80 端口）。
+从 v3.10.2-eb.4 起，Release 构建完成后会自动标为 latest，之后也可以不带版本号：`bash <(curl -Ls https://raw.githubusercontent.com/zt0101/easybox/main/install.sh)`。
 
 需要放行的端口（系统防火墙 + 云厂商安全组）：
 
@@ -38,7 +38,12 @@ bash <(curl -Ls https://raw.githubusercontent.com/zt0101/easybox/main/install.sh
 
 ## 升级
 
-在服务器执行 `x-ui update`，或面板内的更新按钮。两者都从 `zt0101/easybox` 获取，不会装回原版 3X-UI。
+```bash
+curl -fsSL -o update.sh https://raw.githubusercontent.com/zt0101/easybox/<新版本>/update.sh
+sudo XUI_UPDATE_TAG=<新版本> bash update.sh
+```
+
+`x-ui update` 和面板内的更新按钮都从 `zt0101/easybox` 获取，只认「最新 Release」。从 eb.4 起，Release 构建完成后会自动标为 latest（`release.yml` 的 `promote-latest` job，见 DEPLOY.md 开头）。
 
 ## 发布
 
@@ -67,7 +72,7 @@ docker compose exec dev make verify
 docker compose exec dev bash devenv/smoke-easybox.sh
 ```
 
-完成后更新 `UPSTREAM_BASE.md`。
+完成后更新 `UPSTREAM_BASE.md`。完整流程、合并后必查项和 VPS 实测见 [UPSTREAM_SYNC.md](UPSTREAM_SYNC.md)。
 
 ## 许可
 
