@@ -2,17 +2,17 @@
 
 本文以 Ubuntu / Debian 为例，`install.sh` 也支持 CentOS、Alma、Rocky、Fedora、Arch、Alpine、openSUSE。下文中的 `<版本>` 指一个 EasyBox Release tag，例如 `v3.10.2-eb.3`，可以在 [Releases](https://github.com/zt0101/easybox/releases) 查看。
 
-## 先了解：为什么要写明版本号
+## 先了解：版本号与「最新 Release」
 
-`release.yml` 沿用上游的做法，把每个 Release 都标成预发布（pre-release），所以 GitHub 的 `releases/latest` 返回 404。这意味着：
+`release.yml` 上传时会先把 Release 建成预发布（pre-release）。从 **v3.10.2-eb.4** 起，所有平台都上传成功后，`promote-latest` job 会把它改成正式版并标为 latest（前提是它是最高的 eb 版本）。之后这三种方式都能用，会自动装最新的 eb 版本：
 
-- 不带版本号运行 `install.sh` 会失败（"Failed to fetch x-ui version"）；
-- `x-ui update` 和面板里的「更新」按钮也会失败。
+- 不带版本号运行 `install.sh`；
+- `x-ui update`；
+- 面板里的「更新」按钮。
 
-有两种解决办法，任选其一：
+eb.1 到 eb.3 是改动之前发布的，都还是预发布；在 eb.4 发布之前，`releases/latest` 返回 404，上面三种方式会失败（报 "Failed to fetch x-ui version"）。
 
-1. **安装和升级时都写明版本号**（本文下面都按这种方式写）。
-2. **把某个 Release 标为最新**：GitHub → Releases → 编辑该版本 → 取消勾选「Set as a pre-release」，勾选「Set as the latest release」。之后不带版本号的安装命令、`x-ui update` 和面板更新按钮都能用。每发一个新版本，都要重新标一次。
+本文下面的命令都写明了版本号，任何时候都能用，也方便固定安装某个版本。如果某次构建没有自动标为 latest（比如有平台构建失败），可以在 GitHub → Releases → 编辑该版本里手动处理：取消勾选「Set as a pre-release」，勾选「Set as the latest release」。
 
 ## 1. 准备
 
@@ -102,13 +102,13 @@ curl -fsSL -o update.sh https://raw.githubusercontent.com/zt0101/easybox/<新版
 sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 ```
 
-升级会保留设置、线路、订阅和证书，并校验下载包的 SHA-256。如果已经把新版本标为最新 Release（见开头），也可以直接用 `x-ui update` 或面板里的更新按钮。
+升级会保留设置、线路、订阅和证书，并校验下载包的 SHA-256。新版本被标为最新 Release 之后（eb.4 起自动标，见开头），也可以直接用 `x-ui update` 或面板里的更新按钮。
 
 ## 常见问题
 
 | 现象 | 原因与处理 |
 |---|---|
-| 安装时提示 "Failed to fetch x-ui version" | 没写版本号，见开头 |
+| 安装时提示 "Failed to fetch x-ui version" | 没写版本号，而且当前没有被标为 latest 的 Release，见开头 |
 | 证书申请失败 | 80 端口没放行，或者被其他程序占用。用 `sudo ss -ltnp \| grep ':80 '` 查看 |
 | 能打开面板，但节点连不上 | 20000–20099 没放行，Hysteria2 和 TUIC 要放行 **UDP** |
 | 某些网络下 Hysteria2 / TUIC 连不上 | 当前网络限制了 UDP，换一个网络（比如手机流量）再试 |

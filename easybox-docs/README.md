@@ -21,11 +21,11 @@ EasyBox 是基于 [3X-UI](https://github.com/MHSanaei/3x-ui)（MHSanaei/3x-ui，
 
 完整步骤（端口、交互 / 非交互安装、登录信息、验证、常见问题）见 [DEPLOY.md](DEPLOY.md)。
 
-Release 都是预发布，`releases/latest` 不存在，所以要写明版本号：
-
 ```bash
 sudo bash -c 'bash <(curl -Ls https://raw.githubusercontent.com/zt0101/easybox/<版本>/install.sh) <版本>'
 ```
+
+从 v3.10.2-eb.4 起，Release 构建完成后会自动标为 latest，之后也可以不带版本号：`bash <(curl -Ls https://raw.githubusercontent.com/zt0101/easybox/main/install.sh)`。
 
 需要放行的端口（系统防火墙 + 云厂商安全组）：
 
@@ -43,7 +43,7 @@ curl -fsSL -o update.sh https://raw.githubusercontent.com/zt0101/easybox/<新版
 sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 ```
 
-`x-ui update` 和面板内的更新按钮都从 `zt0101/easybox` 获取，但只认「最新 Release」：要先在 GitHub 上把该版本标为 latest（见 DEPLOY.md 开头），否则会失败。
+`x-ui update` 和面板内的更新按钮都从 `zt0101/easybox` 获取，只认「最新 Release」。从 eb.4 起，Release 构建完成后会自动标为 latest（`release.yml` 的 `promote-latest` job，见 DEPLOY.md 开头）。
 
 ## 发布
 

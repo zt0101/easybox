@@ -33,7 +33,7 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 8. 合回 develop，更新 UPSTREAM_BASE.md 表格（Base commit、Commit date、Latest release at base、Recorded）
 9. develop 以 --no-ff 合入 main，打 tag v<上游版本>-eb.1，推送 main 和这个 tag
    （不要推送上游自己的 tag，例如 v3.10.3；main 上必须删掉 .github/dependabot.yml）
-10. 等 Release 构建完成 → VPS 上运行 sudo XUI_UPDATE_TAG=<tag> bash update.sh → 在 VPS 上实测各客户端
+10. 等 Release 构建完成，并确认它已被标为 latest（Actions 里的 promote-latest job）→ VPS 上运行 sudo XUI_UPDATE_TAG=<tag> bash update.sh → 在 VPS 上实测各客户端
     → 更新 easybox-docs/CLIENT_COMPATIBILITY.md
 ```
 
@@ -52,6 +52,7 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 | `frontend/public/openapi.json`、`frontend/src/generated/*` | EasyBox 接口的文档和类型 | 不要手工合并，跑 `make gen` |
 | `frontend/src/pages/api-docs/endpoints.ts` | EasyBox 接口出现在 API 文档页 | 两边都保留 |
 | `go.mod`、`.oss-scanner/Dockerfile` | Go 版本 | 取较高的版本；两处要一致 |
+| `.github/workflows/release.yml` | 文件末尾新增 `promote-latest` job：eb 版本构建完成后标为 latest | 保留这个 job；如果上游改了 build / build-windows 的 job 名，要同步修改它的 `needs` |
 
 ## 合并后必查
 
