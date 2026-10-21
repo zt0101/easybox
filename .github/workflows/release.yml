@@ -445,4 +445,6 @@ jobs:
             exit 0
           fi
           retry gh release edit "$TAG" --prerelease=false --latest
-          gh release view "$TAG" --json tagName,isPrerelease,isLatest
+          latest=$(retry gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)
+          echo "releases/latest -> $latest"
+          [[ "$latest" == "$TAG" ]]
