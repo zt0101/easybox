@@ -1446,8 +1446,11 @@ func (s *SubService) genHysteriaLink(inbound *model.Inbound, email string) strin
 
 	tlsSettings, _ := searchKey(tlsSetting, "settings")
 	if tlsSetting != nil {
+		// EasyBox: QUIC inbounds default to an empty fingerprint; omit fp= then.
 		if fpValue, ok := searchKey(tlsSettings, "fingerprint"); ok {
-			params["fp"], _ = fpValue.(string)
+			if fp, _ := fpValue.(string); fp != "" {
+				params["fp"] = fp
+			}
 		}
 		if echValue, ok := searchKey(tlsSettings, "echConfigList"); ok {
 			if ech, _ := echValue.(string); ech != "" {
