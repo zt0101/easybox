@@ -67,7 +67,7 @@ docker compose exec dev make verify
 docker compose exec dev bash devenv/smoke-easybox.sh
 ```
 
-完成后更新 `UPSTREAM_BASE.md`。
+完成后更新 `UPSTREAM_BASE.md`。完整流程、合并后必查项和 VPS 实测见 [UPSTREAM_SYNC.md](UPSTREAM_SYNC.md)。
 
 ## 许可
 

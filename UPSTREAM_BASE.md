@@ -21,13 +21,13 @@ origin    <EasyBox fork, to be added>
 
 ## Sync procedure
 
+Full procedure, conflict hotspots and post-merge checks: [easybox-docs/UPSTREAM_SYNC.md](easybox-docs/UPSTREAM_SYNC.md).
+
 ```
 git fetch upstream --tags
-git checkout develop
+git checkout develop && git checkout -b sync/<upstream release tag>
 git merge <upstream release tag>
-make verify            # inside devenv, see devenv/README.md
-# update the table above
+make gen && make verify            # inside devenv, see devenv/README.md
+bash devenv/smoke-baseline.sh && bash devenv/smoke-easybox.sh
+# merge back to develop, update the table above, release v<upstream>-eb.1
 ```
-
-Expected conflict hotspots: `frontend/src/routes.tsx`, `frontend/src/layouts/AppSidebar.tsx`,
-`internal/sub/controller.go`, `internal/database/db.go`, `internal/web/translation/*.json`.

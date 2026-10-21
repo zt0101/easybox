@@ -2291,6 +2291,8 @@ resolve limited conflicts
 在 UPSTREAM_BASE.md 更新基线
 ```
 
+可执行流程（步骤、冲突点、合并后必查、VPS 实测）：easybox-docs/UPSTREAM_SYNC.md。
+
 冲突热点：
 
 ```

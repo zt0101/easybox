@@ -22,6 +22,7 @@ make verify            # 上游完整门禁：代码生成、lint、格式、类
 SINGBOX_BINARY=/root/.cache/clients/sing-box go test ./internal/easybox/   # 用真实 sing-box 校验配置
 bash devenv/smoke-easybox.sh    # 端到端：真实 Xray / sing-box / Mihomo 客户端经线路访问网页
 bash devenv/smoke-baseline.sh   # 上游基线（合并上游后先跑）
+VPS=<服务器 IP> bash devenv/smoke-vps.sh   # 已安装的 VPS：TUIC / Hysteria2 经真实网络实测（发版后跑）
 ```
 
 客户端二进制（sing-box、Mihomo）从官方 GitHub Release 下载到 `/root/.cache/clients/`，按 Release 公布的 SHA-256 校验。
