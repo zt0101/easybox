@@ -46,7 +46,7 @@ bash devenv/smoke-baseline.sh   # 上游基线（合并上游后先跑）
 
 - 面板日志：`/var/log/x-ui/panel.out`；sing-box 跳过的线路会记为 `easybox singbox: skipped line`。
 - 订阅预览：面板「订阅」页的「模拟客户端预览」，或 `GET /panel/api/easybox/subscription/preview?client=singbox`。
-- 显式格式：通用订阅地址加 `?target=singbox`；Clash/Mihomo 使用上游的 Clash 订阅地址。
+- 显式格式：通用订阅地址加 `?target=singbox`；Clash/Mihomo 使用上游的 Clash 订阅地址（sing-box App 访问 Clash 地址时同样返回 sing-box 配置）。
 
 ## 新增模板 / 渲染器 / 客户端
 
