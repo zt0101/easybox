@@ -210,6 +210,35 @@ func templateFlag(svc *Service, id string) bool {
 	return false
 }
 
+// Rotation (§39) replaces the shared password on every line that carries it,
+// and the new one is still a valid Shadowsocks 2022 key.
+func TestRotateSubscription_ReplacesSharedPasswordOnEveryLine(t *testing.T) {
+	initTestDB(t)
+	mustInit(t)
+	usePanelCert(t, "node.example.com")
+	svc := newTestService(nil, nil)
+	lines := map[string]*EndpointView{}
+	for _, tpl := range []string{TemplateTrojan, TemplateTuic, TemplateShadowsocks} {
+		lines[tpl] = createLine(t, svc, tpl, "line-"+tpl)
+	}
+	before, _ := EnsureDefaultSubscription()
+	after, err := svc.RotateSubscription()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Password == before.Password || !isSS2022Password(after.Password) {
+		t.Fatalf("rotated password %q, want a new 16-byte key", after.Password)
+	}
+	trojan := parseLineURL(t, lineLink(t, svc, lines[TemplateTrojan]))
+	tuicPass, _ := parseLineURL(t, lineLink(t, svc, lines[TemplateTuic])).User.Password()
+	ssKeys, _ := parseLineURL(t, lineLink(t, svc, lines[TemplateShadowsocks])).User.Password()
+	_, ssUser, _ := cutLast(ssKeys)
+	if trojan.User.Username() != after.Password || tuicPass != after.Password || ssUser != after.Password {
+		t.Fatalf("after rotation trojan=%q tuic=%q ss=%q, want all %q",
+			trojan.User.Username(), tuicPass, ssUser, after.Password)
+	}
+}
+
 // A TUIC line's traffic enters Xray through a relay inbound that exists only
 // after an Xray restart, so Quick Create applies it at once instead of leaving
 // a RUNNING line that cannot carry traffic until upstream's 30-second job.
