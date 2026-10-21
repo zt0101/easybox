@@ -25,6 +25,7 @@ import { LazyMount } from '@/components/utility';
 import SponsorSlot from '@/components/sponsor/SponsorSlot';
 import { setMessageInstance } from '@/utils/messageBus';
 import OverviewActionBar from './OverviewActionBar';
+import EasyboxOverviewCard from '@/pages/easybox/EasyboxOverviewCard';
 import VitalTile from './VitalTile';
 import ThroughputCard from './ThroughputCard';
 import ConnectionsCard from './ConnectionsCard';
@@ -194,6 +195,7 @@ export default function IndexPage() {
                 />
               ) : (
                 <div className="ov-page">
+                  <EasyboxOverviewCard messageApi={messageApi} />
                   <OverviewActionBar
                     status={status}
                     isMobile={isMobile}

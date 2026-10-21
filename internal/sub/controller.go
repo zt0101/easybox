@@ -474,6 +474,12 @@ func (a *SUBController) subs(c *gin.Context) {
 	if !a.enforceHwid(c) {
 		return
 	}
+	// EasyBox: sing-box apps import a full config (easybox_singbox.go).
+	if a.maybeServeSingbox(c, userAgent) {
+		a.recordSubscriptionFetch(c)
+		logSubscriptionRoute(userAgent, "singbox")
+		return
+	}
 	if shouldAutoServeClash(a.subClashAutoDetect, a.clashEnabled, false, userAgent, a.clashUserAgent) && a.serveClashBody(c, false, false) {
 		a.recordSubscriptionFetch(c)
 		logSubscriptionRoute(userAgent, "clash")

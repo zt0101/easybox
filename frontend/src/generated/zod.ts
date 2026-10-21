@@ -599,6 +599,32 @@ export const ClientsSummarySchema = z.object({
 });
 export type ClientsSummary = z.infer<typeof ClientsSummarySchema>;
 
+export const CreateEndpointRequestSchema = z.object({
+  address: z.string(),
+  name: z.string(),
+  template: z.string(),
+});
+export type CreateEndpointRequest = z.infer<typeof CreateEndpointRequestSchema>;
+
+export const EndpointViewSchema = z.object({
+  address: z.string(),
+  createdAt: z.number().int(),
+  down: z.number().int(),
+  failedStep: z.string(),
+  id: z.number().int(),
+  inSubscription: z.boolean(),
+  inboundId: z.number().int(),
+  lastError: z.string(),
+  name: z.string(),
+  port: z.number().int(),
+  protocol: z.string(),
+  status: z.string(),
+  template: z.string(),
+  transport: z.string(),
+  up: z.number().int(),
+});
+export type EndpointView = z.infer<typeof EndpointViewSchema>;
+
 export const FallbackParentInfoSchema = z.object({
   masterId: z.number().int(),
   path: z.string().optional(),
@@ -1002,6 +1028,14 @@ export const PeerActivitySchema = z.object({
 });
 export type PeerActivity = z.infer<typeof PeerActivitySchema>;
 
+export const PreviewViewSchema = z.object({
+  body: z.string(),
+  client: z.string(),
+  format: z.string(),
+  skipped: z.array(z.string()),
+});
+export type PreviewView = z.infer<typeof PreviewViewSchema>;
+
 export const ProbeResultUISchema = z.object({
   cpuPct: z.number(),
   error: z.string(),
@@ -1121,6 +1155,25 @@ export const SubBalancerSchema = z.object({
   updatedAt: z.number().int(),
 });
 export type SubBalancer = z.infer<typeof SubBalancerSchema>;
+
+export const SubscriptionViewSchema = z.object({
+  clashUrl: z.string(),
+  lines: z.array(z.lazy(() => EndpointViewSchema).nullable()),
+  subId: z.string(),
+  subUrl: z.string(),
+  updateInterval: z.string(),
+});
+export type SubscriptionView = z.infer<typeof SubscriptionViewSchema>;
+
+export const TemplateViewSchema = z.object({
+  available: z.boolean(),
+  id: z.string(),
+  name: z.string(),
+  protocol: z.string(),
+  reason: z.string(),
+  transport: z.string(),
+});
+export type TemplateView = z.infer<typeof TemplateViewSchema>;
 
 export const TrafficSchema = z.object({
   Down: z.number().int(),

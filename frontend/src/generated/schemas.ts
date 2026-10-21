@@ -2419,6 +2419,112 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "CreateEndpointRequest": {
+    "properties": {
+      "address": {
+        "example": "node.example.com",
+        "type": "string"
+      },
+      "name": {
+        "example": "US-Oracle-01",
+        "type": "string"
+      },
+      "template": {
+        "example": "vless-reality",
+        "type": "string"
+      }
+    },
+    "required": [
+      "address",
+      "name",
+      "template"
+    ],
+    "type": "object"
+  },
+  "EndpointView": {
+    "description": "EndpointView is the API view of a line; port, enable state and traffic are read\nlive from the upstream Inbound.",
+    "properties": {
+      "address": {
+        "example": "node.example.com",
+        "type": "string"
+      },
+      "createdAt": {
+        "example": 1792500000000,
+        "format": "int64",
+        "type": "integer"
+      },
+      "down": {
+        "example": 5242880,
+        "format": "int64",
+        "type": "integer"
+      },
+      "failedStep": {
+        "type": "string"
+      },
+      "id": {
+        "example": 1,
+        "type": "integer"
+      },
+      "inSubscription": {
+        "example": true,
+        "type": "boolean"
+      },
+      "inboundId": {
+        "example": 7,
+        "type": "integer"
+      },
+      "lastError": {
+        "type": "string"
+      },
+      "name": {
+        "example": "US-Oracle-01",
+        "type": "string"
+      },
+      "port": {
+        "example": 20042,
+        "type": "integer"
+      },
+      "protocol": {
+        "example": "vless",
+        "type": "string"
+      },
+      "status": {
+        "example": "RUNNING",
+        "type": "string"
+      },
+      "template": {
+        "example": "vless-reality",
+        "type": "string"
+      },
+      "transport": {
+        "example": "tcp",
+        "type": "string"
+      },
+      "up": {
+        "example": 1048576,
+        "format": "int64",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "address",
+      "createdAt",
+      "down",
+      "failedStep",
+      "id",
+      "inSubscription",
+      "inboundId",
+      "lastError",
+      "name",
+      "port",
+      "protocol",
+      "status",
+      "template",
+      "transport",
+      "up"
+    ],
+    "type": "object"
+  },
   "FallbackParentInfo": {
     "description": "FallbackParentInfo carries everything the frontend needs to rewrite a\nchild inbound's client link: where to connect (the master's address\nand port) and which path matched on the master's fallbacks array.\nThe frontend already has the master inbound in its dbInbounds list,\nso we only ship identifiers + the match path here.",
     "properties": {
@@ -4133,6 +4239,36 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "PreviewView": {
+    "description": "PreviewView is what one client would receive from the subscription (§43).",
+    "properties": {
+      "body": {
+        "example": "{\"outbounds\": []}",
+        "type": "string"
+      },
+      "client": {
+        "example": "singbox",
+        "type": "string"
+      },
+      "format": {
+        "example": "singbox",
+        "type": "string"
+      },
+      "skipped": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "body",
+      "client",
+      "format",
+      "skipped"
+    ],
+    "type": "object"
+  },
   "ProbeResultUI": {
     "properties": {
       "cpuPct": {
@@ -4622,6 +4758,84 @@ export const SCHEMAS: Record<string, unknown> = {
       "sortOrder",
       "strategy",
       "updatedAt"
+    ],
+    "type": "object"
+  },
+  "SubscriptionView": {
+    "description": "SubscriptionView is the \"My Subscription\" page (EasyBox.md §24): one URL for\nevery client, plus the lines it carries.",
+    "properties": {
+      "clashUrl": {
+        "example": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "lines": {
+        "items": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EndpointView"
+            }
+          ],
+          "nullable": true
+        },
+        "type": "array"
+      },
+      "subId": {
+        "example": "3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "subUrl": {
+        "example": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "updateInterval": {
+        "example": "12",
+        "type": "string"
+      }
+    },
+    "required": [
+      "clashUrl",
+      "lines",
+      "subId",
+      "subUrl",
+      "updateInterval"
+    ],
+    "type": "object"
+  },
+  "TemplateView": {
+    "description": "TemplateView lists a template for Quick Create (EasyBox.md §69).",
+    "properties": {
+      "available": {
+        "example": false,
+        "type": "boolean"
+      },
+      "id": {
+        "example": "tuic",
+        "type": "string"
+      },
+      "name": {
+        "example": "TUIC v5",
+        "type": "string"
+      },
+      "protocol": {
+        "example": "tuic",
+        "type": "string"
+      },
+      "reason": {
+        "example": "no trusted TLS certificate: set the panel certificate first",
+        "type": "string"
+      },
+      "transport": {
+        "example": "udp",
+        "type": "string"
+      }
+    },
+    "required": [
+      "available",
+      "id",
+      "name",
+      "protocol",
+      "reason",
+      "transport"
     ],
     "type": "object"
   },

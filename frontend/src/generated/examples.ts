@@ -610,6 +610,28 @@ export const EXAMPLES: Record<string, unknown> = {
     "onlineCount": 1,
     "total": 2000
   },
+  "CreateEndpointRequest": {
+    "address": "node.example.com",
+    "name": "US-Oracle-01",
+    "template": "vless-reality"
+  },
+  "EndpointView": {
+    "address": "node.example.com",
+    "createdAt": 1792500000000,
+    "down": 5242880,
+    "failedStep": "",
+    "id": 1,
+    "inSubscription": true,
+    "inboundId": 7,
+    "lastError": "",
+    "name": "US-Oracle-01",
+    "port": 20042,
+    "protocol": "vless",
+    "status": "RUNNING",
+    "template": "vless-reality",
+    "transport": "tcp",
+    "up": 1048576
+  },
   "FallbackParentInfo": {
     "masterId": 0,
     "path": ""
@@ -1024,6 +1046,14 @@ export const EXAMPLES: Record<string, unknown> = {
     "tag": "inbound-51820",
     "up": 1048576
   },
+  "PreviewView": {
+    "body": "{\"outbounds\": []}",
+    "client": "singbox",
+    "format": "singbox",
+    "skipped": [
+      ""
+    ]
+  },
   "ProbeResultUI": {
     "cpuPct": 12.5,
     "error": "",
@@ -1151,6 +1181,23 @@ export const EXAMPLES: Record<string, unknown> = {
     "sortOrder": 1,
     "strategy": "random",
     "updatedAt": 1710000000000
+  },
+  "SubscriptionView": {
+    "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+    "lines": [
+      null
+    ],
+    "subId": "3dllwqwd8kpj3i5e",
+    "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+    "updateInterval": "12"
+  },
+  "TemplateView": {
+    "available": false,
+    "id": "tuic",
+    "name": "TUIC v5",
+    "protocol": "tuic",
+    "reason": "no trusted TLS certificate: set the panel certificate first",
+    "transport": "udp"
   },
   "Traffic": {
     "Down": 2097152,

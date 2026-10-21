@@ -126,7 +126,11 @@
     "openMenu": "Open menu",
     "pinSidebar": "Pin sidebar",
     "unpinSidebar": "Unpin sidebar",
-    "subFormats": "Sub Formats"
+    "subFormats": "Sub Formats",
+    "easyboxCreate": "Quick Create",
+    "easyboxLines": "Lines",
+    "easyboxSubscription": "Subscription",
+    "advanced": "Advanced"
   },
   "pages": {
     "login": {
@@ -2740,5 +2744,105 @@
     "restartXray": "Restart Xray Service",
     "restartXraySuccess": "Xray has been successfully relaunched",
     "settings": "Settings"
+  },
+  "easybox": {
+    "status": {
+      "CREATING": "Creating",
+      "RUNNING": "Running",
+      "ERROR": "Error",
+      "DISABLED": "Disabled",
+      "DELETING": "Deleting"
+    },
+    "steps": {
+      "prepare": "Prepare parameters",
+      "create_inbound": "Write the inbound",
+      "apply_runtime": "Apply to Xray",
+      "health_check": "Health check"
+    },
+    "create": {
+      "title": "Create a line",
+      "protocol": "Protocol",
+      "name": "Line name (optional)",
+      "namePlaceholder": "e.g. US-Oracle-01",
+      "address": "Server address (optional)",
+      "addressHelp": "Domain or IP that clients connect to. Leave empty to use the address you opened this panel with.",
+      "submit": "Create line",
+      "creating": "Creating the line, this takes a few seconds…",
+      "successTitle": "Line {name} is ready",
+      "firewallHint": "Open port {port}/{transport} in the server firewall and your cloud security group. Clients get the line on their next subscription refresh.",
+      "failedTitle": "Line creation failed",
+      "failedReason": "Reason: {reason}",
+      "failedCleanup": "Nothing was left behind and your other lines are not affected.",
+      "retry": "Try again",
+      "nameTooLong": "At most 64 characters",
+      "addressTooLong": "At most 253 characters",
+      "goLines": "View lines",
+      "copySubscription": "Copy subscription",
+      "needsCertificate": "Needs a trusted TLS certificate on the panel first",
+      "certificateGuide": "TUIC needs a trusted TLS certificate. install.sh can issue one for the server IP; set it as the panel certificate in Panel Settings and restart the panel.",
+      "setCertificate": "Open Panel Settings"
+    },
+    "lines": {
+      "title": "Lines",
+      "create": "Create line",
+      "emptyTitle": "No lines yet",
+      "emptyHint": "Pick a protocol and your first line is ready in a few seconds.",
+      "emptyAction": "Create your first line",
+      "colName": "Name",
+      "colProtocol": "Protocol",
+      "colStatus": "Status",
+      "colTraffic": "Traffic",
+      "colActions": "Actions",
+      "copyLink": "Copy link",
+      "qr": "QR code",
+      "qrTitle": "Line QR code: {name}",
+      "qrHint": "Scanning imports only this line. To import every line at once, use the subscription QR code.",
+      "enable": "Enable",
+      "disable": "Disable",
+      "deleteConfirm": "Delete line {name}? Its inbound is removed; the subscription address stays the same.",
+      "deleted": "Line deleted",
+      "notInSubscription": "Not in subscription",
+      "regenerate": "Regenerate",
+      "regenerateTitle": "Regenerate {name}",
+      "regenerateHint": "Creates a fresh port and REALITY keys. The current line keeps working until the new one passes its health check.",
+      "modeReplace": "Replace this line",
+      "modeReplaceHint": "The line moves to the new port and the old one is removed. Clients pick it up on their next subscription refresh.",
+      "modeKeep": "Keep the old line",
+      "modeKeepHint": "Adds a new line next to this one. Delete the old line yourself once the new one works.",
+      "regenerated": "Line regenerated",
+      "regenerateFailed": "Regenerate failed, the current line was not changed: {reason}"
+    },
+    "subscription": {
+      "title": "My subscription",
+      "hint": "One address for every client (v2rayN, Shadowrocket, Clash/Mihomo, sing-box). Importing it gives you all lines ticked below.",
+      "httpWarning": "This address uses HTTP, so the subscription and the credentials of every line travel unencrypted.",
+      "universal": "Universal subscription",
+      "clash": "Clash / Mihomo subscription",
+      "clashHint": "Usually not needed: the universal address already detects Clash/Mihomo clients.",
+      "refreshHint": "Clients refresh the subscription automatically every {hours} hours. After adding or changing lines you can also refresh by hand.",
+      "lines": "Lines in this subscription",
+      "noLines": "No lines yet.",
+      "qrTitle": "Subscription QR code",
+      "qrHint": "Scan once to import every line in this subscription.",
+      "rotate": "Reset subscription address",
+      "rotateConfirmTitle": "Reset the subscription address?",
+      "rotateConfirm": "Use this if the address leaked. The old address stops working at once and every line gets new credentials, so every client has to import the new address.",
+      "rotated": "Subscription address reset",
+      "preview": "Preview as a client",
+      "previewHint": "See exactly what each client receives from the address above.",
+      "previewFormat": "Format: {format}",
+      "previewSkipped": "Left out for this client (it could not use them):",
+      "previewEmpty": "Nothing to send to this client."
+    },
+    "templates": {
+      "vless-reality": "REALITY · no domain or certificate needed · TCP",
+      "hysteria2": "QUIC · fast on lossy networks · UDP",
+      "tuic": "QUIC · low latency · UDP"
+    },
+    "overview": {
+      "title": "EasyBox lines",
+      "total": "Lines",
+      "empty": "No lines yet. Your first line is ready in a few seconds."
+    }
   }
 }

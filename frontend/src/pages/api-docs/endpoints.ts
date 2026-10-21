@@ -2796,4 +2796,104 @@ export const sections: readonly Section[] = [
       },
     ],
   },
+  {
+    id: 'easybox',
+    title: 'EasyBox',
+    description:
+      'EasyBox lines: one-click VLESS + REALITY endpoints built on upstream inbounds and merged into one subscription. All endpoints under /panel/api/easybox.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/templates',
+        summary:
+          'Line templates for Quick Create (vless-reality, hysteria2, tuic) with transport and availability. TUIC is unavailable until the panel has a trusted TLS certificate, since TUIC links never allow insecure TLS.',
+        responseSchema: 'TemplateView',
+        responseSchemaArray: true,
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/endpoints/list',
+        summary:
+          'List EasyBox lines. Port, enable state and traffic are read live from each line inbound; a line whose inbound was removed outside EasyBox reports ERROR.',
+        responseSchema: 'EndpointView',
+        responseSchemaArray: true,
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/create',
+        summary:
+          'Quick Create: generate port, REALITY keys and target, add the inbound, apply it and health-check it. On failure the inbound is removed and the returned line carries failedStep and lastError.',
+        body: '{\n  "template": "vless-reality",\n  "name": "US-Oracle-01",\n  "address": "node.example.com"\n}',
+        responseSchema: 'EndpointView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/del/:id',
+        summary: 'Delete a line and its inbound. The subscription URL does not change.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/setEnable/:id',
+        summary: 'Enable or disable a line. A disabled line is left out of the subscription.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "enable": false\n}',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/setInSubscription/:id',
+        summary:
+          'Include or exclude a line from the merged subscription (upstream excludeFromSub). The line keeps running either way.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "include": false\n}',
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/subscription/info',
+        summary:
+          'The merged subscription: one URL for every client (plus the Clash/Mihomo URL when enabled), the client refresh interval in hours, and the lines it carries.',
+        responseSchema: 'SubscriptionView',
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/subscription/preview',
+        summary:
+          'Preview what one client would receive from the universal subscription, rendered by the same code the subscription server uses (raw links shown decoded). skipped explains lines left out for that client.',
+        params: [
+          {
+            name: 'client',
+            in: 'query',
+            type: 'string',
+            desc: 'v2rayn, shadowrocket, passwall, mihomo or singbox.',
+          },
+        ],
+        responseSchema: 'PreviewView',
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/endpoints/link/:id',
+        summary:
+          'Share link of one line (for Copy / QR), rendered by the subscription service so it matches the subscription entry.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        response:
+          '{\n  "success": true,\n  "obj": "vless://22222222-3333-4444-9555-666666666666@node.example.com:20042?type=tcp&security=reality&...#US-Oracle-01"\n}',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/endpoints/regenerate/:id',
+        summary:
+          'Give a line a fresh port and REALITY keys. Replace mode (default) swaps the line onto the new inbound only after it passed its health check; keepOld adds a separate <name>-new line and leaves the old one running.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "keepOld": false\n}',
+        responseSchema: 'EndpointView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/subscription/rotate',
+        summary:
+          'Rotate the subscription after a leak: new subscription URL (SubID) and new UUID on every line. The old URL returns 404 and the old credentials stop working; clients must import the new URL.',
+        responseSchema: 'SubscriptionView',
+      },
+    ],
+  },
 ];

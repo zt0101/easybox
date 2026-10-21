@@ -20,6 +20,7 @@ import {
   GlobalOutlined,
   HeartOutlined,
   ImportOutlined,
+  LinkOutlined,
   LogoutOutlined,
   MailOutlined,
   MenuOutlined,
@@ -36,7 +37,9 @@ import {
   SwapOutlined,
   TagsOutlined,
   TeamOutlined,
+  ThunderboltOutlined,
   ToolOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 
 import { HttpUtil } from '@/utils';
@@ -51,8 +54,19 @@ const DONATE_URL = 'https://donate.sanaei.dev/';
 // Mac glyph to the Linux and Windows operators who are most of this panel's.
 const SHORTCUT_MODIFIER = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? '⌘' : 'Ctrl';
 const DOCS_URL = 'https://docs.sanaei.dev/';
-const REPO_URL = 'https://github.com/MHSanaei/3x-ui';
+const REPO_URL = 'https://github.com/zt0101/easybox';
 const LOGOUT_KEY = '__logout__';
+// EasyBox.md §48: upstream's expert pages live under one "Advanced" group.
+const ADVANCED_KEY = '__advanced__';
+const ADVANCED_PATHS = new Set([
+  '/inbounds',
+  '/clients',
+  '/groups',
+  '/nodes',
+  '/hosts',
+  '/outbound',
+  '/routing',
+]);
 const RAIL_WIDTH = 72;
 const SIDER_WIDTH = 220;
 const SIDEBAR_PINNED_KEY = 'sidebar-pinned';
@@ -61,6 +75,9 @@ let hoveredAcrossRemounts = false;
 
 type IconName =
   | 'dashboard'
+  | 'easyboxCreate'
+  | 'easyboxLines'
+  | 'easyboxSubscription'
   | 'inbound'
   | 'team'
   | 'groups'
@@ -76,6 +93,9 @@ type IconName =
 
 const iconByName: Record<IconName, ComponentType> = {
   dashboard: DashboardOutlined,
+  easyboxCreate: ThunderboltOutlined,
+  easyboxLines: UnorderedListOutlined,
+  easyboxSubscription: LinkOutlined,
   inbound: ImportOutlined,
   team: TeamOutlined,
   groups: TagsOutlined,
@@ -225,6 +245,13 @@ export default function AppSidebar() {
   const tabs = useMemo<{ key: string; icon: IconName; title: string }[]>(
     () => [
       { key: '/', icon: 'dashboard', title: t('menu.dashboard') },
+      { key: '/easybox/create', icon: 'easyboxCreate', title: t('menu.easyboxCreate') },
+      { key: '/easybox/lines', icon: 'easyboxLines', title: t('menu.easyboxLines') },
+      {
+        key: '/easybox/subscription',
+        icon: 'easyboxSubscription',
+        title: t('menu.easyboxSubscription'),
+      },
       { key: '/inbounds', icon: 'inbound', title: t('menu.inbounds') },
       { key: '/clients', icon: 'team', title: t('menu.clients') },
       { key: '/groups', icon: 'groups', title: t('menu.groups') },
@@ -310,15 +337,21 @@ export default function AppSidebar() {
         ? '/'
         : pathname;
 
-  const openSubmenu = settingsActive ? '/settings' : xrayActive ? '/xray' : null;
+  const openSubmenu = settingsActive
+    ? '/settings'
+    : xrayActive
+      ? '/xray'
+      : ADVANCED_PATHS.has(pathname)
+        ? ADVANCED_KEY
+        : null;
   const [openKeys, setOpenKeys] = useState<string[]>(() => (openSubmenu ? [openSubmenu] : []));
   if (openSubmenu && !openKeys.includes(openSubmenu)) {
     setOpenKeys([...openKeys, openSubmenu]);
   }
 
   const toMenuItems = useCallback(
-    (items: typeof tabs): MenuProps['items'] =>
-      items.map((tab) => {
+    (items: typeof tabs): MenuProps['items'] => {
+      const toItem = (tab: (typeof tabs)[number]) => {
         const Icon = iconByName[tab.icon];
         if (tab.key === '/settings') {
           return { key: tab.key, icon: <Icon />, label: tab.title, children: settingsChildren };
@@ -327,8 +360,24 @@ export default function AppSidebar() {
           return { key: tab.key, icon: <Icon />, label: tab.title, children: xrayChildren };
         }
         return { key: tab.key, icon: <Icon />, label: tab.title, title: '' };
-      }),
-    [settingsChildren, xrayChildren],
+      };
+      const advanced = items.filter((tab) => ADVANCED_PATHS.has(tab.key));
+      const out: NonNullable<MenuProps['items']> = [];
+      for (const tab of items) {
+        if (!ADVANCED_PATHS.has(tab.key)) {
+          out.push(toItem(tab));
+        } else if (tab === advanced[0]) {
+          out.push({
+            key: ADVANCED_KEY,
+            icon: <ApartmentOutlined />,
+            label: t('menu.advanced'),
+            children: advanced.map(toItem),
+          });
+        }
+      }
+      return out;
+    },
+    [settingsChildren, xrayChildren, t],
   );
 
   const openLink = useCallback(
@@ -382,7 +431,7 @@ export default function AppSidebar() {
       >
         <div className="sider-brand">
           <div className="brand-block">
-            <span className="brand-text">{railCollapsed ? '3X' : '3X-UI'}</span>
+            <span className="brand-text">{railCollapsed ? 'EB' : 'EasyBox'}</span>
           </div>
           {!railCollapsed && (
             <div className="brand-actions">
@@ -470,7 +519,7 @@ export default function AppSidebar() {
       >
         <div className="drawer-header">
           <div className="brand-block">
-            <span className="drawer-brand">3X-UI</span>
+            <span className="drawer-brand">EasyBox</span>
           </div>
           <div className="drawer-header-actions">
             <DocsButton ariaLabel={t('menu.docs') || 'Documentation'} />

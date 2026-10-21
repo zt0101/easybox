@@ -568,6 +568,30 @@ export interface ClientsSummary {
   total: number;
 }
 
+export interface CreateEndpointRequest {
+  address: string;
+  name: string;
+  template: string;
+}
+
+export interface EndpointView {
+  address: string;
+  createdAt: number;
+  down: number;
+  failedStep: string;
+  id: number;
+  inSubscription: boolean;
+  inboundId: number;
+  lastError: string;
+  name: string;
+  port: number;
+  protocol: string;
+  status: string;
+  template: string;
+  transport: string;
+  up: number;
+}
+
 export interface FallbackParentInfo {
   masterId: number;
   path?: string;
@@ -943,6 +967,13 @@ export interface PeerActivity {
   up: number;
 }
 
+export interface PreviewView {
+  body: string;
+  client: string;
+  format: string;
+  skipped: string[];
+}
+
 export interface ProbeResultUI {
   cpuPct: number;
   error: string;
@@ -1054,6 +1085,23 @@ export interface SubBalancer {
   sortOrder: number;
   strategy: string;
   updatedAt: number;
+}
+
+export interface SubscriptionView {
+  clashUrl: string;
+  lines: EndpointView | null[];
+  subId: string;
+  subUrl: string;
+  updateInterval: string;
+}
+
+export interface TemplateView {
+  available: boolean;
+  id: string;
+  name: string;
+  protocol: string;
+  reason: string;
+  transport: string;
 }
 
 export interface Traffic {
