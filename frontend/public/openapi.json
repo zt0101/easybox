@@ -4842,6 +4842,11 @@
             "example": "TUIC v5",
             "type": "string"
           },
+          "passwordUpgrade": {
+            "description": "PasswordUpgrade: creating this line first changes the password of existing\nTUIC / Trojan lines, so devices must refresh the subscription.",
+            "example": false,
+            "type": "boolean"
+          },
           "protocol": {
             "example": "tuic",
             "type": "string"
@@ -4859,6 +4864,7 @@
           "available",
           "id",
           "name",
+          "passwordUpgrade",
           "protocol",
           "reason",
           "transport"
@@ -16732,7 +16738,7 @@
         "tags": [
           "EasyBox"
         ],
-        "summary": "Line templates for Quick Create (vless-reality, hysteria2, tuic) with transport and availability. TUIC is unavailable until the panel has a trusted TLS certificate, since TUIC links never allow insecure TLS.",
+        "summary": "Line templates for Quick Create (vless-reality, vless-tls, trojan, hysteria2, tuic, shadowsocks) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.",
         "operationId": "get_panel_api_easybox_templates",
         "responses": {
           "200": {
@@ -16763,6 +16769,7 @@
                       "available": false,
                       "id": "tuic",
                       "name": "TUIC v5",
+                      "passwordUpgrade": false,
                       "protocol": "tuic",
                       "reason": "no trusted TLS certificate: set the panel certificate first",
                       "transport": "udp"

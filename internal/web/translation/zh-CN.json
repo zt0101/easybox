@@ -2779,7 +2779,10 @@
       "goLines": "查看线路",
       "copySubscription": "复制订阅",
       "needsCertificate": "需要先为面板配置受信任的 TLS 证书",
-      "certificateGuide": "TUIC 需要受信任的 TLS 证书。安装脚本 install.sh 可以为服务器 IP 签发证书；在「面板设置」中把它设为面板证书并重启面板即可。",
+      "certificateGuide": "TUIC、VLESS + TLS 和 Trojan 需要受信任的 TLS 证书。安装脚本 install.sh 可以为服务器 IP 签发证书；在「面板设置」中把它设为面板证书并重启面板即可。",
+      "passwordUpgradeTitle": "创建后需要在设备上刷新订阅",
+      "passwordUpgradeContent": "Shadowsocks 2022 需要新格式的密码。创建这条线路会同时更换 TUIC 和 Trojan 线路的密码，设备刷新订阅之前，这些线路会连不上。",
+      "passwordUpgradeOk": "创建线路",
       "setCertificate": "打开面板设置"
     },
     "lines": {
@@ -2837,7 +2840,10 @@
     "templates": {
       "vless-reality": "REALITY · 无需域名和证书 · TCP",
       "hysteria2": "QUIC · 弱网下更快 · UDP",
-      "tuic": "QUIC · 低延迟 · UDP"
+      "tuic": "QUIC · 低延迟 · UDP",
+      "vless-tls": "TLS · 所有客户端可用 · TCP",
+      "trojan": "TLS · 经典协议，兼容性好 · TCP",
+      "shadowsocks": "无需证书 · 备用线路，国内较易被识别 · TCP + UDP"
     },
     "overview": {
       "title": "EasyBox 线路",

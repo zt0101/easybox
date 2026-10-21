@@ -4816,6 +4816,11 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "TUIC v5",
         "type": "string"
       },
+      "passwordUpgrade": {
+        "description": "PasswordUpgrade: creating this line first changes the password of existing\nTUIC / Trojan lines, so devices must refresh the subscription.",
+        "example": false,
+        "type": "boolean"
+      },
       "protocol": {
         "example": "tuic",
         "type": "string"
@@ -4833,6 +4838,7 @@ export const SCHEMAS: Record<string, unknown> = {
       "available",
       "id",
       "name",
+      "passwordUpgrade",
       "protocol",
       "reason",
       "transport"

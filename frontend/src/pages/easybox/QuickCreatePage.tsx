@@ -24,7 +24,7 @@ export default function QuickCreatePage() {
   return <EasyboxShell>{(api) => <QuickCreate {...api} />}</EasyboxShell>;
 }
 
-function QuickCreate({ messageApi }: EasyboxPageApi) {
+function QuickCreate({ messageApi, modal }: EasyboxPageApi) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { create, creating } = useEasyboxMutations();
@@ -35,8 +35,23 @@ function QuickCreate({ messageApi }: EasyboxPageApi) {
   const methods = useZodForm(QuickCreateFormSchema, { defaultValues: { name: '', address: '' } });
 
   const submit = methods.handleSubmit(async (values: QuickCreateFormValues) => {
-    setResult(null);
-    setResult(await create({ ...values, template }));
+    const run = async () => {
+      setResult(null);
+      setResult(await create({ ...values, template }));
+    };
+    // The first Shadowsocks 2022 line on an older subscription changes the
+    // password TUIC / Trojan lines share, so devices must refresh: ask first.
+    if (templates.data?.find((tpl) => tpl.id === template)?.passwordUpgrade) {
+      modal.confirm({
+        title: t('easybox.create.passwordUpgradeTitle'),
+        content: t('easybox.create.passwordUpgradeContent'),
+        okText: t('easybox.create.passwordUpgradeOk'),
+        cancelText: t('cancel'),
+        onOk: run,
+      });
+      return;
+    }
+    await run();
   });
 
   const copy = async (text: string) => {

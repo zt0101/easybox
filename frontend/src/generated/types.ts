@@ -1099,6 +1099,7 @@ export interface TemplateView {
   available: boolean;
   id: string;
   name: string;
+  passwordUpgrade: boolean;
   protocol: string;
   reason: string;
   transport: string;

@@ -80,7 +80,7 @@ func (s *Service) RotateSubscription() (Identity, error) {
 	}
 	next := Identity{
 		Email: row.Email, SubID: random.NumLower(16), UUID: uuid.NewString(),
-		Auth: random.NumLower(16), Password: random.NumLower(16),
+		Auth: random.NumLower(16), Password: newSharedPassword(),
 	}
 
 	clients := &service.ClientService{}
