@@ -4227,6 +4227,7 @@ Shadowrocket：TUIC、Hysteria2 可连接；VLESS + REALITY + Vision 不通。
 §68   路由沿用上游风格：/endpoints/list、/create、/del/:id、/setEnable/:id、/regenerate/:id、/setInSubscription/:id、/link/:id
 §31   Clash / Mihomo 地址遇到 sing-box App（≥1.12）也返回 sing-box 配置，导错地址也能用
 §22   Hysteria 链接在指纹为空时不输出 fp=（上游会输出空的 fp=）
+§57   eb.5 起 x-ui -v、面板版本号显示 3.10.2-eb.N（发布构建写入 eb.N）；检查更新比较 eb 号，修复了一直提示有新版本的问题
 ```
 
 需要人工处理的事项见交付说明。

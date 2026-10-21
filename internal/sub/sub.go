@@ -5,6 +5,7 @@ package sub
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"io"
 	"io/fs"
 	"net"
@@ -468,8 +469,11 @@ func (s *Server) Stop() error {
 		defer shutdownCancel()
 		err1 = s.httpServer.Shutdown(shutdownCtx)
 	}
+	// EasyBox: httpServer.Shutdown already closed the listener.
 	if s.listener != nil {
-		err2 = s.listener.Close()
+		if err := s.listener.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+			err2 = err
+		}
 	}
 	return common.Combine(err1, err2)
 }

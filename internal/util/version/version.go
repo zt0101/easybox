@@ -32,6 +32,11 @@ func Normalize(v string) string {
 
 func parse(v string) ([3]int, bool) {
 	var result [3]int
+	// EasyBox: compare the upstream part of v<upstream>-eb.N; CompareRelease orders N.
+	v, _, ok := splitEasybox(v)
+	if !ok {
+		return result, false
+	}
 	parts := strings.Split(Normalize(v), ".")
 	if len(parts) != 3 {
 		return result, false
