@@ -887,6 +887,12 @@ func (a *SUBController) subClash(c *gin.Context, legacy bool) {
 	if !a.enforceHwid(c) {
 		return
 	}
+	// EasyBox: a sing-box app given the Clash address still gets its own config.
+	if a.maybeServeSingbox(c, c.GetHeader("User-Agent")) {
+		a.recordSubscriptionFetch(c)
+		logSubscriptionRoute(c.GetHeader("User-Agent"), "singbox")
+		return
+	}
 	if !a.serveClashBody(c, false, legacy) {
 		writeSubError(c, nil)
 	}
