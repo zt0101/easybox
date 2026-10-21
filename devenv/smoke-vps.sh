@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Real TUIC + Hysteria2 check against an installed EasyBox VPS, run from the dev container:
+# Real-network check of the certificate and Shadowsocks lines on an installed EasyBox VPS,
+# run from the dev container:
 #   VPS=203.0.113.10 SSH_KEY=/root/.cache/ssh/easybox_vps bash devenv/smoke-vps.sh
 # Reads the panel credentials over SSH (install.sh's /etc/x-ui/install-result.env) into
-# variables and never prints them. Creates (or reuses) lines test-tuic and test-hysteria2
-# and leaves them in place for device tests. See easybox-docs/UPSTREAM_SYNC.md.
+# variables and never prints them. Creates (or reuses) lines test-<template> and leaves
+# them in place for device tests. The first Shadowsocks line on an older panel upgrades
+# the shared password, so devices must refresh the subscription afterwards.
+# See easybox-docs/UPSTREAM_SYNC.md.
 set -uo pipefail
 VPS=${VPS:?set VPS to the server IP}
 SSH_KEY=${SSH_KEY:-/root/.cache/ssh/easybox_vps}
@@ -40,8 +43,11 @@ curl -fsS -b "$JAR" -c "$JAR" -H "X-CSRF-Token: $t" --data-urlencode "username=$
 
 api GET /panel/api/easybox/templates 2>/dev/null | jq -c '[.obj[]? | {id, available: (.unavailable // .reason // "")}]' || true
 
+TEMPLATES="tuic hysteria2 vless-tls trojan shadowsocks"
+api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="shadowsocks") | .passwordUpgrade' >/dev/null \
+  && echo "  [NOTE] creating test-shadowsocks upgrades the shared password: refresh the subscription on devices"
 declare -A ID LINK
-for tpl in tuic hysteria2; do
+for tpl in $TEMPLATES; do
   name="test-$tpl"
   existing=$(api GET /panel/api/easybox/endpoints/list | jq -r --arg n "$name" '.obj[]? | select(.name==$n) | .id')
   if [ -n "$existing" ]; then ID[$tpl]=$existing; else
@@ -49,6 +55,10 @@ for tpl in tuic hysteria2; do
     jq -e '.success and .obj.status=="RUNNING"' <<<"$res" >/dev/null || { bad "create $tpl: $res"; continue; }
     ID[$tpl]=$(jq -r .obj.id <<<"$res")
   fi
+done
+# Links only after every create: a Shadowsocks create can change the shared password.
+for tpl in $TEMPLATES; do
+  [ -n "${ID[$tpl]:-}" ] || continue
   LINK[$tpl]=$(api GET "/panel/api/easybox/endpoints/link/${ID[$tpl]}" | jq -r .obj)
   ok "$tpl line RUNNING (id ${ID[$tpl]}): $(sed -E 's#://[^@]+@#://***@#; s/(password|auth|obfs-password)=[^&]+/\1=***/g' <<<"${LINK[$tpl]}")"
   grep -q pinSHA256 <<<"${LINK[$tpl]}" && bad "$tpl link pins a cert (should use the trusted panel cert)"
@@ -58,18 +68,24 @@ info=$(api GET /panel/api/easybox/subscription/info)
 sub=$(jq -r .obj.subUrl <<<"$info"); clash=$(jq -r .obj.clashUrl <<<"$info")
 echo "  subUrl host: $(sed -E 's#(https?://[^/]+)/.*#\1#' <<<"$sub")"
 raw=$(curl -fsS "$sub" | base64 -d)
-for p in tuic hysteria2; do grep -q "^$p://" <<<"$raw" && ok "raw subscription has $p" || bad "raw subscription lacks $p"; done
+for tpl in $TEMPLATES; do
+  grep -qxF "${LINK[$tpl]:-none}" <<<"$raw" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
+done
 
-# 1) xray client via upstream link parser (Hysteria2 only; Xray has no TUIC client)
+# 1) xray client via upstream link parser (Xray has no TUIC client)
 cd "$(dirname "$0")/.."
-go run ./devenv/linkclient "${LINK[hysteria2]}" > "$WORK/x.json" && { "$XRAY" run -c "$WORK/x.json" >"$WORK/x.log" 2>&1 & pid=$!; sleep 3
+for tpl in hysteria2 vless-tls trojan shadowsocks; do
+  go run ./devenv/linkclient "${LINK[$tpl]}" > "$WORK/x.json" || { bad "linkclient $tpl"; continue; }
+  "$XRAY" run -c "$WORK/x.json" >"$WORK/x.log" 2>&1 & pid=$!; sleep 3
   r=$(probe); kill $pid; wait $pid 2>/dev/null; pid=""
-  [[ $r == "204 $VPS" ]] && ok "Xray client → Hysteria2 → $r" || { bad "Xray Hysteria2: $r"; tail -5 "$WORK/x.log"; }; }
+  [[ $r == "204 $VPS" ]] && ok "Xray client → $tpl → $r" || { bad "Xray $tpl: $r"; tail -5 "$WORK/x.log"; }
+done
 
 # 2) sing-box client using the served sing-box config
 curl -fsS -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/sb.json" "$sub"
 "$SINGBOX" check -c "$WORK/sb.json" && ok "sing-box config check" || bad "sing-box check"
-for tag in test-tuic test-hysteria2; do
+for tpl in $TEMPLATES; do
+  tag=test-$tpl
   jq --arg tag "$tag" '.inbounds=[{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
     | (.outbounds[]|select(.tag=="proxy")).default=$tag | del(.route.auto_detect_interface)' "$WORK/sb.json" > "$WORK/sbr.json"
   "$SINGBOX" run -c "$WORK/sbr.json" >"$WORK/sb.log" 2>&1 & pid=$!; sleep 3
@@ -83,7 +99,8 @@ mkdir -p "$WORK/mh"
 { printf 'mixed-port: 10808\nexternal-controller: 127.0.0.1:19090\nallow-lan: false\n'
   grep -vE '^(mixed-port|port|socks-port|external-controller|allow-lan):' "$WORK/sub.yaml"; } > "$WORK/mh/config.yaml"
 "$MIHOMO" -d "$WORK/mh" >"$WORK/mh.log" 2>&1 & pid=$!; sleep 4
-for tag in test-tuic test-hysteria2; do
+for tpl in $TEMPLATES; do
+  tag=test-$tpl
   d=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$tag/delay?url=$(jq -rn --arg u "$PROBE" '$u|@uri')&timeout=8000")
   jq -e '.delay>0' <<<"$d" >/dev/null && ok "Mihomo → $tag delay $(jq .delay <<<"$d")ms" || { bad "Mihomo $tag: $d"; tail -5 "$WORK/mh.log"; }
 done

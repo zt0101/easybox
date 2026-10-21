@@ -7,13 +7,17 @@ import (
 // Line templates (EasyBox.md §10): each builds one upstream inbound shape.
 const (
 	TemplateVlessReality = "vless-reality"
+	TemplateVlessTLS     = "vless-tls"
+	TemplateTrojan       = "trojan"
 	TemplateHysteria2    = "hysteria2"
 	TemplateTuic         = "tuic"
+	TemplateShadowsocks  = "shadowsocks"
 )
 
 const (
-	transportTCP = "tcp"
-	transportUDP = "udp"
+	transportTCP    = "tcp"
+	transportUDP    = "udp"
+	transportTCPUDP = "tcp+udp"
 )
 
 type lineTemplate struct {
@@ -25,6 +29,9 @@ type lineTemplate struct {
 	build      func(s *Service, name string, id Identity) (*model.Inbound, error)
 	// available reports why a template cannot be used right now ("" = usable).
 	available func() string
+	// relayed lines reach Xray through a relay inbound that only exists after an
+	// Xray restart; upstream defers that restart to its 30-second job.
+	relayed bool
 }
 
 var lineTemplates = []lineTemplate{
@@ -41,6 +48,18 @@ var lineTemplates = []lineTemplate{
 		available: func() string { return "" },
 	},
 	{
+		id: TemplateVlessTLS, name: "VLESS + TLS", label: "vless",
+		transport: transportTCP, namePrefix: "VLESS-TLS",
+		build:     withPanelCertificate(BuildVlessTLSInbound),
+		available: needsPanelCertificate,
+	},
+	{
+		id: TemplateTrojan, name: "Trojan", label: "trojan",
+		transport: transportTCP, namePrefix: "TROJAN",
+		build:     withPanelCertificate(BuildTrojanInbound),
+		available: needsPanelCertificate,
+	},
+	{
 		id: TemplateHysteria2, name: "Hysteria2", label: "hysteria2",
 		transport: transportUDP, namePrefix: "HY2",
 		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
@@ -55,23 +74,44 @@ var lineTemplates = []lineTemplate{
 	{
 		id: TemplateTuic, name: "TUIC v5", label: "tuic",
 		transport: transportUDP, namePrefix: "TUIC",
-		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
-			cert, ok, err := panelCertificate()
+		build:     withPanelCertificate(BuildTuicInbound),
+		available: needsPanelCertificate,
+		relayed:   true,
+	},
+	{
+		id: TemplateShadowsocks, name: "Shadowsocks 2022", label: "shadowsocks",
+		transport: transportTCPUDP, namePrefix: "SS",
+		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
+			id, err := s.ensureSS2022Password(id)
 			if err != nil {
 				return nil, err
 			}
-			if !ok {
-				return nil, ErrNoTrustedCertificate
-			}
-			return BuildTuicInbound(name, id, cert)
+			return BuildShadowsocks2022Inbound(name, id)
 		},
-		available: func() string {
-			if _, ok, err := panelCertificate(); err != nil || !ok {
-				return ErrNoTrustedCertificate.Error()
-			}
-			return ""
-		},
+		available: func() string { return "" },
 	},
+}
+
+// withPanelCertificate adapts a builder for lines whose links never allow
+// insecure TLS, so they need the panel's trusted certificate (EasyBox.md §9.1).
+func withPanelCertificate(build func(string, Identity, lineCertificate) (*model.Inbound, error)) func(*Service, string, Identity) (*model.Inbound, error) {
+	return func(_ *Service, name string, id Identity) (*model.Inbound, error) {
+		cert, ok, err := panelCertificate()
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, ErrNoTrustedCertificate
+		}
+		return build(name, id, cert)
+	}
+}
+
+func needsPanelCertificate() string {
+	if _, ok, err := panelCertificate(); err != nil || !ok {
+		return ErrNoTrustedCertificate.Error()
+	}
+	return ""
 }
 
 // templateByID resolves a template; "" means the default VLESS + REALITY.
@@ -95,6 +135,9 @@ type TemplateView struct {
 	Transport string `json:"transport" example:"udp"`
 	Available bool   `json:"available" example:"false"`
 	Reason    string `json:"reason" example:"no trusted TLS certificate: set the panel certificate first"`
+	// PasswordUpgrade: creating this line first changes the password of existing
+	// TUIC / Trojan lines, so devices must refresh the subscription.
+	PasswordUpgrade bool `json:"passwordUpgrade" example:"false"`
 }
 
 func (s *Service) ListTemplates() []TemplateView {
@@ -104,6 +147,7 @@ func (s *Service) ListTemplates() []TemplateView {
 		out = append(out, TemplateView{
 			Id: t.id, Name: t.name, Protocol: t.label, Transport: t.transport,
 			Available: reason == "", Reason: reason,
+			PasswordUpgrade: t.id == TemplateShadowsocks && passwordUpgradePending(),
 		})
 	}
 	return out

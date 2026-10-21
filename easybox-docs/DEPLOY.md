@@ -25,7 +25,7 @@ eb.1 到 eb.3 是改动之前发布的，都还是预发布；在 eb.4 发布之
 | 80 | TCP | 申请和续期 Let's Encrypt IP 证书（acme.sh），需要一直开着 |
 | 面板端口（安装时指定） | TCP | 面板后台 |
 | 2096 | TCP | 订阅地址 |
-| 20000–20099 | TCP + UDP | EasyBox 线路：VLESS 走 TCP，Hysteria2 和 TUIC 走 UDP |
+| 20000–20099 | TCP + UDP | EasyBox 线路：VLESS、Trojan 走 TCP，Hysteria2 和 TUIC 走 UDP，Shadowsocks 两者都用 |
 
 ## 2. 安装
 
@@ -81,6 +81,11 @@ sudo cat /etc/x-ui/install-result.env
    | VLESS + REALITY | 不需要 | v2rayN、Clash/Mihomo、PassWall、Stash。sing-box 和 Shadowrocket 目前连不上：Xray 26.9+ 要求握手带 X25519MLKEM768，sing-box 不支持；Shadowrocket 开着 Vision 时不使用所选指纹（已知问题，等它修复，见 CLIENT_COMPATIBILITY.md） |
    | Hysteria2 | 面板证书；没有面板证书时用自签证书加证书指纹 | 全部 |
    | TUIC v5 | 必须有面板证书 | 除 Xray 内核外的全部客户端（v2rayN 会自动切到 sing-box 内核） |
+   | VLESS + TLS | 必须有面板证书 | 全部；不走 REALITY，所以 sing-box 也能用（Shadowrocket 待真机实测） |
+   | Trojan | 必须有面板证书 | 全部（Shadowrocket 待真机实测）。Xray 已标为「不推荐，将来可能移除」 |
+   | Shadowsocks 2022 | 不需要 | 全部（Shadowrocket 待真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
+
+   老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。
 
 2. 在**订阅**页复制**通用订阅**地址，导入任何客户端都用这一个地址，服务端会按客户端返回对应的格式。Clash / Mihomo 地址一般用不到，sing-box App 导入它也能用。
 

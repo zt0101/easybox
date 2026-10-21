@@ -10,8 +10,9 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
  internal/web/controller/easybox.go      薄控制器
         ▼
  internal/easybox/                       EasyBox 业务层（只调用上游 Service）
-   templates.go   线路模板注册表：vless-reality / hysteria2 / tuic
-   vless_reality.go / quic_lines.go      按上游表单默认值生成入站
+   templates.go   线路模板注册表：vless-reality / vless-tls / trojan / hysteria2 / tuic / shadowsocks
+   vless_reality.go / quic_lines.go / tcp_lines.go   按上游表单默认值生成入站
+   password.go    共用密码升级为 Shadowsocks 2022 密钥（第一次建 SS 线路时）
    reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 的第一个可用结果
    cert.go        面板证书 / 自签证书（内嵌 + GetCertHash 指纹）
    port.go        端口范围 20000–20099，交给上游 CheckPortConflict 判断
@@ -21,7 +22,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
         ▼
  上游 Service 层：InboundService / ClientService / SettingService / ServerService / XrayService
         ▼
- runtime.Runtime → Xray-core（VLESS、Hysteria2） / 进程内 TUIC 服务
+ runtime.Runtime → Xray-core（VLESS、Trojan、Shadowsocks、Hysteria2） / 进程内 TUIC 服务
 
  订阅服务器（上游 internal/sub，订阅端口）
    controller.subs()  ── EasyBox 一个分支 ──▶ easybox_singbox.go（sing-box 完整配置）
@@ -32,7 +33,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
 
 | 表 | 内容 |
 |---|---|
-| `easybox_subscriptions` | 订阅用户：Email、SubID（订阅地址 token）、UUID、Auth（Hysteria2）、Password（TUIC）。上游在删除最后一个入站时会删掉 ClientRecord，这张表保证订阅地址不变 |
+| `easybox_subscriptions` | 订阅用户：Email、SubID（订阅地址 token）、UUID、Auth（Hysteria2）、Password（TUIC、Trojan、Shadowsocks 共用；16 字节密钥的 base64，因为 Shadowsocks 2022 只接受这种格式）。上游在删除最后一个入站时会删掉 ClientRecord，这张表保证订阅地址不变 |
 | `easybox_endpoints` | 线路：名称、模板、对应的上游入站、状态、失败步骤与原因。端口、启用状态、流量实时读取上游入站 |
 | `easybox_audit_logs` | 审计日志（创建、删除、重新生成、启用 / 禁用、订阅轮换），不记录凭据 |
 
