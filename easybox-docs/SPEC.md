@@ -4194,6 +4194,7 @@ MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=s
 文档    完成  easybox-docs/：README / ARCHITECTURE / DEVELOPMENT / HOW_TO_ADD_* / SPEC 副本
 第一批新协议  完成（eb.6）  VLESS + TLS + Vision、Trojan + TLS（需面板证书）、Shadowsocks 2022（无需证书，备用）
              三种真实客户端内核（Xray / sing-box / Mihomo）回环实测通过，见 CLIENT_COMPATIBILITY.md
+第二批新协议  开发中  VLESS + XHTTP + REALITY（无需域名和证书）；Xray / Mihomo 回环实测通过，sing-box 不支持 XHTTP，订阅里去掉
 发布    完成  install.sh / update.sh / x-ui.sh / 面板内更新改为从 zt0101/easybox 获取（否则会装回原版）
 ```
 

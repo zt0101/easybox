@@ -79,6 +79,7 @@ sudo cat /etc/x-ui/install-result.env
    | 模板 | 证书 | 能用的客户端（实测见 [CLIENT_COMPATIBILITY.md](CLIENT_COMPATIBILITY.md)） |
    |---|---|---|
    | VLESS + REALITY | 不需要 | v2rayN、Clash/Mihomo、PassWall、Stash。sing-box 和 Shadowrocket 目前连不上：Xray 26.9+ 要求握手带 X25519MLKEM768，sing-box 不支持；Shadowrocket 开着 Vision 时不使用所选指纹（已知问题，等它修复，见 CLIENT_COMPATIBILITY.md） |
+   | VLESS + XHTTP | 不需要（同样走 REALITY） | v2rayN、PassWall、Clash/Mihomo（实测见 CLIENT_COMPATIBILITY.md）。sing-box 没有 XHTTP，订阅里自动去掉。比 TCP 线路更难识别 |
    | Hysteria2 | 面板证书；没有面板证书时用自签证书加证书指纹 | 全部 |
    | TUIC v5 | 必须有面板证书 | 除 Xray 内核外的全部客户端（v2rayN 会自动切到 sing-box 内核） |
    | VLESS + TLS | 必须有面板证书 | 全部；不走 REALITY，所以 sing-box 和 Shadowrocket 也能用（2026-10-22 真机实测） |

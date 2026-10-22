@@ -10,8 +10,8 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
  internal/web/controller/easybox.go      薄控制器
         ▼
  internal/easybox/                       EasyBox 业务层（只调用上游 Service）
-   templates.go   线路模板注册表：vless-reality / vless-tls / trojan / hysteria2 / tuic / shadowsocks
-   vless_reality.go / quic_lines.go / tcp_lines.go   按上游表单默认值生成入站
+   templates.go   线路模板注册表：vless-reality / vless-xhttp / vless-tls / trojan / hysteria2 / tuic / shadowsocks
+   vless_reality.go / xhttp_line.go / quic_lines.go / tcp_lines.go   按上游表单默认值生成入站
    password.go    共用密码升级为 Shadowsocks 2022 密钥（第一次建 SS 线路时）
    reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 的第一个可用结果
    cert.go        面板证书 / 自签证书（内嵌 + GetCertHash 指纹）

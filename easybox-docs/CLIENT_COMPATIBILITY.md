@@ -19,6 +19,7 @@ client core imported the subscription EasyBox serves and fetched
 | Line | v2rayN (Xray core 26.10.10, raw links) | Shadowrocket | PassWall | sing-box 1.14.3 (sing-box JSON) | Mihomo 1.19.32 (Clash YAML) |
 |---|---|---|---|---|---|
 | VLESS + REALITY + Vision | **PASS** | **FAIL** ⁵ | untested | **FAIL → filtered** ¹ | **PASS** |
+| VLESS + XHTTP + REALITY | **PASS** ⁶ | untested | untested | n/a → filtered ⁸ | **PASS** ⁶ |
 | Hysteria2, self-signed + pinned, salamander | **PASS** | untested | untested | **PASS** ² | **PASS** |
 | Hysteria2, panel certificate | **PASS** ³ | **PASS** ⁷ | untested | **PASS** ³ | **PASS** ³ |
 | TUIC v5, panel certificate | n/a ⁴ | **PASS** ⁷ | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
@@ -45,6 +46,9 @@ client core imported the subscription EasyBox serves and fetched
 7. Shadowrocket 3445 on iPad against the VPS (v3.10.2-eb.7, Xray-core 26.10.21), 2026-10-22, confirmed
    by packet capture. On VLESS + TLS it still sends the 517-byte x25519-only ClientHello, which plain
    TLS accepts; only REALITY rejects it. Stash (iOS) passed VLESS + TLS and VLESS + REALITY the same day.
+
+8. sing-box has no XHTTP transport, so the sing-box config leaves XHTTP lines out. Its XHTTP
+   test is loopback in the dev container (`devenv/smoke-easybox.sh`, 2026-10-22, Xray-core 26.10.21).
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.

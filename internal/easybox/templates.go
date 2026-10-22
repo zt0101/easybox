@@ -7,6 +7,7 @@ import (
 // Line templates (EasyBox.md §10): each builds one upstream inbound shape.
 const (
 	TemplateVlessReality = "vless-reality"
+	TemplateVlessXhttp   = "vless-xhttp"
 	TemplateVlessTLS     = "vless-tls"
 	TemplateTrojan       = "trojan"
 	TemplateHysteria2    = "hysteria2"
@@ -44,6 +45,18 @@ var lineTemplates = []lineTemplate{
 				return nil, err
 			}
 			return BuildVlessRealityInbound(name, 0, id, reality)
+		},
+		available: func() string { return "" },
+	},
+	{
+		id: TemplateVlessXhttp, name: "VLESS + XHTTP", label: "vless",
+		transport: transportTCP, namePrefix: "XHTTP",
+		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
+			reality, err := s.reality()
+			if err != nil {
+				return nil, err
+			}
+			return BuildVlessXhttpInbound(name, id, reality)
 		},
 		available: func() string { return "" },
 	},
