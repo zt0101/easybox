@@ -78,7 +78,9 @@ client core imported the subscription EasyBox serves and fetched
     with a preferred IP went through Cloudflare HKG and was fast; the bare trycloudflare.com hostname
     was sent to SJC/LAX and timed out now and then. A test the same morning got no request through;
     the cause could not be settled (client set-up is the likeliest). The panel feature itself is
-    measured with `devenv/smoke-vps.sh` after its release.
+    measured with `devenv/smoke-vps.sh` after its release: on v3.10.2-eb.13 Xray, sing-box and Mihomo
+    PASS through the panel-made tunnel, whose hostname survived an x-ui restart; v2rayNG in China
+    connected on the tunnel node and its preferred-IP nodes, the preferred ones with low latency.
 
 ## Minimum client versions
 
