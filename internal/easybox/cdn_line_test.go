@@ -97,8 +97,10 @@ func (f *fakeCloudflare) serve(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Authorization") != "Bearer "+testCFToken {
 		// What api.cloudflare.com answers to a malformed token.
 		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]any{"success": false, "result": nil,
-			"errors": []any{map[string]any{"code": 6003, "message": "Invalid request headers"}}})
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"success": false, "result": nil,
+			"errors": []any{map[string]any{"code": 6003, "message": "Invalid request headers"}},
+		})
 		return
 	}
 	var body map[string]any

@@ -1,6 +1,7 @@
 package easybox
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -289,7 +290,7 @@ func pickPortFrom(ib *model.Inbound, ports []int, reserved map[int]bool, bindabl
 }
 
 func tcpPortBindable(port int) bool {
-	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	l, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		return false
 	}
@@ -307,7 +308,11 @@ func detectPublicIPv4(address string) (string, error) {
 	}
 	client := &http.Client{Timeout: 5 * time.Second}
 	for _, u := range publicIPv4Services {
-		resp, err := client.Get(u)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u, nil)
+		if err != nil {
+			continue
+		}
+		resp, err := client.Do(req)
 		if err != nil {
 			continue
 		}
