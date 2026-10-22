@@ -105,6 +105,8 @@ sudo cat /etc/x-ui/install-result.env
 
    隧道线路（VLESS + Tunnel）不需要域名和 Cloudflare 账号：面板用随发布包附带的 cloudflared 开一个 Cloudflare 临时隧道，作为单独的 systemd 服务 `easybox-tunnel` 运行（以无权限的临时用户运行、不能写文件），所以面板重启、升级、证书续期都不会改变隧道地址；只有 VPS 重启或 cloudflared 崩溃时地址才会变，面板每分钟检查一次并更新订阅。
 
+   **订阅走 CDN**（有域名时强烈建议）：在**订阅**页打开「通过 Cloudflare 提供订阅」，面板加一条橙色云解析 `sub-xxxxxx.你的域名`，订阅多一个经 Cloudflare 的地址；服务器 IP 被封后客户端仍能用它刷新订阅（隧道地址变化等也能及时拿到）。IP 订阅地址照常可用。客户端里换成这个地址，并打开「通过代理更新订阅」。条件：已连接 Cloudflare、订阅端口是 Cloudflare 支持的（默认 2096 就是）、SSL/TLS 模式不是「完全（严格）」。
+
 2. 在**订阅**页复制**通用订阅**地址，导入任何客户端都用这一个地址，服务端会按客户端返回对应的格式。Clash / Mihomo 地址一般用不到，sing-box App 导入它也能用。
 
 ## 5. 验证
@@ -142,4 +144,4 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 隧道线路突然连不上 | VPS 重启过、隧道地址变了：客户端刷新订阅。面板「线路」页显示当前隧道地址；`systemctl status easybox-tunnel` 看隧道服务 |
 | CDN 线路能连但延迟很高，或时通时断 | 国内到 Cloudflare 默认节点的线路差，填「优选地址」，见上 |
 | 访问面板根路径返回 404 | 正常现象：面板地址带随机路径，要用 `XUI_ACCESS_URL` 里的完整地址 |
-| VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address） |
+| VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address）。开着「通过 Cloudflare 提供订阅」的话，到订阅页把它关掉再打开，解析记录才会指向新 IP |

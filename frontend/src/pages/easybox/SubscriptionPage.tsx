@@ -10,10 +10,11 @@ import {
   Result,
   Space,
   Spin,
+  Switch,
   Tag,
   Typography,
 } from 'antd';
-import { CopyOutlined, LinkOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { CloudOutlined, CopyOutlined, LinkOutlined, QrcodeOutlined } from '@ant-design/icons';
 
 import { ClipboardManager } from '@/utils';
 import { useEasyboxMutations, useEasyboxSubscription } from '@/api/queries/useEasybox';
@@ -56,11 +57,17 @@ function UrlRow({
 function Subscription({ messageApi, modal }: EasyboxPageApi) {
   const { t } = useTranslation();
   const sub = useEasyboxSubscription();
-  const { setInSubscription, rotateSubscription } = useEasyboxMutations();
+  const { setInSubscription, rotateSubscription, setSubscriptionCdn, settingSubscriptionCdn } =
+    useEasyboxMutations();
   const [qrUrl, setQrUrl] = useState('');
 
   const copy = async (text: string) => {
     if (text && (await ClipboardManager.copyText(text))) messageApi.success(t('copied'));
+  };
+
+  const toggleCdn = async (enable: boolean) => {
+    const res = await setSubscriptionCdn(enable);
+    if (!res.ok) messageApi.error(res.message);
   };
 
   const confirmRotate = () =>
@@ -88,7 +95,9 @@ function Subscription({ messageApi, modal }: EasyboxPageApi) {
   }
   if (!sub.data) return <Spin size="large" />;
 
-  const { subUrl, clashUrl, updateInterval, lines } = sub.data;
+  const { subUrl, clashUrl, updateInterval, lines, cdnSubUrl, cdnClashUrl, cdnUnavailable } =
+    sub.data;
+  const cdnOn = cdnSubUrl !== '';
   const visible = lines.filter((l): l is NonNullable<typeof l> => l !== null);
   return (
     <>
@@ -132,6 +141,55 @@ function Subscription({ messageApi, modal }: EasyboxPageApi) {
               {t('easybox.subscription.rotate')}
             </Button>
           </div>
+        </Space>
+      </Card>
+
+      <Card
+        title={
+          <Space>
+            <CloudOutlined />
+            {t('easybox.subscription.cdnTitle')}
+          </Space>
+        }
+        extra={
+          <Switch
+            checked={cdnOn}
+            loading={settingSubscriptionCdn}
+            disabled={!cdnOn && cdnUnavailable !== ''}
+            onChange={toggleCdn}
+            aria-label={t('easybox.subscription.cdnTitle')}
+          />
+        }
+      >
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Typography.Text type="secondary">{t('easybox.subscription.cdnIntro')}</Typography.Text>
+          {!cdnOn && cdnUnavailable !== '' && (
+            <Alert
+              type="info"
+              showIcon
+              message={t('easybox.subscription.cdnUnavailable')}
+              description={cdnUnavailable}
+            />
+          )}
+          {cdnOn && (
+            <>
+              <UrlRow
+                label={t('easybox.subscription.cdnUniversal')}
+                value={cdnSubUrl}
+                onCopy={() => copy(cdnSubUrl)}
+                onQr={() => setQrUrl(cdnSubUrl)}
+              />
+              {cdnClashUrl && (
+                <UrlRow
+                  label={t('easybox.subscription.cdnClash')}
+                  value={cdnClashUrl}
+                  onCopy={() => copy(cdnClashUrl)}
+                  onQr={() => setQrUrl(cdnClashUrl)}
+                />
+              )}
+              <Alert type="success" showIcon message={t('easybox.subscription.cdnHowTo')} />
+            </>
+          )}
         </Space>
       </Card>
 
