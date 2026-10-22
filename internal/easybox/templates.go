@@ -15,6 +15,7 @@ const (
 	TemplateShadowsocks   = "shadowsocks"
 	TemplateVlessCDN      = "vless-cdn"
 	TemplateVlessXhttpCDN = "vless-cdn-xhttp"
+	TemplateVlessTunnel   = "vless-tunnel"
 )
 
 const (
@@ -40,6 +41,8 @@ type lineTemplate struct {
 	// set, replaces the EasyBox port range.
 	cdnInbound func(name string, id Identity, host, certPEM, keyPEM string) (*model.Inbound, error)
 	ports      []int
+	// tunnel lines get a Cloudflare quick tunnel once their inbound is healthy.
+	tunnel bool
 }
 
 var lineTemplates = []lineTemplate{
@@ -121,6 +124,15 @@ var lineTemplates = []lineTemplate{
 		transport: transportTCP, namePrefix: "CDN-XHTTP",
 		cdnInbound: BuildVlessXhttpCDNInbound, ports: cdnPorts,
 		available: cloudflareAvailable,
+	},
+	{
+		id: TemplateVlessTunnel, name: "VLESS + Tunnel", label: "vless",
+		transport: transportTCP, namePrefix: "TUNNEL",
+		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
+			return BuildVlessTunnelInbound(name, id)
+		},
+		available: tunnelAvailable,
+		tunnel:    true,
 	},
 }
 

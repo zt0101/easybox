@@ -22,6 +22,8 @@ import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 const CDN_TEMPLATE = 'vless-cdn';
 // Templates that need Cloudflare connected (they share its card and hint).
 const CDN_TEMPLATES = new Set([CDN_TEMPLATE, 'vless-cdn-xhttp']);
+// The no-domain backup through a Cloudflare quick tunnel.
+const TUNNEL_TEMPLATE = 'vless-tunnel';
 
 // Quick Create's steps in the order the backend runs them (EasyBox.md §12).
 const CREATE_STEPS = ['prepare', 'create_inbound', 'apply_runtime', 'health_check'] as const;
@@ -68,8 +70,9 @@ function QuickCreate(api: EasyboxPageApi) {
   const cdn = templates.data?.find((tpl) => tpl.id === CDN_TEMPLATE);
   const showCloudflare = Boolean(cdn) && (!cdn?.available || CDN_TEMPLATES.has(template));
   const needsCertificate = templates.data?.some(
-    (tpl) => !tpl.available && !CDN_TEMPLATES.has(tpl.id),
+    (tpl) => !tpl.available && !CDN_TEMPLATES.has(tpl.id) && tpl.id !== TUNNEL_TEMPLATE,
   );
+  const tunnel = template === TUNNEL_TEMPLATE;
 
   const failedIndex = result?.line?.failedStep
     ? CREATE_STEPS.indexOf(result.line.failedStep as (typeof CREATE_STEPS)[number])
@@ -103,7 +106,9 @@ function QuickCreate(api: EasyboxPageApi) {
                     ? t(`easybox.templates.${tpl.id}`)
                     : CDN_TEMPLATES.has(tpl.id)
                       ? t('easybox.create.needsCloudflare')
-                      : t('easybox.create.needsCertificate')}
+                      : tpl.id === TUNNEL_TEMPLATE
+                        ? t('easybox.create.tunnelUnavailable')
+                        : t('easybox.create.needsCertificate')}
                 </span>
               </button>
             ))}
@@ -124,7 +129,8 @@ function QuickCreate(api: EasyboxPageApi) {
         )}
 
         {showCloudflare && <CloudflareCard {...api} />}
-        {CDN_TEMPLATES.has(template) && <PreferredCard {...api} />}
+        {tunnel && <Alert type="warning" showIcon message={t('easybox.create.tunnelNotice')} />}
+        {(CDN_TEMPLATES.has(template) || tunnel) && <PreferredCard {...api} />}
 
         <FormProvider {...methods}>
           <form onSubmit={submit}>
@@ -136,18 +142,20 @@ function QuickCreate(api: EasyboxPageApi) {
               >
                 <Input maxLength={64} placeholder={t('easybox.create.namePlaceholder')} />
               </FormField>
-              <FormField
-                name="address"
-                label={t('easybox.create.address')}
-                extra={
-                  CDN_TEMPLATES.has(template)
-                    ? t('easybox.create.addressHelpCdn')
-                    : t('easybox.create.addressHelp')
-                }
-                rules={{ validate: rhfZodValidate(QuickCreateFormSchema.shape.address) }}
-              >
-                <Input maxLength={253} placeholder="node.example.com" dir="ltr" />
-              </FormField>
+              {!tunnel && (
+                <FormField
+                  name="address"
+                  label={t('easybox.create.address')}
+                  extra={
+                    CDN_TEMPLATES.has(template)
+                      ? t('easybox.create.addressHelpCdn')
+                      : t('easybox.create.addressHelp')
+                  }
+                  rules={{ validate: rhfZodValidate(QuickCreateFormSchema.shape.address) }}
+                >
+                  <Input maxLength={253} placeholder="node.example.com" dir="ltr" />
+                </FormField>
+              )}
               <Button type="primary" htmlType="submit" size="large" loading={creating}>
                 {t('easybox.create.submit')}
               </Button>
@@ -165,10 +173,12 @@ function QuickCreate(api: EasyboxPageApi) {
             description={
               <Space direction="vertical">
                 <span>
-                  {t('easybox.create.firewallHint', {
-                    port: result.line.port,
-                    transport: result.line.transport.toUpperCase(),
-                  })}
+                  {result.line.template === TUNNEL_TEMPLATE
+                    ? t('easybox.create.tunnelCreatedHint', { host: result.line.address })
+                    : t('easybox.create.firewallHint', {
+                        port: result.line.port,
+                        transport: result.line.transport.toUpperCase(),
+                      })}
                 </span>
                 <Space wrap>
                   <Button

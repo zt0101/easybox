@@ -155,42 +155,78 @@ func (s *Service) SetPreferred(req CloudflarePreferredRequest) (PreferredView, e
 	return PreferredView{Addresses: prefs}, err
 }
 
-// syncCDNHosts rebuilds EasyBox's Host groups: with preferred addresses, every
-// CDN line gets one host for its own hostname (kept first) plus one per
-// preferred address; without any, the lines fall back to their plain link.
+// cdnTemplates are the lines whose own link already carries TLS to Cloudflare.
+var cdnTemplates = []string{TemplateVlessCDN, TemplateVlessXhttpCDN}
+
+// tunnelHostGroupPrefix marks the Host groups of the tunnel line.
+const tunnelHostGroupPrefix = "easybox-tunnel-"
+
+func preferredRemark(i int, p PreferredAddress) string {
+	if p.Remark != "" {
+		return "-" + p.Remark
+	}
+	return "-" + preferredDefaultRemark + strconv.Itoa(i+1)
+}
+
+// syncCDNHosts rebuilds EasyBox's Host groups.
+//   - CDN lines: with preferred addresses, one host for the line's own hostname
+//     (kept first) plus one per address; without any, their plain link.
+//   - The tunnel line: always hosts, since its inbound has no TLS while clients
+//     reach https://<hostname>:443 — one for the hostname, one per address.
 func syncCDNHosts() error {
 	db := database.GetDB()
-	if err := db.Where("group_id LIKE ?", cdnHostGroupPrefix+"%").Delete(&model.Host{}).Error; err != nil {
+	if err := db.Where("group_id LIKE ? OR group_id LIKE ?", cdnHostGroupPrefix+"%", tunnelHostGroupPrefix+"%").
+		Delete(&model.Host{}).Error; err != nil {
 		return err
 	}
 	prefs, err := loadPreferred()
 	if err != nil {
 		return err
 	}
-	var inboundIDs []int
+	var groups []entity.HostGroup
+	tag := []string{"easybox"}
+
+	var cdnIDs []int
 	if err := db.Model(&model.EasyboxEndpoint{}).
-		Where("cdn_host <> '' AND inbound_id <> 0").Order("id").Pluck("inbound_id", &inboundIDs).Error; err != nil {
+		Where("template IN ? AND inbound_id <> 0", cdnTemplates).Order("id").Pluck("inbound_id", &cdnIDs).Error; err != nil {
 		return err
 	}
-	if len(prefs) == 0 || len(inboundIDs) == 0 {
-		return nil
-	}
-	hosts := &service.HostService{}
-	groups := []entity.HostGroup{{
-		GroupId: cdnHostGroupPrefix + "0", InboundIds: inboundIDs, Remark: "", Security: "same",
-		Tags: []string{"easybox"},
-	}}
-	for i, p := range prefs {
-		n := strconv.Itoa(i + 1)
-		remark := p.Remark
-		if remark == "" {
-			remark = preferredDefaultRemark + n
-		}
+	if len(prefs) > 0 && len(cdnIDs) > 0 {
 		groups = append(groups, entity.HostGroup{
-			GroupId: cdnHostGroupPrefix + n, InboundIds: inboundIDs, Hosts: []string{p.Address},
-			Remark: "-" + remark, Security: "same", SortOrder: i + 1, Tags: []string{"easybox"},
+			GroupId: cdnHostGroupPrefix + "0", InboundIds: cdnIDs, Remark: "", Security: "same", Tags: tag,
 		})
+		for i, p := range prefs {
+			groups = append(groups, entity.HostGroup{
+				GroupId: cdnHostGroupPrefix + strconv.Itoa(i+1), InboundIds: cdnIDs, Hosts: []string{p.Address},
+				Remark: preferredRemark(i, p), Security: "same", SortOrder: i + 1, Tags: tag,
+			})
+		}
 	}
+
+	tunnel, ok, err := tunnelLine()
+	if err != nil {
+		return err
+	}
+	if ok && tunnel.InboundId != 0 && tunnel.CdnHost != "" {
+		host := tunnel.CdnHost
+		viaCloudflare := func(g entity.HostGroup) entity.HostGroup {
+			g.InboundIds, g.Port, g.Security = []int{tunnel.InboundId}, 443, "tls"
+			g.Sni, g.HostHeader, g.Fingerprint, g.Alpn = host, host, "chrome", []string{"http/1.1"}
+			g.Tags = tag
+			return g
+		}
+		groups = append(groups, viaCloudflare(entity.HostGroup{
+			GroupId: tunnelHostGroupPrefix + "0", Hosts: []string{host}, Remark: "",
+		}))
+		for i, p := range prefs {
+			groups = append(groups, viaCloudflare(entity.HostGroup{
+				GroupId: tunnelHostGroupPrefix + strconv.Itoa(i+1), Hosts: []string{p.Address},
+				Remark: preferredRemark(i, p), SortOrder: i + 1,
+			}))
+		}
+	}
+
+	hosts := &service.HostService{}
 	for i := range groups {
 		if _, err := hosts.AddHostGroup(&groups[i]); err != nil {
 			return err

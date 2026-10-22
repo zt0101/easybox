@@ -22,6 +22,7 @@ client core imported the subscription EasyBox serves and fetched
 | VLESS + XHTTP + REALITY | **PASS** ⁶ | untested | untested | n/a → filtered ⁸ | **PASS** ⁶ |
 | VLESS + WS + TLS through Cloudflare (CDN line) | **PASS** ⁹ | untested | untested | **PASS** ⁹ | **PASS** ⁹ |
 | VLESS + XHTTP + TLS through Cloudflare | **PASS** ¹⁰ | untested | untested | n/a → filtered ⁸ | **PASS** ¹⁰ |
+| VLESS + WS through a Cloudflare quick tunnel (tunnel line) | **PASS** ¹¹ | untested | untested | **PASS** ¹¹ | **PASS** ¹¹ |
 | Hysteria2, self-signed + pinned, salamander | **PASS** | untested | untested | **PASS** ² | **PASS** |
 | Hysteria2, panel certificate | **PASS** ³ | **PASS** ⁷ | untested | **PASS** ³ | **PASS** ³ |
 | TUIC v5, panel certificate | n/a ⁴ | **PASS** ⁷ | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
@@ -70,6 +71,14 @@ client core imported the subscription EasyBox serves and fetched
     the release, see `devenv/smoke-vps.sh`: on v3.10.2-eb.12 Xray and Mihomo PASS through Cloudflare.
     Same day, v2rayN (company network) and v2rayNG (mobile data) in China: as fast as the WebSocket CDN
     line; nodes on preferred IPs stable, the plain hostname node prone to timeouts.
+
+11. 2026-10-22, a hand-built quick tunnel of the same shape (cloudflared 2026.10.3, VLESS + WS on
+    127.0.0.1): Xray, sing-box and Mihomo through it from the dev container; in China v2rayN (company
+    network) and v2rayNG (mobile data) connected — 536 handshakes from CN in the capture. Mobile data
+    with a preferred IP went through Cloudflare HKG and was fast; the bare trycloudflare.com hostname
+    was sent to SJC/LAX and timed out now and then. A test the same morning got no request through;
+    the cause could not be settled (client set-up is the likeliest). The panel feature itself is
+    measured with `devenv/smoke-vps.sh` after its release.
 
 ## Minimum client versions
 

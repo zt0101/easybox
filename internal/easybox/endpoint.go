@@ -119,6 +119,12 @@ func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error)
 	}
 	id, subscriptionID, err := ensureDefaultSubscriptionRow()
 	var p provisioned
+	if err == nil && tpl.tunnel {
+		// One quick tunnel per server; regenerating the line replaces it instead.
+		if reason := tunnelAvailable(); reason != "" {
+			err = errors.New(reason)
+		}
+	}
 	if err != nil {
 		err = &StepError{Step: StepPrepare, Err: err}
 	} else {
@@ -138,6 +144,9 @@ func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error)
 
 	row.Name, row.InboundId, row.Status = p.name, p.inboundID, StatusRunning
 	p.cdn.store(row)
+	if p.tunnelHost != "" {
+		row.CdnHost = p.tunnelHost
+	}
 	if err := db.Save(row).Error; err != nil {
 		return nil, err
 	}
@@ -151,6 +160,8 @@ type provisioned struct {
 	port      int
 	name      string
 	cdn       *cdnResources
+	// tunnelHost is the quick tunnel hostname of a new tunnel line.
+	tunnelHost string
 }
 
 // provision brings up one new inbound from tpl for id. On failure it leaves no
@@ -208,7 +219,16 @@ func (s *Service) provision(tpl lineTemplate, name, address string, id Identity)
 	if err := s.health(port, tpl.transport); err != nil {
 		return fail(StepHealthCheck, s.compensate(created.Id, err))
 	}
-	return provisioned{inboundID: created.Id, port: port, name: name, cdn: cdn}, nil
+	var tunnelHost string
+	if tpl.tunnel {
+		if tunnelHost, err = startTunnel(port); err != nil {
+			if stopErr := tunnelEnv.stop(); stopErr != nil {
+				err = fmt.Errorf("%w (stopping the tunnel also failed: %w)", err, stopErr)
+			}
+			return fail(StepHealthCheck, s.compensate(created.Id, err))
+		}
+	}
+	return provisioned{inboundID: created.Id, port: port, name: name, cdn: cdn, tunnelHost: tunnelHost}, nil
 }
 
 // compensate removes the inbound a failed provision left behind and folds a
@@ -273,6 +293,11 @@ func (s *Service) DeleteEndpoint(id int) error {
 	if err := db.Save(row).Error; err != nil {
 		return err
 	}
+	if row.Template == TemplateVlessTunnel {
+		if err := tunnelEnv.stop(); err != nil {
+			logger.Warning("easybox: stop tunnel:", err)
+		}
+	}
 	if row.InboundId != 0 {
 		_, getErr := s.inbounds.GetInbound(row.InboundId)
 		switch {
@@ -318,6 +343,9 @@ func (s *Service) view(row *model.EasyboxEndpoint) *EndpointView {
 	ep.InSubscription = !ib.ExcludeFromSub
 	if ib.ShareAddrStrategy == "custom" {
 		ep.Address = ib.ShareAddr
+	}
+	if row.Template == TemplateVlessTunnel {
+		ep.Address = row.CdnHost
 	}
 	if !ib.Enable {
 		ep.Status = StatusDisabled

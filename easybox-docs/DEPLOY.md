@@ -87,6 +87,7 @@ sudo cat /etc/x-ui/install-result.env
    | Trojan | 必须有面板证书 | 全部（含 Shadowrocket，已真机实测）。Xray 已标为「不推荐，将来可能移除」 |
    | Shadowsocks 2022 | 不需要 | 全部（含 Shadowrocket，已真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
    | VLESS + CDN | 不需要面板证书，要有自己的域名并接入 Cloudflare（见下） | 全部（VLESS + WebSocket + TLS）。经 Cloudflare 中转，服务器 IP 被封也能用；延迟比直连高 |
+   | VLESS + Tunnel（备用） | 都不需要：经 Cloudflare 临时隧道（xxx.trycloudflare.com），没有域名也能有一条 IP 被封后仍可用的线路 | 全部（VLESS + WebSocket + TLS）。每台服务器一条；**国内要配合优选地址**（不填时延迟高、不稳定）。VPS 重启后隧道地址会变，面板自动更新订阅，客户端要刷新订阅——如果那时 IP 已被封、订阅刷不到，这条线路就失效了。有域名的话优先用 VLESS + CDN。需要 systemd 和发布包附带的 cloudflared（amd64、arm64、armv7、386） |
    | VLESS + XHTTP + CDN | 同上 | v2rayN、v2rayNG、PassWall、Clash/Mihomo；sing-box 不支持 XHTTP，订阅里自动去掉。比 WebSocket 更难识别，可以和上一条互为备份（各占一个 Cloudflare 端口，443 之后是 8443） |
 
    老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。
@@ -102,7 +103,7 @@ sudo cat /etc/x-ui/install-result.env
 
    节点数量：优选节点都连同一个 CDN 入站，不增加服务器负担，只会让订阅列表变长。建议只建一条 CDN 线路，整个订阅控制在 20–25 个节点以内；1 GB 内存的小机器上线路（入站）不超过 10–12 条。真正限制小机器的是同时在用的设备数和流量费用。
 
-   trycloudflare.com 的临时隧道不需要域名，但国内连不上（2026-10-22 实测），所以没有做成功能。
+   隧道线路（VLESS + Tunnel）不需要域名和 Cloudflare 账号：面板用随发布包附带的 cloudflared 开一个 Cloudflare 临时隧道，作为单独的 systemd 服务 `easybox-tunnel` 运行（以无权限的临时用户运行、不能写文件），所以面板重启、升级、证书续期都不会改变隧道地址；只有 VPS 重启或 cloudflared 崩溃时地址才会变，面板每分钟检查一次并更新订阅。
 
 2. 在**订阅**页复制**通用订阅**地址，导入任何客户端都用这一个地址，服务端会按客户端返回对应的格式。Clash / Mihomo 地址一般用不到，sing-box App 导入它也能用。
 
@@ -138,6 +139,7 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 建 CDN 线路时提示 "lacks a permission" | 令牌少了某项权限，按上面四项补齐（在 Cloudflare 里编辑令牌即可，令牌本身不变） |
 | CDN 线路建好了但连不上 | 等一两分钟让解析生效；确认云厂商防火墙放行了线路的端口（443 等）；Cloudflare 的 SSL/TLS 模式不能是「灵活」 |
 | 某台设备上 REALITY、XHTTP 线路连不上（报 EOF 或 TLS handshake timeout），别的设备正常 | 客户端内核太旧。例如 v2rayNG 1.9.45（Xray 25.3.31）连不上，更新到 2.3.11 后正常；应用商店常滞后，从 GitHub 下载最新版 |
+| 隧道线路突然连不上 | VPS 重启过、隧道地址变了：客户端刷新订阅。面板「线路」页显示当前隧道地址；`systemctl status easybox-tunnel` 看隧道服务 |
 | CDN 线路能连但延迟很高，或时通时断 | 国内到 Cloudflare 默认节点的线路差，填「优选地址」，见上 |
 | 访问面板根路径返回 404 | 正常现象：面板地址带随机路径，要用 `XUI_ACCESS_URL` 里的完整地址 |
 | VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address） |
