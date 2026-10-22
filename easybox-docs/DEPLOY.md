@@ -97,6 +97,8 @@ sudo cat /etc/x-ui/install-result.env
 
    之后每建一条 CDN 线路，面板自动在域名下加一条橙色云解析 `cdn-xxxxxx.你的域名`，申请 Cloudflare 源站证书（15 年有效，不用续期）；SSL/TLS 模式是「关闭」或「灵活」时改成「完全」，已经是「完全」或「完全（严格）」的不动（这个设置对整个域名生效）。删除线路时解析记录和证书一起删掉。
 
+   **优选地址**（可选，强烈建议）：国内直连 Cloudflare 往往很慢，甚至连不上（2026-10-22 公司网络实测：原节点超时，优选 IP 300–500ms）。在自己常用的网络下（先关掉代理）运行 [CloudflareSpeedTest](https://github.com/XIU2/CloudflareSpeedTest/releases)：`cfst.exe -dd -tl 400`，把延迟最低的几个 IP 填进「连接 Cloudflare」卡片的「优选地址」，最多 5 个。每条 CDN 线路在订阅里多出「线路名-优选1」等节点，域名和证书不变，原节点保留；Clash 和 sing-box 的「自动选择」会挑最快的。不同网络（公司、家里、手机流量）测出的最快 IP 不一样，可以各填几个。
+
    trycloudflare.com 的临时隧道不需要域名，但国内连不上（2026-10-22 实测），所以没有做成功能。
 
 2. 在**订阅**页复制**通用订阅**地址，导入任何客户端都用这一个地址，服务端会按客户端返回对应的格式。Clash / Mihomo 地址一般用不到，sing-box App 导入它也能用。
@@ -132,5 +134,6 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 保存 Cloudflare 时提示 "rejected the API token" | 令牌没复制完整，或者已被删除；重新复制一次 |
 | 建 CDN 线路时提示 "lacks a permission" | 令牌少了某项权限，按上面四项补齐（在 Cloudflare 里编辑令牌即可，令牌本身不变） |
 | CDN 线路建好了但连不上 | 等一两分钟让解析生效；确认云厂商防火墙放行了线路的端口（443 等）；Cloudflare 的 SSL/TLS 模式不能是「灵活」 |
+| CDN 线路能连但延迟很高，或时通时断 | 国内到 Cloudflare 默认节点的线路差，填「优选地址」，见上 |
 | 访问面板根路径返回 404 | 正常现象：面板地址带随机路径，要用 `XUI_ACCESS_URL` 里的完整地址 |
 | VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address） |

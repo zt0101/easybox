@@ -259,7 +259,16 @@ func (s *SubService) GetSingboxConfig(subId, host string) ([]byte, []string, xra
 	}
 	var nodes []CanonicalNode
 	var skipped []string
+	// One entry holds every link of an inbound with several hosts (e.g. CDN
+	// preferred addresses), newline-separated.
+	var lines []string
 	for _, l := range links {
+		lines = append(lines, strings.Split(l, "\n")...)
+	}
+	for _, l := range lines {
+		if strings.TrimSpace(l) == "" {
+			continue
+		}
 		n, err := canonicalFromLink(l)
 		if err == nil && n.Protocol == "hysteria2" && strings.Contains(l, "pinSHA256=") {
 			if n.CertificatePEM = certs[n.Port]; n.CertificatePEM == "" {

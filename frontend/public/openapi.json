@@ -2445,6 +2445,23 @@
         ],
         "type": "object"
       },
+      "CloudflarePreferredRequest": {
+        "properties": {
+          "addresses": {
+            "example": [
+              "104.17.138.161"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "addresses"
+        ],
+        "type": "object"
+      },
       "CloudflareRequest": {
         "properties": {
           "domain": {
@@ -2472,6 +2489,15 @@
             "example": "example.com",
             "type": "string"
           },
+          "preferredAddresses": {
+            "example": [
+              "104.17.138.161"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "tokenHint": {
             "example": "…a1b2",
             "type": "string"
@@ -2480,6 +2506,7 @@
         "required": [
           "configured",
           "domain",
+          "preferredAddresses",
           "tokenHint"
         ],
         "type": "object"
@@ -16852,6 +16879,9 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
+                    "preferredAddresses": [
+                      "104.17.138.161"
+                    ],
                     "tokenHint": "…a1b2"
                   }
                 }
@@ -16904,6 +16934,67 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
+                    "preferredAddresses": [
+                      "104.17.138.161"
+                    ],
+                    "tokenHint": "…a1b2"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/cloudflare/preferred": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Set up to 5 preferred Cloudflare IPs or domains. Every CDN line then also appears in the subscription as \"<line>-优选N\" nodes that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). An empty list removes them.",
+        "operationId": "post_panel_api_easybox_cloudflare_preferred",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "addresses": [
+                  "104.17.138.161"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/CloudflareView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "configured": true,
+                    "domain": "example.com",
+                    "preferredAddresses": [
+                      "104.17.138.161"
+                    ],
                     "tokenHint": "…a1b2"
                   }
                 }

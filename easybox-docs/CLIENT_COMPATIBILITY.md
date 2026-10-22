@@ -58,6 +58,10 @@ client core imported the subscription EasyBox serves and fetched
    Chinese company network and Chinese mobile data connected too, with higher latency than direct
    lines. A `*.trycloudflare.com` quick tunnel tested the same day never reached the server from
    either Chinese network.
+   Same day, the feature's own line from a Chinese company network: v2rayN real-delay test timed out
+   on the line hostname 4 times out of 4, while the same node pointed at CloudflareSpeedTest-picked
+   IPs (104.17.138.161 SJC, 104.29.111.157 FRA, …; 155-165 ms TCP ping) answered in 300-500 ms.
+   Hence the preferred-address setting.
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.
