@@ -4,7 +4,7 @@
 
 1. **模板**：在 `internal/easybox/templates.go` 的 `lineTemplates` 加一项：
    `id`、显示名、`label`（订阅/界面显示的协议名）、`transport`（`tcp` 或 `udp`，决定健康检查和防火墙提示）、
-   `nameStyle`（默认线路名里地区后面的部分，如 `VLESS-Reality`，完整名是 `HK-VLESS-Reality`）、`build`、`available`（不可用时返回原因，例如缺少证书）。
+   `nameStyle`（默认线路名里地区后面的部分，如 `VLESS-Reality`，完整名是 `HK-VLESS-Reality`）、`tier`（`tierRecommended` / `tierBackup` / `tierRisky`，快速创建的标签；数组顺序就是页面顺序，同类放一起）、`build`、`available`（不可用时返回原因，例如缺少证书）。
 2. **入站生成**：`build` 按上游前端表单的默认值生成 `model.Inbound`
    （参考 `frontend/src/lib/xray/inbound-defaults.ts` 与 `pages/inbounds/form/InboundFormModal.tsx`）；
    客户端凭据用订阅用户 `Identity` 的字段，保证所有协议共用一个 ClientRecord。需要新凭据字段时，
@@ -18,4 +18,4 @@
    - sing-box 配置（`SINGBOX_BINARY` 下用真实 `sing-box check`）；
    - `devenv/smoke-easybox.sh` 加一段真实客户端经线路访问网页；
    - 更新 `CLIENT_COMPATIBILITY.md`（只填实测结果）。
-7. **界面与文案**：`easybox.templates.<id>` 写入 13 个翻译文件（en-US、zh-CN 认真写）。
+7. **界面与文案**：`easybox.templates.<id>`（卡片上的一行说明）和 `easybox.templateDetails.<id>`（选中后的特点 / 优点 / 缺点 / 适合场景 / 客户端兼容）写入 13 个翻译文件（en-US、zh-CN 认真写）。

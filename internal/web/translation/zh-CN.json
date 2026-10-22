@@ -2746,6 +2746,91 @@
     "settings": "设置"
   },
   "easybox": {
+    "tiers": {
+      "recommended": "推荐",
+      "backup": "备用",
+      "risky": "易识别",
+      "legend": "推荐：日常优先用。备用：推荐的线路不好用时换用。易识别：国内容易被识别，可能连累服务器 IP 被封，建议只在境外网络或应急时用。"
+    },
+    "templateDetails": {
+      "labels": {
+        "how": "特点",
+        "pros": "优点",
+        "cons": "缺点",
+        "use": "适合场景",
+        "clients": "客户端兼容"
+      },
+      "vless-reality": {
+        "how": "伪装成访问一个真实的大网站（借用它的 TLS 握手），不需要域名，也不需要证书。",
+        "pros": "很难被识别；速度快、延迟低；创建最简单。",
+        "cons": "客户端直连服务器 IP，IP 被封后就不能用了；对客户端版本有要求。",
+        "use": "日常主力线路。",
+        "clients": "v2rayN、新版 v2rayNG、Mihomo（Clash Meta）、Stash 可用。Shadowrocket 目前连不上，要等它更新。sing-box 暂不支持，订阅里会自动去掉。"
+      },
+      "vless-xhttp": {
+        "how": "在 REALITY 的基础上，把流量拆成一个个普通的 HTTP 请求，看起来更像正常浏览网页。",
+        "pros": "目前最难被识别的直连方案。",
+        "cons": "比 REALITY 稍慢；IP 被封后不能用；对客户端版本要求高。",
+        "use": "主力线路，或 REALITY 被干扰时换用。",
+        "clients": "v2rayN、新版 v2rayNG、Mihomo 可用（v2rayNG 实测 1.9.45 不行，2.3.11 可以）。Shadowrocket 目前连不上；sing-box 不支持 XHTTP。"
+      },
+      "hysteria2": {
+        "how": "基于 QUIC（UDP），自带拥塞控制，丢包多的网络下也能跑满带宽。不需要域名（自签证书 + 指纹锁定）。",
+        "pros": "弱网、晚高峰、手机流量下速度明显更快。",
+        "cons": "部分运营商会对 UDP 限速或断流；IP 被封后不能用。",
+        "use": "晚高峰、手机流量、丢包严重时。某个网络下很慢或连不上时，换 REALITY。",
+        "clients": "v2rayN、v2rayNG、Mihomo、sing-box、Shadowrocket 都可用。"
+      },
+      "vless-cdn-xhttp": {
+        "how": "流量先到 Cloudflare，再由 Cloudflare 转给服务器，外面看到的只是你在访问 Cloudflare。传输用 XHTTP。",
+        "pros": "服务器 IP 被封也能用；比 WebSocket 更难识别；配合优选地址，延迟可以明显降下来。",
+        "cons": "需要自己的域名接入 Cloudflare；延迟比直连高；不填优选地址时，国内可能很慢或超时。",
+        "use": "IP 被封时的主力线路，也适合作为直连线路的长期备份。",
+        "clients": "v2rayN、新版 v2rayNG、Mihomo、Shadowrocket 可用；sing-box 不支持 XHTTP。"
+      },
+      "vless-cdn": {
+        "how": "和 XHTTP + CDN 一样经 Cloudflare 中转，传输用 WebSocket。",
+        "pros": "服务器 IP 被封也能用；兼容性最好，几乎所有客户端都支持（包括 sing-box）。",
+        "cons": "WebSocket 的特征比 XHTTP 明显；延迟比直连高；需要自己的域名。",
+        "use": "XHTTP + CDN 的备份，或客户端不支持 XHTTP 时（例如 sing-box）。",
+        "clients": "全部客户端可用。"
+      },
+      "vless-tunnel": {
+        "how": "服务器主动连到 Cloudflare，建一条临时隧道（xxx.trycloudflare.com）；不需要域名，也不需要开放端口。",
+        "pros": "没有域名也能有一条 IP 被封后仍可用的线路。",
+        "cons": "地址是临时的，VPS 重启后会变，客户端要刷新订阅——如果那时 IP 已被封、订阅刷不到，这条线路就失效了；速度一般；每台服务器只能建一条。",
+        "use": "没有域名时的保底线路。国内建议配合优选地址。",
+        "clients": "全部客户端可用。"
+      },
+      "tuic": {
+        "how": "和 Hysteria2 一样基于 QUIC（UDP）。需要面板证书。",
+        "pros": "延迟低，弱网下表现好。",
+        "cons": "支持的客户端比 Hysteria2 少；部分运营商会对 UDP 限速；IP 被封后不能用。",
+        "use": "Hysteria2 的备份。",
+        "clients": "Mihomo、sing-box、Shadowrocket 可用；v2rayN 会自动换成 sing-box 内核来连（Xray 内核没有 TUIC）。"
+      },
+      "vless-tls": {
+        "how": "标准 TLS 加密，直接用服务器的 IP 证书。需要面板证书。",
+        "pros": "兼容性最好，几乎所有客户端都支持。",
+        "cons": "直接用 IP 证书做 TLS 很少见，「TLS 里再套 TLS」的特征也明显，国内容易被识别，用久了可能连累服务器 IP 被封。",
+        "use": "境外网络、临时应急，或客户端连不上 REALITY 时（例如目前的 Shadowrocket）。",
+        "clients": "全部客户端可用。"
+      },
+      "trojan": {
+        "how": "老牌协议，伪装成 HTTPS，直接用服务器的 IP 证书。需要面板证书。",
+        "pros": "兼容性好，几乎所有客户端都支持。",
+        "cons": "特征早就被研究透了，加上用 IP 证书，国内容易被识别，可能连累服务器 IP 被封。",
+        "use": "境外网络或临时应急。",
+        "clients": "全部客户端可用。"
+      },
+      "shadowsocks": {
+        "how": "全加密，流量看起来像随机数据，不需要证书；支持 UDP。",
+        "pros": "简单、轻量，客户端支持最广。",
+        "cons": "国内会主动识别「看不出是什么协议」的流量，很容易被封，可能连累服务器 IP。",
+        "use": "只建议在境外网络或短时应急时用。",
+        "clients": "全部客户端可用。"
+      }
+    },
     "status": {
       "CREATING": "创建中",
       "RUNNING": "运行中",
@@ -2789,7 +2874,7 @@
       "needsCertificate": "需要先为面板配置受信任的 TLS 证书",
       "needsCloudflare": "需要先连接 Cloudflare（API 令牌和域名）",
       "tunnelUnavailable": "当前系统不支持（需要 systemd 和随面板附带的 cloudflared），或已经有一条隧道线路",
-      "tunnelNotice": "隧道线路是没有域名时的备用线路：经 Cloudflare 临时隧道（xxx.trycloudflare.com）中转，服务器 IP 被封后仍可使用。VPS 重启后隧道地址会变，面板会自动更新订阅，客户端需要刷新订阅；如果此时 IP 已被封、订阅也刷不到，这条线路就会失效。国内建议先填下方的优选地址（不填时延迟高、不稳定）。有自己的域名的话，优先用 VLESS + CDN。每台服务器只能建一条。",
+      "tunnelNotice": "隧道线路是没有域名时的备用线路：经 Cloudflare 临时隧道（xxx.trycloudflare.com）中转，服务器 IP 被封后仍可使用。VPS 重启后隧道地址会变，面板会自动更新订阅，客户端需要刷新订阅；如果此时 IP 已被封、订阅也刷不到，这条线路就会失效。国内建议先填下方的优选地址（不填时延迟高、不稳定）。有自己的域名的话，优先用 VLESS + WebSocket + CDN。每台服务器只能建一条。",
       "tunnelCreatedHint": "隧道地址：{host}。不需要在防火墙放行端口。客户端刷新订阅即可获得这条线路。",
       "certificateGuide": "TUIC、VLESS + TLS 和 Trojan 需要受信任的 TLS 证书。安装脚本 install.sh 可以为服务器 IP 签发证书；在「面板设置」中把它设为面板证书并重启面板即可。",
       "passwordUpgradeTitle": "创建后需要在设备上刷新订阅",
@@ -2894,7 +2979,7 @@
       "tuic": "QUIC · 低延迟 · UDP",
       "vless-tls": "TLS · 所有客户端可用 · TCP",
       "trojan": "TLS · 经典协议，兼容性好 · TCP",
-      "shadowsocks": "无需证书 · 备用线路，国内较易被识别 · TCP + UDP"
+      "shadowsocks": "无需证书 · 国内容易被识别 · TCP + UDP"
     },
     "overview": {
       "title": "EasyBox 线路",

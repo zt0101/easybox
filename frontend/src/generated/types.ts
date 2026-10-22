@@ -1138,6 +1138,7 @@ export interface TemplateView {
   passwordUpgrade: boolean;
   protocol: string;
   reason: string;
+  tier: string;
   transport: string;
 }
 

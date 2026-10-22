@@ -18,6 +18,7 @@ import {
 import { QuickCreateFormSchema, type QuickCreateFormValues } from '@/schemas/api/easybox';
 import CloudflareCard from './CloudflareCard';
 import RegionField from './RegionField';
+import TemplateDetails, { TierTag } from './TemplateDetails';
 import PreferredCard from './PreferredCard';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 
@@ -76,7 +77,8 @@ function QuickCreate(api: EasyboxPageApi) {
     (tpl) => !tpl.available && !CDN_TEMPLATES.has(tpl.id) && tpl.id !== TUNNEL_TEMPLATE,
   );
   const tunnel = template === TUNNEL_TEMPLATE;
-  const style = templates.data?.find((tpl) => tpl.id === template)?.nameStyle ?? '';
+  const selected = templates.data?.find((tpl) => tpl.id === template);
+  const style = selected?.nameStyle ?? '';
   const autoName = [region.data?.code, style].filter(Boolean).join('-');
 
   const failedIndex = result?.line?.failedStep
@@ -95,6 +97,9 @@ function QuickCreate(api: EasyboxPageApi) {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div>
           <Typography.Text strong>{t('easybox.create.protocol')}</Typography.Text>
+          <div>
+            <Typography.Text type="secondary">{t('easybox.tiers.legend')}</Typography.Text>
+          </div>
           <div className="easybox-protocols" style={{ marginTop: 8 }}>
             {(templates.data ?? []).map((tpl) => (
               <button
@@ -105,7 +110,10 @@ function QuickCreate(api: EasyboxPageApi) {
                 disabled={!tpl.available}
                 onClick={() => setTemplate(tpl.id)}
               >
-                <Typography.Text strong>{tpl.name}</Typography.Text>
+                <span className="easybox-protocol-title">
+                  <Typography.Text strong>{tpl.name}</Typography.Text>
+                  <TierTag tier={tpl.tier} />
+                </span>
                 <span className="easybox-protocol-hint">
                   {tpl.available
                     ? t(`easybox.templates.${tpl.id}`)
@@ -118,6 +126,11 @@ function QuickCreate(api: EasyboxPageApi) {
               </button>
             ))}
           </div>
+          {selected && (
+            <div style={{ marginTop: 16 }}>
+              <TemplateDetails id={selected.id} name={selected.name} tier={selected.tier} />
+            </div>
+          )}
         </div>
 
         {needsCertificate && (

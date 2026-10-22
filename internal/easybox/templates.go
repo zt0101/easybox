@@ -18,6 +18,14 @@ const (
 	TemplateVlessTunnel   = "vless-tunnel"
 )
 
+// Quick Create groups templates by how well they hold up in China; the
+// registry below is ordered the same way.
+const (
+	tierRecommended = "recommended" // first choice for daily use
+	tierBackup      = "backup"      // when the recommended lines do not work
+	tierRisky       = "risky"       // easy to identify; abroad or emergencies only
+)
+
 const (
 	transportTCP    = "tcp"
 	transportUDP    = "udp"
@@ -31,6 +39,7 @@ type lineTemplate struct {
 	transport string
 	// nameStyle is the default name after the region: HK-<nameStyle>.
 	nameStyle string
+	tier      string
 	build     func(s *Service, name string, id Identity) (*model.Inbound, error)
 	// available reports why a template cannot be used right now ("" = usable).
 	available func() string
@@ -49,7 +58,7 @@ type lineTemplate struct {
 var lineTemplates = []lineTemplate{
 	{
 		id: TemplateVlessReality, name: "VLESS + REALITY", label: "vless",
-		transport: transportTCP, nameStyle: "VLESS-Reality",
+		transport: transportTCP, nameStyle: "VLESS-Reality", tier: tierRecommended,
 		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
 			reality, err := s.reality()
 			if err != nil {
@@ -61,7 +70,7 @@ var lineTemplates = []lineTemplate{
 	},
 	{
 		id: TemplateVlessXhttp, name: "VLESS + XHTTP", label: "vless",
-		transport: transportTCP, nameStyle: "VLESS-XHTTP-Reality",
+		transport: transportTCP, nameStyle: "VLESS-XHTTP-Reality", tier: tierRecommended,
 		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
 			reality, err := s.reality()
 			if err != nil {
@@ -72,20 +81,8 @@ var lineTemplates = []lineTemplate{
 		available: func() string { return "" },
 	},
 	{
-		id: TemplateVlessTLS, name: "VLESS + TLS", label: "vless",
-		transport: transportTCP, nameStyle: "VLESS-TLS",
-		build:     withPanelCertificate(BuildVlessTLSInbound),
-		available: needsPanelCertificate,
-	},
-	{
-		id: TemplateTrojan, name: "Trojan", label: "trojan",
-		transport: transportTCP, nameStyle: "Trojan-TLS",
-		build:     withPanelCertificate(BuildTrojanInbound),
-		available: needsPanelCertificate,
-	},
-	{
 		id: TemplateHysteria2, name: "Hysteria2", label: "hysteria2",
-		transport: transportUDP, nameStyle: "HY2",
+		transport: transportUDP, nameStyle: "HY2", tier: tierRecommended,
 		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
 			cert, err := hysteriaCertificate()
 			if err != nil {
@@ -96,15 +93,48 @@ var lineTemplates = []lineTemplate{
 		available: func() string { return "" },
 	},
 	{
+		id: TemplateVlessXhttpCDN, name: "VLESS + XHTTP + CDN", label: "vless",
+		transport: transportTCP, nameStyle: "VLESS-XHTTP-CDN", tier: tierRecommended,
+		cdnInbound: BuildVlessXhttpCDNInbound, ports: cdnPorts,
+		available: cloudflareAvailable,
+	},
+	{
+		id: TemplateVlessCDN, name: "VLESS + WebSocket + CDN", label: "vless",
+		transport: transportTCP, nameStyle: "VLESS-WS-CDN", tier: tierBackup,
+		cdnInbound: BuildVlessCDNInbound, ports: cdnPorts,
+		available: cloudflareAvailable,
+	},
+	{
+		id: TemplateVlessTunnel, name: "VLESS + Tunnel", label: "vless",
+		transport: transportTCP, nameStyle: "VLESS-WS-Tunnel", tier: tierBackup,
+		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
+			return BuildVlessTunnelInbound(name, id)
+		},
+		available: tunnelAvailable,
+		tunnel:    true,
+	},
+	{
 		id: TemplateTuic, name: "TUIC v5", label: "tuic",
-		transport: transportUDP, nameStyle: "TUIC",
+		transport: transportUDP, nameStyle: "TUIC", tier: tierBackup,
 		build:     withPanelCertificate(BuildTuicInbound),
 		available: needsPanelCertificate,
 		relayed:   true,
 	},
 	{
+		id: TemplateVlessTLS, name: "VLESS + TLS", label: "vless",
+		transport: transportTCP, nameStyle: "VLESS-TLS", tier: tierRisky,
+		build:     withPanelCertificate(BuildVlessTLSInbound),
+		available: needsPanelCertificate,
+	},
+	{
+		id: TemplateTrojan, name: "Trojan", label: "trojan",
+		transport: transportTCP, nameStyle: "Trojan-TLS", tier: tierRisky,
+		build:     withPanelCertificate(BuildTrojanInbound),
+		available: needsPanelCertificate,
+	},
+	{
 		id: TemplateShadowsocks, name: "Shadowsocks 2022", label: "shadowsocks",
-		transport: transportTCPUDP, nameStyle: "SS2022",
+		transport: transportTCPUDP, nameStyle: "SS2022", tier: tierRisky,
 		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
 			id, err := s.ensureSS2022Password(id)
 			if err != nil {
@@ -113,27 +143,6 @@ var lineTemplates = []lineTemplate{
 			return BuildShadowsocks2022Inbound(name, id)
 		},
 		available: func() string { return "" },
-	},
-	{
-		id: TemplateVlessCDN, name: "VLESS + CDN", label: "vless",
-		transport: transportTCP, nameStyle: "VLESS-WS-CDN",
-		cdnInbound: BuildVlessCDNInbound, ports: cdnPorts,
-		available: cloudflareAvailable,
-	},
-	{
-		id: TemplateVlessXhttpCDN, name: "VLESS + XHTTP + CDN", label: "vless",
-		transport: transportTCP, nameStyle: "VLESS-XHTTP-CDN",
-		cdnInbound: BuildVlessXhttpCDNInbound, ports: cdnPorts,
-		available: cloudflareAvailable,
-	},
-	{
-		id: TemplateVlessTunnel, name: "VLESS + Tunnel", label: "vless",
-		transport: transportTCP, nameStyle: "VLESS-WS-Tunnel",
-		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
-			return BuildVlessTunnelInbound(name, id)
-		},
-		available: tunnelAvailable,
-		tunnel:    true,
 	},
 }
 
@@ -185,6 +194,8 @@ type TemplateView struct {
 	PasswordUpgrade bool `json:"passwordUpgrade" example:"false"`
 	// NameStyle is a new line's default name after the region (HK-<nameStyle>).
 	NameStyle string `json:"nameStyle" example:"VLESS-Reality"`
+	// Tier: recommended / backup / risky (easy to identify).
+	Tier string `json:"tier" example:"recommended"`
 }
 
 func (s *Service) ListTemplates() []TemplateView {
@@ -196,6 +207,7 @@ func (s *Service) ListTemplates() []TemplateView {
 			Available: reason == "", Reason: reason,
 			PasswordUpgrade: t.id == TemplateShadowsocks && passwordUpgradePending(),
 			NameStyle:       t.nameStyle,
+			Tier:            t.tier,
 		})
 	}
 	return out

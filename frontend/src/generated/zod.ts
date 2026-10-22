@@ -1215,6 +1215,7 @@ export const TemplateViewSchema = z.object({
   passwordUpgrade: z.boolean(),
   protocol: z.string(),
   reason: z.string(),
+  tier: z.string(),
   transport: z.string(),
 });
 export type TemplateView = z.infer<typeof TemplateViewSchema>;

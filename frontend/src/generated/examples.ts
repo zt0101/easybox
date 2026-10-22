@@ -1237,6 +1237,7 @@ export const EXAMPLES: Record<string, unknown> = {
     "passwordUpgrade": false,
     "protocol": "tuic",
     "reason": "no trusted TLS certificate: set the panel certificate first",
+    "tier": "recommended",
     "transport": "udp"
   },
   "Traffic": {

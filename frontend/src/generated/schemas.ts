@@ -4960,6 +4960,11 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "no trusted TLS certificate: set the panel certificate first",
         "type": "string"
       },
+      "tier": {
+        "description": "Tier: recommended / backup / risky (easy to identify).",
+        "example": "recommended",
+        "type": "string"
+      },
       "transport": {
         "example": "udp",
         "type": "string"
@@ -4973,6 +4978,7 @@ export const SCHEMAS: Record<string, unknown> = {
       "passwordUpgrade",
       "protocol",
       "reason",
+      "tier",
       "transport"
     ],
     "type": "object"

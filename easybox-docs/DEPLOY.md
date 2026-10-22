@@ -77,6 +77,11 @@ sudo cat /etc/x-ui/install-result.env
 
 1. 登录面板，在**快速创建**里选模板：
 
+   快速创建按国内的抗封锁能力给模板分三类（eb.16 起，卡片上有标签，选中后显示详细说明）：
+   - **推荐**：VLESS + REALITY、VLESS + XHTTP、Hysteria2、VLESS + XHTTP + CDN
+   - **备用**：VLESS + WebSocket + CDN、VLESS + Tunnel、TUIC v5
+   - **易识别**：VLESS + TLS、Trojan、Shadowsocks 2022（国内容易被识别，可能连累服务器 IP；只建议境外或应急用）
+
    | 模板 | 证书 | 能用的客户端（实测见 [CLIENT_COMPATIBILITY.md](CLIENT_COMPATIBILITY.md)） |
    |---|---|---|
    | VLESS + REALITY | 不需要 | v2rayN、Clash/Mihomo、PassWall、Stash。sing-box 和 Shadowrocket 目前连不上：Xray 26.9+ 要求握手带 X25519MLKEM768，sing-box 不支持；Shadowrocket 开着 Vision 时不使用所选指纹（已知问题，等它修复，见 CLIENT_COMPATIBILITY.md） |
@@ -86,8 +91,8 @@ sudo cat /etc/x-ui/install-result.env
    | VLESS + TLS | 必须有面板证书 | 全部；不走 REALITY，所以 sing-box 和 Shadowrocket 也能用（2026-10-22 真机实测） |
    | Trojan | 必须有面板证书 | 全部（含 Shadowrocket，已真机实测）。Xray 已标为「不推荐，将来可能移除」 |
    | Shadowsocks 2022 | 不需要 | 全部（含 Shadowrocket，已真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
-   | VLESS + CDN | 不需要面板证书，要有自己的域名并接入 Cloudflare（见下） | 全部（VLESS + WebSocket + TLS）。经 Cloudflare 中转，服务器 IP 被封也能用；延迟比直连高 |
-   | VLESS + Tunnel（备用） | 都不需要：经 Cloudflare 临时隧道（xxx.trycloudflare.com），没有域名也能有一条 IP 被封后仍可用的线路 | 全部（VLESS + WebSocket + TLS）。每台服务器一条；**国内要配合优选地址**（不填时延迟高、不稳定）。VPS 重启后隧道地址会变，面板自动更新订阅，客户端要刷新订阅——如果那时 IP 已被封、订阅刷不到，这条线路就失效了。有域名的话优先用 VLESS + CDN。需要 systemd 和发布包附带的 cloudflared（amd64、arm64、armv7、386） |
+   | VLESS + WebSocket + CDN | 不需要面板证书，要有自己的域名并接入 Cloudflare（见下） | 全部（VLESS + WebSocket + TLS）。经 Cloudflare 中转，服务器 IP 被封也能用；延迟比直连高 |
+   | VLESS + Tunnel（备用） | 都不需要：经 Cloudflare 临时隧道（xxx.trycloudflare.com），没有域名也能有一条 IP 被封后仍可用的线路 | 全部（VLESS + WebSocket + TLS）。每台服务器一条；**国内要配合优选地址**（不填时延迟高、不稳定）。VPS 重启后隧道地址会变，面板自动更新订阅，客户端要刷新订阅——如果那时 IP 已被封、订阅刷不到，这条线路就失效了。有域名的话优先用 VLESS + WebSocket + CDN。需要 systemd 和发布包附带的 cloudflared（amd64、arm64、armv7、386） |
    | VLESS + XHTTP + CDN | 同上 | v2rayN、v2rayNG、PassWall、Clash/Mihomo、Shadowrocket（eb.15 起，XHTTP 模式固定为 packet-up）；sing-box 不支持 XHTTP，订阅里自动去掉。比 WebSocket 更难识别，可以和上一条互为备份（各占一个 Cloudflare 端口，443 之后是 8443） |
 
    老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。

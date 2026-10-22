@@ -4198,7 +4198,7 @@ MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=s
 第一批新协议  完成（eb.6）  VLESS + TLS + Vision、Trojan + TLS（需面板证书）、Shadowsocks 2022（无需证书，备用）
              三种真实客户端内核（Xray / sing-box / Mihomo）回环实测通过，见 CLIENT_COMPATIBILITY.md
 第二批新协议  进行中  VLESS + XHTTP + REALITY（eb.8，无需域名和证书；sing-box 不支持 XHTTP，订阅里去掉）
-             VLESS + CDN（自己的域名 + Cloudflare API 令牌，一键建橙色云解析和源站证书；国内实测可用）
+             VLESS + WebSocket + CDN（自己的域名 + Cloudflare API 令牌，一键建橙色云解析和源站证书；国内实测可用）
              VLESS + XHTTP + CDN：复用 CDN 线路的 Cloudflare 流程和优选地址，sing-box 不支持 XHTTP 自动过滤
              VLESS + Tunnel（备用，无域名）：随发布包附带 cloudflared，Cloudflare 临时隧道作为独立 systemd 服务运行，每台服务器一条，地址变化自动更新订阅
              订阅走 CDN：订阅页开关，加 sub-xxxxxx.域名 橙色云解析，IP 被封后仍能刷新订阅；IP 订阅照常可用；严格模式不开启

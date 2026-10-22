@@ -30,6 +30,13 @@
   opacity: 0.55;
 }
 
+.easybox-protocol-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .easybox-protocol-hint {
   color: var(--ant-color-text-secondary);
   font-size: 12px;

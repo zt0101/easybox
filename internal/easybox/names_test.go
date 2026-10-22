@@ -120,3 +120,28 @@ func TestRenameEndpoint_LineNodeAndPreferredNodesFollow(t *testing.T) {
 		t.Fatalf("regenerated line %+v, %v; want the new name kept", next, err)
 	}
 }
+
+func TestListTemplates_TiersInOrder(t *testing.T) {
+	svc := newTestService(nil, nil)
+	want := []struct{ id, tier string }{
+		{TemplateVlessReality, "recommended"},
+		{TemplateVlessXhttp, "recommended"},
+		{TemplateHysteria2, "recommended"},
+		{TemplateVlessXhttpCDN, "recommended"},
+		{TemplateVlessCDN, "backup"},
+		{TemplateVlessTunnel, "backup"},
+		{TemplateTuic, "backup"},
+		{TemplateVlessTLS, "risky"},
+		{TemplateTrojan, "risky"},
+		{TemplateShadowsocks, "risky"},
+	}
+	got := svc.ListTemplates()
+	if len(got) != len(want) {
+		t.Fatalf("%d templates, want %d", len(got), len(want))
+	}
+	for i, w := range want {
+		if got[i].Id != w.id || got[i].Tier != w.tier {
+			t.Errorf("template %d = %s (%s), want %s (%s)", i, got[i].Id, got[i].Tier, w.id, w.tier)
+		}
+	}
+}
