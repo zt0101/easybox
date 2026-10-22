@@ -20,11 +20,11 @@ client core imported the subscription EasyBox serves and fetched
 |---|---|---|---|---|---|
 | VLESS + REALITY + Vision | **PASS** | **FAIL** ⁵ | untested | **FAIL → filtered** ¹ | **PASS** |
 | Hysteria2, self-signed + pinned, salamander | **PASS** | untested | untested | **PASS** ² | **PASS** |
-| Hysteria2, panel certificate | **PASS** ³ | untested | untested | **PASS** ³ | **PASS** ³ |
-| TUIC v5, panel certificate | n/a ⁴ | untested | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
-| VLESS + TLS + Vision, panel certificate | **PASS** ⁶ | untested | untested | **PASS** ⁶ | **PASS** ⁶ |
-| Trojan + TLS, panel certificate | **PASS** ⁶ | untested | untested | **PASS** ⁶ | **PASS** ⁶ |
-| Shadowsocks 2022 (`2022-blake3-aes-128-gcm`) | **PASS** ⁶ | untested | untested | **PASS** ⁶ | **PASS** ⁶ |
+| Hysteria2, panel certificate | **PASS** ³ | **PASS** ⁷ | untested | **PASS** ³ | **PASS** ³ |
+| TUIC v5, panel certificate | n/a ⁴ | **PASS** ⁷ | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
+| VLESS + TLS + Vision, panel certificate | **PASS** ⁶ | **PASS** ⁷ | untested | **PASS** ⁶ | **PASS** ⁶ |
+| Trojan + TLS, panel certificate | **PASS** ⁶ | **PASS** ⁷ | untested | **PASS** ⁶ | **PASS** ⁶ |
+| Shadowsocks 2022 (`2022-blake3-aes-128-gcm`) | **PASS** ⁶ | **PASS** ⁷ | untested | **PASS** ⁶ | **PASS** ⁶ |
 
 1. sing-box 1.14.3 fails `reality verification failed` against Xray 26.10.10 REALITY servers that
    advertise `support-x25519mlkem768=true` (every uTLS fingerprint tried: chrome, firefox, safari,
@@ -41,6 +41,10 @@ client core imported the subscription EasyBox serves and fetched
 6. Loopback in the dev container (`devenv/smoke-tcp-lines.sh`, 2026-10-21): a throwaway panel whose
    certificate comes from a local CA standing in for Let's Encrypt. TUIC here carries the new
    base64 shared password. VPS measurement follows the release.
+
+7. Shadowrocket 3445 on iPad against the VPS (v3.10.2-eb.7, Xray-core 26.10.21), 2026-10-22, confirmed
+   by packet capture. On VLESS + TLS it still sends the 517-byte x25519-only ClientHello, which plain
+   TLS accepts; only REALITY rejects it. Stash (iOS) passed VLESS + TLS and VLESS + REALITY the same day.
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.

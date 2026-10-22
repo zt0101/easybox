@@ -81,9 +81,9 @@ sudo cat /etc/x-ui/install-result.env
    | VLESS + REALITY | 不需要 | v2rayN、Clash/Mihomo、PassWall、Stash。sing-box 和 Shadowrocket 目前连不上：Xray 26.9+ 要求握手带 X25519MLKEM768，sing-box 不支持；Shadowrocket 开着 Vision 时不使用所选指纹（已知问题，等它修复，见 CLIENT_COMPATIBILITY.md） |
    | Hysteria2 | 面板证书；没有面板证书时用自签证书加证书指纹 | 全部 |
    | TUIC v5 | 必须有面板证书 | 除 Xray 内核外的全部客户端（v2rayN 会自动切到 sing-box 内核） |
-   | VLESS + TLS | 必须有面板证书 | 全部；不走 REALITY，所以 sing-box 也能用（Shadowrocket 待真机实测） |
-   | Trojan | 必须有面板证书 | 全部（Shadowrocket 待真机实测）。Xray 已标为「不推荐，将来可能移除」 |
-   | Shadowsocks 2022 | 不需要 | 全部（Shadowrocket 待真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
+   | VLESS + TLS | 必须有面板证书 | 全部；不走 REALITY，所以 sing-box 和 Shadowrocket 也能用（2026-10-22 真机实测） |
+   | Trojan | 必须有面板证书 | 全部（含 Shadowrocket，已真机实测）。Xray 已标为「不推荐，将来可能移除」 |
+   | Shadowsocks 2022 | 不需要 | 全部（含 Shadowrocket，已真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
 
    老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。
 
