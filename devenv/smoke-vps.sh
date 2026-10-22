@@ -87,7 +87,7 @@ raw=$(curl -fsS "$sub" | base64 -d)
 for tpl in $TEMPLATES; do
   # REALITY lines pick one of several server names and short IDs per render: compare without them.
   nosni() { sed -E 's/(sni|sid)=[^&#]*//g'; }
-  nosni <<<"$raw" | grep -qxF "$(nosni <<<"${LINK[$tpl]:-none}")" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
+  nosni <<<"$raw" | grep -xF "$(nosni <<<"${LINK[$tpl]:-none}")" >/dev/null && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
 done
 
 # 1) xray client via upstream link parser (Xray has no TUIC client)
@@ -144,8 +144,9 @@ if [ -n "$cdn_sub" ]; then
     && ok "subscription through Cloudflare is not cacheable" || bad "subscription through Cloudflare lacks no-store"
   curl -fsS --max-time 30 -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/cdn-sb.json" "$cdn_sub" \
     && "$SINGBOX" check -c "$WORK/cdn-sb.json" && ok "sing-box config through Cloudflare checks" || bad "sing-box config through Cloudflare"
-  [ -z "$cdn_clash" ] || { curl -fsS --max-time 30 -A "mihomo/1.19.32" "$cdn_clash" | grep -q '^proxies:' \
-    && ok "Clash YAML through Cloudflare" || bad "Clash YAML through Cloudflare"; }
+  # Into a file first: grep -q closing the pipe early fails curl under pipefail.
+  [ -z "$cdn_clash" ] || { curl -fsS --max-time 30 -A "mihomo/1.19.32" -o "$WORK/cdn-clash.yaml" "$cdn_clash" \
+    && grep -q '^proxies:' "$WORK/cdn-clash.yaml" && ok "Clash YAML through Cloudflare" || bad "Clash YAML through Cloudflare"; }
 else
   echo "  [SKIP] subscription through Cloudflare: off in the panel"
 fi
