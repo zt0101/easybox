@@ -2,6 +2,7 @@ package easybox
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
 	"strings"
 	"testing"
@@ -52,7 +53,7 @@ func TestPreferredAddresses_Validated(t *testing.T) {
 	mustInit(t)
 	newFakeCloudflare(t)
 	svc := cdnTestService(nil)
-	if _, err := svc.SetCloudflarePreferred(CloudflarePreferredRequest{Addresses: []string{"104.17.138.161"}}); err != ErrCloudflareNotConfigured {
+	if _, err := svc.SetCloudflarePreferred(CloudflarePreferredRequest{Addresses: []string{"104.17.138.161"}}); !errors.Is(err, ErrCloudflareNotConfigured) {
 		t.Fatalf("without Cloudflare: err = %v", err)
 	}
 	configureCloudflare(t, svc)
