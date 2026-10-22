@@ -2868,6 +2868,7 @@
       "vless-reality": "REALITY · 无需域名和证书 · TCP",
       "vless-xhttp": "REALITY + XHTTP · 更难识别，sing-box 不支持 · TCP",
       "vless-cdn": "经 Cloudflare 中转 · IP 被封也能用 · 延迟较高 · TCP",
+      "vless-cdn-xhttp": "经 Cloudflare 中转 · 比 WebSocket 更难识别 · sing-box 不支持 · TCP",
       "hysteria2": "QUIC · 弱网下更快 · UDP",
       "tuic": "QUIC · 低延迟 · UDP",
       "vless-tls": "TLS · 所有客户端可用 · TCP",

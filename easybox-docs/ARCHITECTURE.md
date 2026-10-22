@@ -10,11 +10,12 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
  internal/web/controller/easybox.go      薄控制器
         ▼
  internal/easybox/                       EasyBox 业务层（只调用上游 Service）
-   templates.go   线路模板注册表：vless-reality / vless-xhttp / vless-tls / trojan / hysteria2 / tuic / shadowsocks / vless-cdn
+   templates.go   线路模板注册表：vless-reality / vless-xhttp / vless-tls / trojan / hysteria2 / tuic / shadowsocks / vless-cdn / vless-cdn-xhttp
    vless_reality.go / xhttp_line.go / quic_lines.go / tcp_lines.go   按上游表单默认值生成入站
    password.go    共用密码升级为 Shadowsocks 2022 密钥（第一次建 SS 线路时）
    cloudflare.go  Cloudflare v4 API：找域名、增删 DNS 记录、读写 SSL/TLS 模式、签发和吊销源站证书
    cdn_line.go / cdn_store.go   CDN 线路：Cloudflare 设置、建线路时的解析和证书、失败或删除时清理
+   cdn_xhttp.go   XHTTP + TLS 的 CDN 入站（模板的 cdnInbound 决定入站形状，Cloudflare 部分两种 CDN 线路共用）
    cdn_preferred.go   优选地址（最多 10 个，各带备注）：写成上游 Host 组 easybox-cdn-0（原地址）和 easybox-cdn-N，订阅多出「线路名-备注」
    reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 的第一个可用结果
    cert.go        面板证书 / 自签证书（内嵌 + GetCertHash 指纹）
