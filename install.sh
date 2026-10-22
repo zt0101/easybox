@@ -1858,6 +1858,10 @@ install_x-ui() {
         fi
     fi
     chmod +x x-ui bin/xray-linux-$(arch)
+    # EasyBox: the tunnel line's cloudflared (absent on platforms without a build).
+    if [[ -f bin/cloudflared ]]; then
+        chmod +x bin/cloudflared
+    fi
     if [[ -f bin/mtg-linux-arm ]]; then
         chmod +x bin/mtg-linux-arm
     elif [[ -f bin/mtg-linux-$(arch) ]]; then
