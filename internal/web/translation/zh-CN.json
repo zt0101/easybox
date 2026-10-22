@@ -2850,7 +2850,7 @@
       "token": "API 令牌",
       "save": "验证并保存",
       "saved": "已连接 Cloudflare",
-      "connected": "已连接：{{domain}}（令牌 {{hint}}）",
+      "connected": "已连接：{domain}（令牌 {hint}）",
       "change": "更改",
       "clear": "断开",
       "clearTitle": "断开 Cloudflare？",
