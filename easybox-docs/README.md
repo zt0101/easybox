@@ -9,7 +9,7 @@ EasyBox 是基于 [3X-UI](https://github.com/MHSanaei/3x-ui)（MHSanaei/3x-ui，
 
 | 功能 | 说明 |
 |---|---|
-| 快速创建 | VLESS + REALITY（无需域名和证书）、VLESS + TLS 与 Trojan（需要面板证书）、Hysteria2（自签证书 + 指纹锁定，或面板证书）、TUIC v5（需要面板的受信任证书）、Shadowsocks 2022（无需证书，备用）；自动生成端口、密钥、凭据，失败自动清理并说明卡在哪一步 |
+| 快速创建 | VLESS + REALITY 与 VLESS + XHTTP（无需域名和证书）、VLESS + TLS 与 Trojan（需要面板证书）、Hysteria2（自签证书 + 指纹锁定，或面板证书）、TUIC v5（需要面板的受信任证书）、Shadowsocks 2022（无需证书，备用）；自动生成端口、密钥、凭据，失败自动清理并说明卡在哪一步 |
 | 线路管理 | 列表、复制链接、二维码、启用 / 禁用、重新生成（替换 / 保留旧线路）、删除 |
 | 通用订阅 | 一个地址包含全部线路；按客户端自动返回 raw（v2rayN / Shadowrocket / PassWall）、Clash/Mihomo YAML、sing-box 完整配置；客户端无法使用的线路自动过滤 |
 | 订阅管理 | 订阅地址 / 二维码、勾选包含哪些线路、模拟客户端预览、泄露后重置地址（同时更换全部凭据） |

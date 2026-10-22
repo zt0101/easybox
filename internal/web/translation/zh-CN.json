@@ -2839,6 +2839,7 @@
     },
     "templates": {
       "vless-reality": "REALITY · 无需域名和证书 · TCP",
+      "vless-xhttp": "REALITY + XHTTP · 更难识别，sing-box 不支持 · TCP",
       "hysteria2": "QUIC · 弱网下更快 · UDP",
       "tuic": "QUIC · 低延迟 · UDP",
       "vless-tls": "TLS · 所有客户端可用 · TCP",

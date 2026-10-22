@@ -223,4 +223,28 @@ else
 fi
 api POST "/panel/api/easybox/endpoints/del/$hy2_id" | jq -e '.success == true' >/dev/null || fail "delete Hysteria2 line"
 
+res=$(api POST /panel/api/easybox/endpoints/create '{"template":"vless-xhttp","name":"smoke-xhttp","address":"127.0.0.1"}')
+jq -e '.success == true and .obj.status == "RUNNING" and .obj.transport == "tcp"' <<<"$res" >/dev/null || fail "XHTTP Quick Create: $res"
+line_id=$(jq -r .obj.id <<<"$res")
+link=$(api GET "/panel/api/easybox/endpoints/link/$line_id" | jq -r .obj)
+grep -q "type=xhttp" <<<"$link" && grep -q "security=reality" <<<"$link" && grep -qE "path=%2F[0-9a-z]{8}" <<<"$link" \
+  || fail "XHTTP link shape: $link"
+! grep -q "flow=" <<<"$link" || fail "XHTTP link carries a flow (Vision is TCP-only): $link"
+proxy_through_link "$link" || fail "request through the XHTTP line failed"
+ok "VLESS + XHTTP + REALITY → RUNNING, random path, no flow, real Xray client proxies"
+if [ -x "$MIHOMO" ]; then
+  curl -fsS -A "mihomo/1.19.32" -o "$WORK/sub.yaml" "$clash_url" || fail "Mihomo subscription fetch"
+  mihomo_through "$WORK/sub.yaml" smoke-xhttp || fail "real Mihomo through smoke-xhttp failed"
+  ok "real Mihomo client reaches the web via XHTTP"
+fi
+if [ -x "$SINGBOX" ]; then
+  # 404 when no line is left for sing-box (here only XHTTP and REALITY lines remain).
+  code=$(curl -sS -o "$WORK/sb.json" -w '%{http_code}' "$sub_url?target=singbox")
+  [ "$code" = 404 ] || ! jq -e '.outbounds[] | select(.tag == "smoke-xhttp")' "$WORK/sb.json" >/dev/null \
+    || fail "XHTTP line shipped to sing-box (no XHTTP transport)"
+  ok "XHTTP line filtered out of the sing-box config"
+fi
+api POST "/panel/api/easybox/endpoints/del/$line_id" | jq -e '.success == true' >/dev/null || fail "delete XHTTP line"
+line_id=""
+
 echo "PASS"
