@@ -8,7 +8,6 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
 	"github.com/mhsanaei/3x-ui/v3/internal/sub"
-	"github.com/mhsanaei/3x-ui/v3/internal/web/service"
 )
 
 // GetEndpointLink renders one line's share link through the subscription
@@ -29,16 +28,15 @@ func (s *Service) GetEndpointLink(id int, host string) (string, error) {
 	if err := database.GetDB().First(&owner, row.SubscriptionId).Error; err != nil {
 		return "", fmt.Errorf("subscription user of line %d: %w", id, err)
 	}
-	tmpl, err := (&service.SettingService{}).GetRemarkTemplate()
-	if err != nil {
-		return "", err
-	}
 	if h, _, splitErr := net.SplitHostPort(host); splitErr == nil {
 		host = h
 	}
-	l := sub.NewSubService(tmpl).ForRequest(host).GetLink(ib, owner.Email)
-	if l == "" {
+	// Host rows first, like the subscription: the tunnel line's own inbound link
+	// (127.0.0.1, no TLS) is never what a client should get. The first row is
+	// the line's own address; preferred addresses follow it.
+	links := sub.NewLinkProvider().LinksForClient(host, ib, owner.Email)
+	if len(links) == 0 || links[0] == "" {
 		return "", errors.New("upstream produced no link for this line")
 	}
-	return l, nil
+	return links[0], nil
 }

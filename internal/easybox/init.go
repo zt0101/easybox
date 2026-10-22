@@ -1,7 +1,9 @@
 package easybox
 
 import (
+	"encoding/json"
 	"errors"
+	"strings"
 
 	"gorm.io/gorm"
 
@@ -14,6 +16,7 @@ const (
 	initSeeder       = "EasyBoxSubscriptionDefaults"
 	subTLSSeeder     = "EasyBoxSubTLSFromPanel"
 	hostRemarkSeeder = "EasyBoxRemarkHostToken"
+	preferredSeeder  = "EasyBoxPreferredStandalone"
 	// lineNameRemarkTemplate makes every subscription link show only the line
 	// name, plus a Host's own suffix (a CDN preferred address: "<line>-优选1").
 	lineNameRemarkTemplate = "{{INBOUND}}{{HOST}}"
@@ -31,6 +34,9 @@ func Init() error {
 		return err
 	}
 	if err := applyHostRemarkToken(); err != nil {
+		return err
+	}
+	if err := movePreferredToSettings(); err != nil {
 		return err
 	}
 	return applySubTLSFromPanel()
@@ -125,4 +131,35 @@ func seeded(name string) (bool, error) {
 
 func markSeeded(name string) error {
 	return database.GetDB().Create(&model.HistoryOfSeeders{SeederName: name}).Error
+}
+
+// movePreferredToSettings carries eb.10-eb.12 preferred addresses out of the
+// Cloudflare row, so they survive disconnecting Cloudflare and serve lines
+// without a domain.
+func movePreferredToSettings() error {
+	if done, err := seeded(preferredSeeder); err != nil || done {
+		return err
+	}
+	row, ok, err := loadCloudflare()
+	if err != nil {
+		return err
+	}
+	if ok && strings.TrimSpace(row.PreferredAddresses) != "" {
+		if _, set, err := getSetting(preferredSettingKey); err != nil {
+			return err
+		} else if !set {
+			raw, err := json.Marshal(decodePreferred(row.PreferredAddresses))
+			if err != nil {
+				return err
+			}
+			if err := setSetting(preferredSettingKey, string(raw)); err != nil {
+				return err
+			}
+		}
+		row.PreferredAddresses = ""
+		if err := database.GetDB().Save(row).Error; err != nil {
+			return err
+		}
+	}
+	return markSeeded(preferredSeeder)
 }

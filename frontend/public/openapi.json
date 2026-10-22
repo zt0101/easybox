@@ -2486,12 +2486,6 @@
             "example": "example.com",
             "type": "string"
           },
-          "preferredAddresses": {
-            "items": {
-              "$ref": "#/components/schemas/PreferredAddress"
-            },
-            "type": "array"
-          },
           "tokenHint": {
             "example": "…a1b2",
             "type": "string"
@@ -2500,7 +2494,6 @@
         "required": [
           "configured",
           "domain",
-          "preferredAddresses",
           "tokenHint"
         ],
         "type": "object"
@@ -4340,6 +4333,21 @@
         "required": [
           "address",
           "remark"
+        ],
+        "type": "object"
+      },
+      "PreferredView": {
+        "description": "PreferredView is the API view of the preferred addresses.",
+        "properties": {
+          "addresses": {
+            "items": {
+              "$ref": "#/components/schemas/PreferredAddress"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "addresses"
         ],
         "type": "object"
       },
@@ -16816,7 +16824,7 @@
         "tags": [
           "EasyBox"
         ],
-        "summary": "Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn, vless-cdn-xhttp) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn and vless-cdn-xhttp until a Cloudflare API token and domain are set. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.",
+        "summary": "Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn, vless-cdn-xhttp, vless-tunnel) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn and vless-cdn-xhttp until a Cloudflare API token and domain are set; vless-tunnel (a Cloudflare quick tunnel, no domain) needs systemd and the bundled cloudflared, one line per server. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.",
         "operationId": "get_panel_api_easybox_templates",
         "responses": {
           "200": {
@@ -16891,12 +16899,6 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
-                    "preferredAddresses": [
-                      {
-                        "address": "104.17.138.161",
-                        "remark": "公司移动"
-                      }
-                    ],
                     "tokenHint": "…a1b2"
                   }
                 }
@@ -16949,12 +16951,6 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
-                    "preferredAddresses": [
-                      {
-                        "address": "104.17.138.161",
-                        "remark": "公司移动"
-                      }
-                    ],
                     "tokenHint": "…a1b2"
                   }
                 }
@@ -16964,13 +16960,54 @@
         }
       }
     },
-    "/panel/api/easybox/cloudflare/preferred": {
+    "/panel/api/easybox/preferred": {
+      "get": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "The preferred Cloudflare addresses and their remarks.",
+        "operationId": "get_panel_api_easybox_preferred",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/PreferredView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "addresses": [
+                      {
+                        "address": "104.17.138.161",
+                        "remark": "公司移动"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "EasyBox"
         ],
-        "summary": "Set up to 10 preferred Cloudflare IPs or domains, each with an optional remark. Every CDN line then also appears in the subscription as \"<line>-<remark>\" nodes (remark empty: \"<line>-优选N\") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.",
-        "operationId": "post_panel_api_easybox_cloudflare_preferred",
+        "summary": "Set up to 10 preferred Cloudflare IPs or domains (independent of the Cloudflare token), each with an optional remark. Every CDN line then also appears in the subscription as \"<line>-<remark>\" nodes (remark empty: \"<line>-优选N\") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.",
+        "operationId": "post_panel_api_easybox_preferred",
         "requestBody": {
           "required": true,
           "content": {
@@ -17004,22 +17041,19 @@
                       "type": "string"
                     },
                     "obj": {
-                      "$ref": "#/components/schemas/CloudflareView"
+                      "$ref": "#/components/schemas/PreferredView"
                     }
                   }
                 },
                 "example": {
                   "success": true,
                   "obj": {
-                    "configured": true,
-                    "domain": "example.com",
-                    "preferredAddresses": [
+                    "addresses": [
                       {
                         "address": "104.17.138.161",
                         "remark": "公司移动"
                       }
-                    ],
-                    "tokenHint": "…a1b2"
+                    ]
                   }
                 }
               }

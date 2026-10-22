@@ -91,6 +91,7 @@ func allModels() []any {
 		&model.EasyboxSubscription{},
 		&model.EasyboxEndpoint{},
 		&model.EasyboxCloudflare{},
+		&model.EasyboxSetting{},
 		&model.EasyboxAuditLog{},
 	}
 }

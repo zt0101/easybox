@@ -36,7 +36,8 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	g.GET("/cloudflare", a.getCloudflare)
 	g.POST("/cloudflare", a.setCloudflare)
 	g.POST("/cloudflare/clear", a.clearCloudflare)
-	g.POST("/cloudflare/preferred", a.setCloudflarePreferred)
+	g.GET("/preferred", a.getPreferred)
+	g.POST("/preferred", a.setPreferred)
 }
 
 func (a *EasyboxController) listEndpoints(c *gin.Context) {
@@ -202,13 +203,22 @@ func (a *EasyboxController) clearCloudflare(c *gin.Context) {
 	jsonMsg(c, "", a.svc.ClearCloudflare())
 }
 
-func (a *EasyboxController) setCloudflarePreferred(c *gin.Context) {
+func (a *EasyboxController) getPreferred(c *gin.Context) {
+	view, err := a.svc.GetPreferred()
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) setPreferred(c *gin.Context) {
 	var req easybox.CloudflarePreferredRequest
 	if err := c.ShouldBind(&req); err != nil {
 		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
 		return
 	}
-	view, err := a.svc.SetCloudflarePreferred(req)
+	view, err := a.svc.SetPreferred(req)
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
 		return

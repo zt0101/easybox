@@ -2806,7 +2806,7 @@ export const sections: readonly Section[] = [
         method: 'GET',
         path: '/panel/api/easybox/templates',
         summary:
-          'Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn, vless-cdn-xhttp) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn and vless-cdn-xhttp until a Cloudflare API token and domain are set. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.',
+          'Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn, vless-cdn-xhttp, vless-tunnel) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn and vless-cdn-xhttp until a Cloudflare API token and domain are set; vless-tunnel (a Cloudflare quick tunnel, no domain) needs systemd and the bundled cloudflared, one line per server. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.',
         responseSchema: 'TemplateView',
         responseSchemaArray: true,
       },
@@ -2826,12 +2826,18 @@ export const sections: readonly Section[] = [
         responseSchema: 'CloudflareView',
       },
       {
+        method: 'GET',
+        path: '/panel/api/easybox/preferred',
+        summary: 'The preferred Cloudflare addresses and their remarks.',
+        responseSchema: 'PreferredView',
+      },
+      {
         method: 'POST',
-        path: '/panel/api/easybox/cloudflare/preferred',
+        path: '/panel/api/easybox/preferred',
         summary:
-          'Set up to 10 preferred Cloudflare IPs or domains, each with an optional remark. Every CDN line then also appears in the subscription as "<line>-<remark>" nodes (remark empty: "<line>-优选N") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.',
+          'Set up to 10 preferred Cloudflare IPs or domains (independent of the Cloudflare token), each with an optional remark. Every CDN line then also appears in the subscription as "<line>-<remark>" nodes (remark empty: "<line>-优选N") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.',
         body: '{\n  "addresses": [\n    { "address": "104.17.138.161", "remark": "公司移动" }\n  ]\n}',
-        responseSchema: 'CloudflareView',
+        responseSchema: 'PreferredView',
       },
       {
         method: 'POST',

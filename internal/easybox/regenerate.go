@@ -54,6 +54,9 @@ func (s *Service) RegenerateEndpoint(id int, keepOld bool) (*EndpointView, error
 	oldInboundID, oldLine := row.InboundId, *row
 	row.InboundId, row.Status, row.FailedStep, row.LastError = p.inboundID, StatusRunning, "", ""
 	p.cdn.store(row)
+	if p.tunnelHost != "" {
+		row.CdnHost = p.tunnelHost
+	}
 	if err := database.GetDB().Save(row).Error; err != nil {
 		return nil, err
 	}

@@ -3,15 +3,23 @@ import { z } from 'zod';
 import {
   CloudflareViewSchema,
   EndpointViewSchema,
+  PreferredViewSchema,
   PreviewViewSchema,
   SubscriptionViewSchema,
   TemplateViewSchema,
 } from '@/generated/zod';
 
-export { CloudflareViewSchema, EndpointViewSchema, PreviewViewSchema, SubscriptionViewSchema };
+export {
+  CloudflareViewSchema,
+  EndpointViewSchema,
+  PreferredViewSchema,
+  PreviewViewSchema,
+  SubscriptionViewSchema,
+};
 export type {
   CloudflareView,
   PreferredAddress,
+  PreferredView,
   EndpointView,
   PreviewView,
   SubscriptionView,
