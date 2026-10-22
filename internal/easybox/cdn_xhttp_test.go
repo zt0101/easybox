@@ -30,7 +30,7 @@ func TestXhttpCDNLine_OwnRecordCertAndNextPort(t *testing.T) {
 
 	u := parseLineURL(t, lineLink(t, svc, xh))
 	q := u.Query()
-	for k, v := range map[string]string{"type": "xhttp", "security": "tls", "sni": xh.Address, "host": xh.Address, "mode": "auto", "fp": "chrome"} {
+	for k, v := range map[string]string{"type": "xhttp", "security": "tls", "sni": xh.Address, "host": xh.Address, "mode": "packet-up", "fp": "chrome"} {
 		if q.Get(k) != v {
 			t.Fatalf("link %s=%q, want %q (link %q)", k, q.Get(k), v, u)
 		}
@@ -93,5 +93,42 @@ func TestXhttpCDNTemplate_NeedsCloudflare(t *testing.T) {
 	ep, err := svc.CreateEndpoint(CreateEndpointRequest{Template: TemplateVlessXhttpCDN})
 	if err == nil || ep.FailedStep != StepPrepare || !strings.Contains(err.Error(), "Cloudflare") {
 		t.Fatalf("err = %v, line = %+v; want a prepare failure asking for Cloudflare", err, ep)
+	}
+}
+
+// eb.12-eb.14 built CDN XHTTP lines with mode auto; an upgrade moves them to
+// packet-up once, and leaves the direct REALITY XHTTP line on auto.
+func TestInit_MovesCDNXhttpLinesToPacketUp(t *testing.T) {
+	initTestDB(t)
+	mustInit(t)
+	newFakeCloudflare(t)
+	svc := cdnTestService(nil)
+	configureCloudflare(t, svc)
+	cdn := createLine(t, svc, TemplateVlessXhttpCDN, "cdn-xh")
+	direct := createLine(t, svc, TemplateVlessXhttp, "direct-xh")
+	db := database.GetDB()
+	mode := func(inboundID int) string {
+		var in model.Inbound
+		db.First(&in, inboundID)
+		var stream xhttpStreamSettings
+		_ = json.Unmarshal([]byte(in.StreamSettings), &stream)
+		return stream.XHTTPSettings.Mode
+	}
+	var in model.Inbound
+	db.First(&in, cdn.InboundId)
+	db.Model(&in).Update("stream_settings", strings.Replace(in.StreamSettings, `"mode":"packet-up"`, `"mode":"auto"`, 1))
+	if mode(cdn.InboundId) != "auto" {
+		t.Fatal("could not set up an eb.14 line")
+	}
+	db.Where("seeder_name = ?", cdnXhttpModeSeeder).Delete(&model.HistoryOfSeeders{})
+	mustInit(t) // the upgrade
+	if got := mode(cdn.InboundId); got != "packet-up" {
+		t.Fatalf("CDN XHTTP line mode %q after upgrade, want packet-up", got)
+	}
+	if got := mode(direct.InboundId); got != "auto" {
+		t.Fatalf("direct XHTTP line mode %q, want auto kept", got)
+	}
+	if u := parseLineURL(t, lineLink(t, svc, cdn)); u.Query().Get("mode") != "packet-up" {
+		t.Fatalf("link %s, want mode=packet-up", u)
 	}
 }

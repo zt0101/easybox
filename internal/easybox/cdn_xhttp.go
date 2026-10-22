@@ -7,9 +7,14 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/util/random"
 )
 
+// xhttpCDNMode is the XHTTP mode of CDN lines. Cloudflare buffers request
+// bodies, so only packet-up carries upstream data through it. Xray clients pick
+// packet-up for "auto" over TLS anyway; Shadowrocket 2.2.92 did not and hung
+// (2026-10-22), so the link names the mode instead of leaving it to the client.
+const xhttpCDNMode = "packet-up"
+
 // BuildVlessXhttpCDNInbound is VLESS + XHTTP + TLS behind Cloudflare: the CDN
-// shape Xray recommends for XHTTP, harder to fingerprint than WebSocket. Mode
-// "auto" makes a TLS client use packet-up, which Cloudflare passes; sing-box
+// shape Xray recommends for XHTTP, harder to fingerprint than WebSocket. sing-box
 // has no XHTTP, so its config leaves these lines out like the REALITY XHTTP one.
 func BuildVlessXhttpCDNInbound(name string, id Identity, host, certPEM, keyPEM string) (*model.Inbound, error) {
 	settings, err := json.Marshal(vlessSettings{
@@ -26,7 +31,7 @@ func BuildVlessXhttpCDNInbound(name string, id Identity, host, certPEM, keyPEM s
 		"xhttpSettings": xhttpSettings{
 			Path:                 "/" + random.NumLower(xhttpPathLength),
 			Host:                 host,
-			Mode:                 "auto",
+			Mode:                 xhttpCDNMode,
 			XPaddingBytes:        "100-1000",
 			ScMaxBufferedPosts:   30,
 			ScStreamUpServerSecs: "20-80",
