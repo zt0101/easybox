@@ -2826,12 +2826,18 @@ export const sections: readonly Section[] = [
         responseSchema: 'CloudflareView',
       },
       {
+        method: 'GET',
+        path: '/panel/api/easybox/preferred',
+        summary: 'The preferred Cloudflare addresses and their remarks.',
+        responseSchema: 'PreferredView',
+      },
+      {
         method: 'POST',
-        path: '/panel/api/easybox/cloudflare/preferred',
+        path: '/panel/api/easybox/preferred',
         summary:
-          'Set up to 10 preferred Cloudflare IPs or domains, each with an optional remark. Every CDN line then also appears in the subscription as "<line>-<remark>" nodes (remark empty: "<line>-优选N") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.',
+          'Set up to 10 preferred Cloudflare IPs or domains (independent of the Cloudflare token), each with an optional remark. Every CDN line then also appears in the subscription as "<line>-<remark>" nodes (remark empty: "<line>-优选N") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.',
         body: '{\n  "addresses": [\n    { "address": "104.17.138.161", "remark": "公司移动" }\n  ]\n}',
-        responseSchema: 'CloudflareView',
+        responseSchema: 'PreferredView',
       },
       {
         method: 'POST',

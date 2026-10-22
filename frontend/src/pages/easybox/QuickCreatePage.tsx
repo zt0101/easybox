@@ -16,6 +16,7 @@ import {
 } from '@/api/queries/useEasybox';
 import { QuickCreateFormSchema, type QuickCreateFormValues } from '@/schemas/api/easybox';
 import CloudflareCard from './CloudflareCard';
+import PreferredCard from './PreferredCard';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 
 const CDN_TEMPLATE = 'vless-cdn';
@@ -123,6 +124,7 @@ function QuickCreate(api: EasyboxPageApi) {
         )}
 
         {showCloudflare && <CloudflareCard {...api} />}
+        {CDN_TEMPLATES.has(template) && <PreferredCard {...api} />}
 
         <FormProvider {...methods}>
           <form onSubmit={submit}>

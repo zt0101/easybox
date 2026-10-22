@@ -2460,12 +2460,6 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "example.com",
         "type": "string"
       },
-      "preferredAddresses": {
-        "items": {
-          "$ref": "#/components/schemas/PreferredAddress"
-        },
-        "type": "array"
-      },
       "tokenHint": {
         "example": "…a1b2",
         "type": "string"
@@ -2474,7 +2468,6 @@ export const SCHEMAS: Record<string, unknown> = {
     "required": [
       "configured",
       "domain",
-      "preferredAddresses",
       "tokenHint"
     ],
     "type": "object"
@@ -4314,6 +4307,21 @@ export const SCHEMAS: Record<string, unknown> = {
     "required": [
       "address",
       "remark"
+    ],
+    "type": "object"
+  },
+  "PreferredView": {
+    "description": "PreferredView is the API view of the preferred addresses.",
+    "properties": {
+      "addresses": {
+        "items": {
+          "$ref": "#/components/schemas/PreferredAddress"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "addresses"
     ],
     "type": "object"
   },

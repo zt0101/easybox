@@ -117,31 +117,42 @@ func decodePreferred(stored string) []PreferredAddress {
 	return out
 }
 
-// SetCloudflarePreferred stores the preferred addresses and applies them to
-// every CDN line's subscription nodes.
-func (s *Service) SetCloudflarePreferred(req CloudflarePreferredRequest) (CloudflareView, error) {
+// preferredSettingKey stores the list in easybox_settings: it is not tied to a
+// Cloudflare token, since lines without a domain use it too.
+const preferredSettingKey = "cdnPreferredAddresses"
+
+// PreferredView is the API view of the preferred addresses.
+type PreferredView struct {
+	Addresses []PreferredAddress `json:"addresses"`
+}
+
+func loadPreferred() ([]PreferredAddress, error) {
+	v, _, err := getSetting(preferredSettingKey)
+	return decodePreferred(v), err
+}
+
+func (s *Service) GetPreferred() (PreferredView, error) {
+	prefs, err := loadPreferred()
+	return PreferredView{Addresses: prefs}, err
+}
+
+// SetPreferred stores the preferred addresses and applies them to every CDN
+// line's subscription nodes.
+func (s *Service) SetPreferred(req CloudflarePreferredRequest) (PreferredView, error) {
 	prefs, err := normalizePreferred(req.Addresses)
 	if err != nil {
-		return CloudflareView{}, err
-	}
-	row, ok, err := loadCloudflare()
-	if err != nil {
-		return CloudflareView{}, err
-	}
-	if !ok {
-		return CloudflareView{}, ErrCloudflareNotConfigured
+		return PreferredView{}, err
 	}
 	raw, err := json.Marshal(prefs)
 	if err != nil {
-		return CloudflareView{}, err
+		return PreferredView{}, err
 	}
-	row.PreferredAddresses = string(raw)
-	if err := database.GetDB().Save(row).Error; err != nil {
-		return CloudflareView{}, err
+	if err := setSetting(preferredSettingKey, string(raw)); err != nil {
+		return PreferredView{}, err
 	}
 	err = syncCDNHosts()
-	auditObject("cloudflare.preferred", "cloudflare", row.Id, err)
-	return cloudflareView(row), err
+	auditObject("preferred.set", "preferred", 0, err)
+	return PreferredView{Addresses: prefs}, err
 }
 
 // syncCDNHosts rebuilds EasyBox's Host groups: with preferred addresses, every
@@ -152,11 +163,10 @@ func syncCDNHosts() error {
 	if err := db.Where("group_id LIKE ?", cdnHostGroupPrefix+"%").Delete(&model.Host{}).Error; err != nil {
 		return err
 	}
-	row, ok, err := loadCloudflare()
-	if err != nil || !ok {
+	prefs, err := loadPreferred()
+	if err != nil {
 		return err
 	}
-	prefs := decodePreferred(row.PreferredAddresses)
 	var inboundIDs []int
 	if err := db.Model(&model.EasyboxEndpoint{}).
 		Where("cdn_host <> '' AND inbound_id <> 0").Order("id").Pluck("inbound_id", &inboundIDs).Error; err != nil {

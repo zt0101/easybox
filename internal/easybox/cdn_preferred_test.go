@@ -2,7 +2,6 @@ package easybox
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -50,11 +49,11 @@ func pa(specs ...string) []PreferredAddress {
 	return out
 }
 
-func setPreferred(t *testing.T, svc *Service, specs ...string) CloudflareView {
+func setPreferred(t *testing.T, svc *Service, specs ...string) PreferredView {
 	t.Helper()
-	view, err := svc.SetCloudflarePreferred(CloudflarePreferredRequest{Addresses: pa(specs...)})
+	view, err := svc.SetPreferred(CloudflarePreferredRequest{Addresses: pa(specs...)})
 	if err != nil {
-		t.Fatalf("SetCloudflarePreferred: %v", err)
+		t.Fatalf("SetPreferred: %v", err)
 	}
 	return view
 }
@@ -64,10 +63,10 @@ func TestPreferredAddresses_Validated(t *testing.T) {
 	mustInit(t)
 	newFakeCloudflare(t)
 	svc := cdnTestService(nil)
-	if _, err := svc.SetCloudflarePreferred(CloudflarePreferredRequest{Addresses: pa("104.17.138.161")}); !errors.Is(err, ErrCloudflareNotConfigured) {
-		t.Fatalf("without Cloudflare: err = %v", err)
+	// Lines without a domain use them too: no Cloudflare token needed.
+	if _, err := svc.SetPreferred(CloudflarePreferredRequest{Addresses: pa("104.17.138.161")}); err != nil {
+		t.Fatalf("without Cloudflare: %v", err)
 	}
-	configureCloudflare(t, svc)
 	eleven := make([]string, 0, 11)
 	for i := 1; i <= 11; i++ {
 		eleven = append(eleven, fmt.Sprintf("1.1.1.%d", i))
@@ -83,7 +82,7 @@ func TestPreferredAddresses_Validated(t *testing.T) {
 		"remark only":       {"=公司"},
 		"remark too long":   {"1.1.1.1=" + strings.Repeat("长", maxPreferredRemark+1)},
 	} {
-		if _, err := svc.SetCloudflarePreferred(CloudflarePreferredRequest{Addresses: pa(bad...)}); err == nil {
+		if _, err := svc.SetPreferred(CloudflarePreferredRequest{Addresses: pa(bad...)}); err == nil {
 			t.Fatalf("%s: %v accepted", name, bad)
 		}
 	}
@@ -91,13 +90,13 @@ func TestPreferredAddresses_Validated(t *testing.T) {
 	for i := 1; i <= 10; i++ {
 		ten = append(ten, fmt.Sprintf("1.1.1.%d", i))
 	}
-	if _, err := svc.SetCloudflarePreferred(CloudflarePreferredRequest{Addresses: pa(ten...)}); err != nil {
+	if _, err := svc.SetPreferred(CloudflarePreferredRequest{Addresses: pa(ten...)}); err != nil {
 		t.Fatalf("ten addresses rejected: %v", err)
 	}
 	view := setPreferred(t, svc, " 104.17.138.161 = 公司移动 ", "", "CF.Example.ORG", "2606:4700::1=家里")
 	want := pa("104.17.138.161=公司移动", "cf.example.org", "2606:4700::1=家里")
-	if fmt.Sprint(view.PreferredAddresses) != fmt.Sprint(want) {
-		t.Fatalf("stored %v, want %v (trimmed, blank rows dropped, lower-cased)", view.PreferredAddresses, want)
+	if fmt.Sprint(view.Addresses) != fmt.Sprint(want) {
+		t.Fatalf("stored %v, want %v (trimmed, blank rows dropped, lower-cased)", view.Addresses, want)
 	}
 }
 
@@ -146,26 +145,47 @@ func TestPreferredAddresses_NodesNamedByRemark(t *testing.T) {
 	}
 }
 
-func TestPreferredAddresses_ReadsBareAddressesFromEb10(t *testing.T) {
-	initTestDB(t)
-	mustInit(t)
-	newFakeCloudflare(t)
-	svc := cdnTestService(nil)
-	configureCloudflare(t, svc)
-	createLine(t, svc, TemplateVlessCDN, "hk-cdn")
-	if err := database.GetDB().Model(&model.EasyboxCloudflare{}).Where("1 = 1").
-		Update("preferred_addresses", "104.17.138.161\n104.29.111.157").Error; err != nil {
-		t.Fatal(err)
-	}
-	if err := syncCDNHosts(); err != nil {
-		t.Fatal(err)
-	}
-	view, _ := svc.GetCloudflare()
-	if fmt.Sprint(view.PreferredAddresses) != fmt.Sprint(pa("104.17.138.161", "104.29.111.157")) {
-		t.Fatalf("view = %v", view.PreferredAddresses)
-	}
-	if nodes := subNodes(t); nodes["hk-cdn-优选1"] == nil || nodes["hk-cdn-优选2"] == nil {
-		t.Fatalf("eb.10 addresses lost their nodes: %v", nodes)
+// eb.10-eb.12 kept the list on the Cloudflare row; an upgrade moves it to
+// easybox_settings once, from either stored format.
+func TestPreferredAddresses_MovedOutOfCloudflareRow(t *testing.T) {
+	for name, stored := range map[string]string{
+		"eb.10 bare addresses": "104.17.138.161\n104.29.111.157",
+		"eb.11 JSON":           `[{"address":"104.17.138.161","remark":"公司"},{"address":"104.29.111.157","remark":""}]`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			initTestDB(t)
+			mustInit(t)
+			newFakeCloudflare(t)
+			svc := cdnTestService(nil)
+			configureCloudflare(t, svc)
+			createLine(t, svc, TemplateVlessCDN, "hk-cdn")
+			db := database.GetDB()
+			if err := db.Model(&model.EasyboxCloudflare{}).Where("1 = 1").Update("preferred_addresses", stored).Error; err != nil {
+				t.Fatal(err)
+			}
+			db.Where("seeder_name = ?", preferredSeeder).Delete(&model.HistoryOfSeeders{})
+			mustInit(t) // the upgrade
+			if err := syncCDNHosts(); err != nil {
+				t.Fatal(err)
+			}
+			view, _ := svc.GetPreferred()
+			if len(view.Addresses) != 2 || view.Addresses[0].Address != "104.17.138.161" {
+				t.Fatalf("migrated %v", view.Addresses)
+			}
+			row, _, _ := loadCloudflare()
+			if row.PreferredAddresses != "" {
+				t.Fatalf("Cloudflare row still holds %q", row.PreferredAddresses)
+			}
+			if err := svc.ClearCloudflare(); err != nil {
+				t.Fatal(err)
+			}
+			if view, _ = svc.GetPreferred(); len(view.Addresses) != 2 {
+				t.Fatalf("disconnecting Cloudflare dropped the preferred addresses: %v", view.Addresses)
+			}
+			if nodes := subNodes(t); len(nodes) < 3 {
+				t.Fatalf("preferred nodes lost after migration: %v", nodes)
+			}
+		})
 	}
 }
 
