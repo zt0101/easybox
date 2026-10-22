@@ -14,6 +14,11 @@ type SubscriptionView struct {
 	ClashURL       string          `json:"clashUrl" example:"https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e"`
 	UpdateInterval string          `json:"updateInterval" example:"12"`
 	Lines          []*EndpointView `json:"lines"`
+	// The same subscription through Cloudflare (subscription_cdn), empty when
+	// off; CdnUnavailable says why it cannot be turned on ("" = it can).
+	CdnSubURL      string `json:"cdnSubUrl" example:"https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e"`
+	CdnClashURL    string `json:"cdnClashUrl" example:"https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e"`
+	CdnUnavailable string `json:"cdnUnavailable" example:""`
 }
 
 // GetSubscription builds the URLs the same way the panel's own settings do: an
@@ -38,6 +43,14 @@ func (s *Service) GetSubscription(host string) (*SubscriptionView, error) {
 		return nil, err
 	}
 	view.SubURL = subscriptionURL(settings, host, subURI, subPath, id.SubID)
+	cdnBase, err := subCDNBase(settings)
+	if err != nil {
+		return nil, err
+	}
+	if cdnBase != "" {
+		view.CdnSubURL = cdnBase + subPath + id.SubID
+	}
+	view.CdnUnavailable = subCDNUnavailable()
 
 	clashOn, err := settings.GetSubClashEnable()
 	if err != nil {
@@ -53,6 +66,9 @@ func (s *Service) GetSubscription(host string) (*SubscriptionView, error) {
 			return nil, err
 		}
 		view.ClashURL = subscriptionURL(settings, host, clashURI, clashPath, id.SubID)
+		if cdnBase != "" {
+			view.CdnClashURL = cdnBase + clashPath + id.SubID
+		}
 	}
 
 	if view.Lines, err = s.ListEndpoints(); err != nil {

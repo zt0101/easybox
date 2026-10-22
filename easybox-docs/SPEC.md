@@ -4198,6 +4198,7 @@ MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=s
              VLESS + CDN（自己的域名 + Cloudflare API 令牌，一键建橙色云解析和源站证书；国内实测可用）
              VLESS + XHTTP + CDN：复用 CDN 线路的 Cloudflare 流程和优选地址，sing-box 不支持 XHTTP 自动过滤
              VLESS + Tunnel（备用，无域名）：随发布包附带 cloudflared，Cloudflare 临时隧道作为独立 systemd 服务运行，每台服务器一条，地址变化自动更新订阅
+             订阅走 CDN：订阅页开关，加 sub-xxxxxx.域名 橙色云解析，IP 被封后仍能刷新订阅；IP 订阅照常可用；严格模式不开启
              CDN 优选地址：最多 10 个 Cloudflare IP/域名，各带备注，订阅多出「线路名-备注」节点（国内实测原节点超时、优选 300–500ms，速度明显提升）
              WebSocket 早期数据：回环验证通过，等 Shadowrocket / Stash 真机结果再决定是否上线
              trycloudflare 临时隧道实测国内连不上，放弃；Hysteria2 端口跳跃暂缓

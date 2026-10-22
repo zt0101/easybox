@@ -4876,6 +4876,18 @@
       "SubscriptionView": {
         "description": "SubscriptionView is the \"My Subscription\" page (EasyBox.md §24): one URL for\nevery client, plus the lines it carries.",
         "properties": {
+          "cdnClashUrl": {
+            "example": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+            "type": "string"
+          },
+          "cdnSubUrl": {
+            "description": "The same subscription through Cloudflare (subscription_cdn), empty when\noff; CdnUnavailable says why it cannot be turned on (\"\" = it can).",
+            "example": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+            "type": "string"
+          },
+          "cdnUnavailable": {
+            "type": "string"
+          },
           "clashUrl": {
             "example": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
             "type": "string"
@@ -4905,6 +4917,9 @@
           }
         },
         "required": [
+          "cdnClashUrl",
+          "cdnSubUrl",
+          "cdnUnavailable",
           "clashUrl",
           "lines",
           "subId",
@@ -17394,6 +17409,9 @@
                 "example": {
                   "success": true,
                   "obj": {
+                    "cdnClashUrl": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "cdnSubUrl": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "cdnUnavailable": "",
                     "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
                     "lines": [
                       null
@@ -17584,6 +17602,66 @@
         }
       }
     },
+    "/panel/api/easybox/subscription/cdn": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Serve the subscription through Cloudflare too: on adds a proxied sub-<label>.<domain> record to the sub server (needs Cloudflare connected, the sub port among 443/2053/2083/2087/2096/8443, a sub TLS certificate and SSL/TLS mode not \"Full (strict)\"); off removes it. The IP address keeps working. Answers with the subscription view (cdnSubUrl, cdnClashUrl, cdnUnavailable).",
+        "operationId": "post_panel_api_easybox_subscription_cdn",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "enable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/SubscriptionView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "cdnClashUrl": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "cdnSubUrl": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "cdnUnavailable": "",
+                    "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "lines": [
+                      null
+                    ],
+                    "subId": "3dllwqwd8kpj3i5e",
+                    "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "updateInterval": "12"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/panel/api/easybox/subscription/rotate": {
       "post": {
         "tags": [
@@ -17613,6 +17691,9 @@
                 "example": {
                   "success": true,
                   "obj": {
+                    "cdnClashUrl": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "cdnSubUrl": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "cdnUnavailable": "",
                     "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
                     "lines": [
                       null

@@ -9,6 +9,7 @@ import (
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
+	"github.com/mhsanaei/3x-ui/v3/internal/sub"
 	"github.com/mhsanaei/3x-ui/v3/internal/web/service"
 )
 
@@ -27,6 +28,7 @@ const (
 // Init applies EasyBox first-run defaults. It must run before the sub server
 // starts (it reads settings once); HistoryOfSeeders rows keep each one-time.
 func Init() error {
+	sub.SubRequestHostOverride = subCDNRequestHost
 	if _, err := EnsureDefaultSubscription(); err != nil {
 		return err
 	}

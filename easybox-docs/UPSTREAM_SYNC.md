@@ -51,6 +51,8 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 | `internal/web/service/panel/panel.go` | 面板内更新改从 zt0101/easybox 下载 | 同上 |
 | `internal/sub/host_sub.go`、`internal/web/service/host.go`（只读依赖） | CDN 优选地址用上游 Host 组实现（组 ID `easybox-cdn-*`，名称靠 remark 模板里的 `{{HOST}}`）。上游如果改了 Host 的字段、`buildHostRows` 或 `{{HOST}}` 的含义，要重跑 `cdn_preferred_test.go` | 不改上游文件，只核对行为 |
 | `main.go` | `easybox.Init()` 之后调用 `easybox.StartTunnelWatch()` | 两边都保留 |
+| `internal/sub/controller.go`（initRouter） | 订阅路由组加 `noStore` 中间件（订阅会经过 Cloudflare，不能被缓存） | 保留；上游新增订阅路由组时也加上 |
+| `internal/sub/service.go`（PrepareForRequest）、`internal/sub/easybox_host.go` | `SubRequestHostOverride`：经订阅 CDN 域名的请求，默认节点地址换回服务器 IP | 保留；上游改了默认节点地址的取法要重跑 `subcdn_test.go` |
 | `.github/workflows/release.yml`（cloudflared） | Linux 构建里固定版本 + SHA256 下载 cloudflared 到 `bin/cloudflared`（amd64/arm64/armv7/386） | 保留；升级 cloudflared 时同时改版本号和四个 SHA256 |
 | `install.sh`、`update.sh`（cloudflared） | 解压后 `chmod +x bin/cloudflared`（文件存在时） | 保留 |
 | `tools/openapigen/main.go` | `internal/easybox` 的类型白名单（含 CloudflareView / CloudflareRequest） | 两边都保留 |

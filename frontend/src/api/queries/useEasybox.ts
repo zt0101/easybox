@@ -236,6 +236,19 @@ export function useEasyboxMutations() {
     onSettled: () => invalidate(),
   });
 
+  // Answers with the subscription view; the page shows a refusal's reason.
+  const subscriptionCdnMut = useMutation({
+    mutationFn: async (enable: boolean) => {
+      const msg = await HttpUtil.post(
+        '/panel/api/easybox/subscription/cdn',
+        { enable },
+        { ...JSON_HEADERS, silent: true },
+      );
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => invalidate(),
+  });
+
   const rotateMut = useMutation({
     mutationFn: () =>
       HttpUtil.post('/panel/api/easybox/subscription/rotate', undefined, { silentSuccess: true }),
@@ -254,6 +267,8 @@ export function useEasyboxMutations() {
     regenerate: (id: number, keepOld: boolean) => regenerateMut.mutateAsync({ id, keepOld }),
     regenerating: regenerateMut.isPending,
     rotateSubscription: rotateMut.mutateAsync,
+    setSubscriptionCdn: subscriptionCdnMut.mutateAsync,
+    settingSubscriptionCdn: subscriptionCdnMut.isPending,
   };
 }
 

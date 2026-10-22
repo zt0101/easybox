@@ -106,6 +106,10 @@ func (s *SubService) PrepareForRequest(host string) {
 			host = "localhost"
 		}
 	}
+	// EasyBox: never hand the subscription's CDN hostname out as a node address.
+	if SubRequestHostOverride != nil {
+		host = SubRequestHostOverride(host)
+	}
 	s.address = host
 	s.usageShown = map[string]bool{}
 	s.statsByEmail = map[string]xray.ClientTraffic{}
