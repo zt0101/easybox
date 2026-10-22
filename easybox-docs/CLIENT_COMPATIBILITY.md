@@ -67,7 +67,9 @@ client core imported the subscription EasyBox serves and fetched
 10. 2026-10-22, loopback in the dev container: Xray-core 26.10.21 server with the template's shape
     (XHTTP mode auto, TLS, ALPN h2 + http/1.1); Xray and Mihomo 1.19.32 clients both PASS (a TLS
     client picks packet-up, the mode Cloudflare passes). Through Cloudflare: measured on the VPS after
-    the release, see `devenv/smoke-vps.sh`.
+    the release, see `devenv/smoke-vps.sh`: on v3.10.2-eb.12 Xray and Mihomo PASS through Cloudflare.
+    Same day, v2rayN (company network) and v2rayNG (mobile data) in China: as fast as the WebSocket CDN
+    line; nodes on preferred IPs stable, the plain hostname node prone to timeouts.
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.
