@@ -42,10 +42,9 @@ const cdnPathLength = 10
 
 // CloudflareView is the API view of the Cloudflare settings; never the token.
 type CloudflareView struct {
-	Configured         bool               `json:"configured" example:"true"`
-	Domain             string             `json:"domain" example:"example.com"`
-	TokenHint          string             `json:"tokenHint" example:"…a1b2"`
-	PreferredAddresses []PreferredAddress `json:"preferredAddresses"`
+	Configured bool   `json:"configured" example:"true"`
+	Domain     string `json:"domain" example:"example.com"`
+	TokenHint  string `json:"tokenHint" example:"…a1b2"`
 }
 
 type CloudflareRequest struct {
@@ -64,7 +63,7 @@ func loadCloudflare() (*model.EasyboxCloudflare, bool, error) {
 
 func cloudflareView(row *model.EasyboxCloudflare) CloudflareView {
 	if row == nil {
-		return CloudflareView{PreferredAddresses: []PreferredAddress{}}
+		return CloudflareView{}
 	}
 	hint := ""
 	if n := len(row.APIToken); n >= 8 {
@@ -72,7 +71,6 @@ func cloudflareView(row *model.EasyboxCloudflare) CloudflareView {
 	}
 	return CloudflareView{
 		Configured: true, Domain: row.Domain, TokenHint: hint,
-		PreferredAddresses: decodePreferred(row.PreferredAddresses),
 	}
 }
 
@@ -117,9 +115,6 @@ func (s *Service) SetCloudflare(req CloudflareRequest) (CloudflareView, error) {
 // one afterwards leaves its DNS record for the admin to remove.
 func (s *Service) ClearCloudflare() error {
 	err := database.GetDB().Where("1 = 1").Delete(&model.EasyboxCloudflare{}).Error
-	if err == nil {
-		err = syncCDNHosts()
-	}
 	auditObject("cloudflare.clear", "cloudflare", 0, err)
 	return err
 }

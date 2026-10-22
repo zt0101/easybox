@@ -45,9 +45,9 @@ type EasyboxCloudflare struct {
 	Domain   string `json:"domain" gorm:"not null"`
 	ZoneID   string `json:"-" gorm:"column:zone_id;not null"`
 	APIToken string `json:"-" gorm:"column:api_token;not null"`
-	// PreferredAddresses: JSON list of {address, remark}, Cloudflare IPs or
-	// domains every CDN line also offers as extra subscription nodes (eb.10
-	// stored bare addresses, newline-separated; both are read).
+	// PreferredAddresses held the CDN preferred addresses in eb.10-eb.12; they
+	// moved to easybox_settings (key cdnPreferredAddresses) and this column is
+	// only read once to migrate them.
 	PreferredAddresses string `json:"preferredAddresses" gorm:"column:preferred_addresses;type:text"`
 	UpdatedAt          int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
 }
@@ -66,3 +66,13 @@ type EasyboxAuditLog struct {
 }
 
 func (EasyboxAuditLog) TableName() string { return "easybox_audit_logs" }
+
+// EasyboxSetting is one EasyBox-wide setting that belongs to no other row
+// (e.g. the CDN preferred addresses, used with or without a Cloudflare token).
+type EasyboxSetting struct {
+	Key       string `json:"key" gorm:"primaryKey"`
+	Value     string `json:"value" gorm:"type:text"`
+	UpdatedAt int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
+}
+
+func (EasyboxSetting) TableName() string { return "easybox_settings" }

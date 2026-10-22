@@ -613,7 +613,6 @@ export type CloudflareRequest = z.infer<typeof CloudflareRequestSchema>;
 export const CloudflareViewSchema = z.object({
   configured: z.boolean(),
   domain: z.string(),
-  preferredAddresses: z.array(z.lazy(() => PreferredAddressSchema)),
   tokenHint: z.string(),
 });
 export type CloudflareView = z.infer<typeof CloudflareViewSchema>;
@@ -1052,6 +1051,11 @@ export const PreferredAddressSchema = z.object({
   remark: z.string(),
 });
 export type PreferredAddress = z.infer<typeof PreferredAddressSchema>;
+
+export const PreferredViewSchema = z.object({
+  addresses: z.array(z.lazy(() => PreferredAddressSchema)),
+});
+export type PreferredView = z.infer<typeof PreferredViewSchema>;
 
 export const PreviewViewSchema = z.object({
   body: z.string(),

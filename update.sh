@@ -644,6 +644,10 @@ update_x-ui() {
     fi
 
     chmod +x x-ui bin/xray-linux-$(arch) > /dev/null 2>&1
+    # EasyBox: the tunnel line's cloudflared (absent on platforms without a build).
+    if [[ -f bin/cloudflared ]]; then
+        chmod +x bin/cloudflared > /dev/null 2>&1
+    fi
     if [[ -f bin/mtg-linux-arm ]]; then
         chmod +x bin/mtg-linux-arm > /dev/null 2>&1
     elif [[ -f bin/mtg-linux-$(arch) ]]; then

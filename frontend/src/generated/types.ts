@@ -580,7 +580,6 @@ export interface CloudflareRequest {
 export interface CloudflareView {
   configured: boolean;
   domain: string;
-  preferredAddresses: PreferredAddress[];
   tokenHint: string;
 }
 
@@ -986,6 +985,10 @@ export interface PeerActivity {
 export interface PreferredAddress {
   address: string;
   remark: string;
+}
+
+export interface PreferredView {
+  addresses: PreferredAddress[];
 }
 
 export interface PreviewView {

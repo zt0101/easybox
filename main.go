@@ -117,6 +117,7 @@ func runWebServer() {
 	if err := easybox.Init(); err != nil {
 		logger.Warning("EasyBox init failed:", err)
 	}
+	easybox.StartTunnelWatch()
 
 	server := web.NewServer()
 	global.SetWebServer(server)

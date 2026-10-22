@@ -57,7 +57,7 @@ func (s *Service) lookupPublicIPv4(address string) (string, error) {
 // appears, moves to a new inbound or goes away. Only the subscription depends on
 // them, so a failure is logged and audited rather than failing the line.
 func syncHostsAfter(row *model.EasyboxEndpoint) {
-	if row.CdnHost == "" {
+	if row.CdnHost == "" { // neither a CDN nor a tunnel line
 		return
 	}
 	if err := syncCDNHosts(); err != nil {

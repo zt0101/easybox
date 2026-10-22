@@ -6,12 +6,14 @@ import { keys } from '@/api/queryKeys';
 import {
   CloudflareViewSchema,
   EndpointListSchema,
+  PreferredViewSchema,
   EndpointViewSchema,
   PreviewViewSchema,
   SubscriptionViewSchema,
   TemplateListSchema,
   type CloudflareView,
   type PreferredAddress,
+  type PreferredView,
   type EndpointView,
   type PreviewView,
   type QuickCreateFormValues,
@@ -65,6 +67,33 @@ export function useEasyboxCloudflare() {
   return useQuery({ queryKey: keys.easybox.cloudflare(), queryFn: fetchCloudflare });
 }
 
+async function fetchPreferred(): Promise<PreferredView> {
+  const msg = await HttpUtil.get('/panel/api/easybox/preferred', undefined, { silent: true });
+  if (!msg?.success || !msg.obj) throw new Error(msg?.msg || 'Failed to fetch preferred addresses');
+  return parseMsg(msg, PreferredViewSchema, 'easybox/preferred').obj as PreferredView;
+}
+
+export function useEasyboxPreferred() {
+  return useQuery({ queryKey: keys.easybox.preferred(), queryFn: fetchPreferred });
+}
+
+/* The page shows a rejected list's reason, so saving is silent. */
+export function useEasyboxPreferredMutation() {
+  const queryClient = useQueryClient();
+  const mut = useMutation({
+    mutationFn: async (addresses: PreferredAddress[]) => {
+      const msg = await HttpUtil.post(
+        '/panel/api/easybox/preferred',
+        { addresses },
+        { ...JSON_HEADERS, silent: true },
+      );
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: keys.easybox.root() }),
+  });
+  return { save: mut.mutateAsync, saving: mut.isPending };
+}
+
 /* Saving checks the token against Cloudflare; the page shows the error text,
  * so the call is silent. Both calls refresh the templates (CDN availability). */
 export function useEasyboxCloudflareMutations() {
@@ -88,24 +117,10 @@ export function useEasyboxCloudflareMutations() {
     onSettled: () => invalidate(),
   });
 
-  const preferredMut = useMutation({
-    mutationFn: async (addresses: PreferredAddress[]) => {
-      const msg = await HttpUtil.post(
-        '/panel/api/easybox/cloudflare/preferred',
-        { addresses },
-        { ...JSON_HEADERS, silent: true },
-      );
-      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
-    },
-    onSettled: () => invalidate(),
-  });
-
   return {
     save: saveMut.mutateAsync,
     saving: saveMut.isPending,
     clear: clearMut.mutateAsync,
-    savePreferred: preferredMut.mutateAsync,
-    savingPreferred: preferredMut.isPending,
   };
 }
 

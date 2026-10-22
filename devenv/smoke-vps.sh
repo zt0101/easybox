@@ -51,6 +51,15 @@ if api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-cdn
 else
   echo "  [SKIP] vless-cdn, vless-cdn-xhttp: Cloudflare is not connected in the panel"
 fi
+# One tunnel line per server: test ours, never create a second next to another.
+tunnel_name=$(api GET /panel/api/easybox/endpoints/list | jq -r '[.obj[]? | select(.template=="vless-tunnel")][0].name // empty')
+if [ "$tunnel_name" = test-vless-tunnel ] || { [ -z "$tunnel_name" ] && api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-tunnel") | .available' >/dev/null; }; then
+  TEMPLATES="$TEMPLATES vless-tunnel"; XRAY_TEMPLATES="$XRAY_TEMPLATES vless-tunnel"
+elif [ -n "$tunnel_name" ]; then
+  echo "  [SKIP] vless-tunnel: the server's tunnel line is named $tunnel_name, not test-vless-tunnel"
+else
+  echo "  [SKIP] vless-tunnel: not available on this server"
+fi
 api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="shadowsocks") | .passwordUpgrade' >/dev/null \
   && echo "  [NOTE] creating test-shadowsocks upgrades the shared password: refresh the subscription on devices"
 declare -A ID LINK
