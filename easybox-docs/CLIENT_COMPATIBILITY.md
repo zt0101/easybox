@@ -90,6 +90,7 @@ client core imported the subscription EasyBox serves and fetched
       did not pick packet-up, the only mode Cloudflare's request buffering passes. Its own node set
       to `packet-up` worked, so CDN XHTTP lines name `packet-up` from v3.10.2-eb.15 on (Xray and
       Mihomo connect either way, checked in loopback for auto and packet-up on both sides).
+      Confirmed on the device after the eb.15 upgrade: a refreshed subscription works as is.
     - WebSocket early data: the CDN node with `?ed=2560` added to its path did not connect, so
       EasyBox does not use early data (it would only save one round trip on a new connection).
 

@@ -4553,6 +4553,31 @@
         ],
         "type": "object"
       },
+      "RegionRequest": {
+        "properties": {
+          "code": {
+            "example": "HK",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "RegionView": {
+        "description": "RegionView is the region code line names start with (\"\" = unknown, names\nthen start with the protocol).",
+        "properties": {
+          "code": {
+            "example": "HK",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
       "ServerSettings": {
         "description": "ServerSettings is the \"server\" block of an AmneziaWG inbound's Settings\nJSON: the interface-level configuration shared by every client/peer. The\nlisten port is deliberately not duplicated here — it lives on the inbound\nrow itself (Inbound.Port), like every other protocol.",
         "properties": {
@@ -4943,6 +4968,11 @@
             "example": "TUIC v5",
             "type": "string"
           },
+          "nameStyle": {
+            "description": "NameStyle is a new line's default name after the region (HK-<nameStyle>).",
+            "example": "VLESS-Reality",
+            "type": "string"
+          },
           "passwordUpgrade": {
             "description": "PasswordUpgrade: creating this line first changes the password of existing\nTUIC / Trojan lines, so devices must refresh the subscription.",
             "example": false,
@@ -4956,6 +4986,11 @@
             "example": "no trusted TLS certificate: set the panel certificate first",
             "type": "string"
           },
+          "tier": {
+            "description": "Tier: recommended / backup / risky (easy to identify).",
+            "example": "recommended",
+            "type": "string"
+          },
           "transport": {
             "example": "udp",
             "type": "string"
@@ -4965,9 +5000,11 @@
           "available",
           "id",
           "name",
+          "nameStyle",
           "passwordUpgrade",
           "protocol",
           "reason",
+          "tier",
           "transport"
         ],
         "type": "object"
@@ -16870,9 +16907,11 @@
                       "available": false,
                       "id": "tuic",
                       "name": "TUIC v5",
+                      "nameStyle": "VLESS-Reality",
                       "passwordUpgrade": false,
                       "protocol": "tuic",
                       "reason": "no trusted TLS certificate: set the panel certificate first",
+                      "tier": "recommended",
                       "transport": "udp"
                     }
                   ]
@@ -17223,6 +17262,147 @@
                     "template": "vless-reality",
                     "transport": "tcp",
                     "up": 1048576
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/endpoints/rename/{id}": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Rename a line; its subscription node (and its preferred-address nodes, \"<name>-<remark>\") follow. Names are unique, at most 64 characters, without # { } or control characters. Devices see the new name after refreshing the subscription.",
+        "operationId": "post_panel_api_easybox_endpoints_rename_id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Line ID.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "name": "HK-VLESS-Reality"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/region": {
+      "get": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "The region code a new line name starts with when none is given (HK-VLESS-Reality). Detected from the server IP the first time (Cloudflare trace, then ipinfo.io); empty when unknown.",
+        "operationId": "get_panel_api_easybox_region",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/RegionView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "code": "HK"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Set the region code (2-8 letters or digits); an empty code detects it again. Existing line names do not change.",
+        "operationId": "post_panel_api_easybox_region",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "code": "HK"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/RegionView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "code": "HK"
                   }
                 }
               }

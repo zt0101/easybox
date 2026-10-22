@@ -4527,6 +4527,31 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "RegionRequest": {
+    "properties": {
+      "code": {
+        "example": "HK",
+        "type": "string"
+      }
+    },
+    "required": [
+      "code"
+    ],
+    "type": "object"
+  },
+  "RegionView": {
+    "description": "RegionView is the region code line names start with (\"\" = unknown, names\nthen start with the protocol).",
+    "properties": {
+      "code": {
+        "example": "HK",
+        "type": "string"
+      }
+    },
+    "required": [
+      "code"
+    ],
+    "type": "object"
+  },
   "ServerSettings": {
     "description": "ServerSettings is the \"server\" block of an AmneziaWG inbound's Settings\nJSON: the interface-level configuration shared by every client/peer. The\nlisten port is deliberately not duplicated here — it lives on the inbound\nrow itself (Inbound.Port), like every other protocol.",
     "properties": {
@@ -4917,6 +4942,11 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "TUIC v5",
         "type": "string"
       },
+      "nameStyle": {
+        "description": "NameStyle is a new line's default name after the region (HK-\u003cnameStyle\u003e).",
+        "example": "VLESS-Reality",
+        "type": "string"
+      },
       "passwordUpgrade": {
         "description": "PasswordUpgrade: creating this line first changes the password of existing\nTUIC / Trojan lines, so devices must refresh the subscription.",
         "example": false,
@@ -4930,6 +4960,11 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "no trusted TLS certificate: set the panel certificate first",
         "type": "string"
       },
+      "tier": {
+        "description": "Tier: recommended / backup / risky (easy to identify).",
+        "example": "recommended",
+        "type": "string"
+      },
       "transport": {
         "example": "udp",
         "type": "string"
@@ -4939,9 +4974,11 @@ export const SCHEMAS: Record<string, unknown> = {
       "available",
       "id",
       "name",
+      "nameStyle",
       "passwordUpgrade",
       "protocol",
       "reason",
+      "tier",
       "transport"
     ],
     "type": "object"

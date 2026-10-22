@@ -17,6 +17,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
    cdn_line.go / cdn_store.go   CDN 线路：Cloudflare 设置、建线路时的解析和证书、失败或删除时清理
    tunnel.go      隧道线路：127.0.0.1 上的 VLESS + WS，cloudflared 作为独立 systemd 单元 easybox-tunnel 运行（systemd-run，DynamicUser）；从 cloudflared 的 /quicktunnel、/ready 读地址和连接状态；StartTunnelWatch 每分钟检查（重启后拉起、地址变了更新订阅、没有线路时停掉）
    settings.go    easybox_settings 的读写
+   names.go       线路命名：地区代码（设置键 regionCode，第一次用时按服务器 IP 识别，可修改）+ 模板的 nameStyle，如 HK-VLESS-Reality，重名加 -2、-3；改名同时改 easybox_endpoints.name 和入站 remark
    subcdn.go      订阅走 CDN：sub-<label>.<域名> 橙色云记录（设置键 subCdnHost / subCdnRecordId / subCdnZoneId / subCdnOrigin）；经这个域名来的订阅请求，默认节点地址换回服务器 IP（sub.SubRequestHostOverride）
    cdn_xhttp.go   XHTTP + TLS 的 CDN 入站（模板的 cdnInbound 决定入站形状，Cloudflare 部分两种 CDN 线路共用）
    cdn_preferred.go   优选地址（最多 10 个，各带备注）：写成上游 Host 组 easybox-cdn-0（原地址）和 easybox-cdn-N，订阅多出「线路名-备注」
@@ -40,7 +41,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
 
 | 表 | 内容 |
 |---|---|
-| `easybox_settings` | EasyBox 自己的键值设置。`cdnPreferredAddresses`：优选地址（JSON：地址 + 备注），和 Cloudflare 令牌无关，没有域名的线路也用。 |
+| `easybox_settings` | EasyBox 自己的键值设置。`cdnPreferredAddresses`：优选地址（JSON：地址 + 备注），和 Cloudflare 令牌无关，没有域名的线路也用。`regionCode`：自动命名用的地区代码（HK、JP…）。 |
 | `easybox_cloudflare` | CDN 线路用的 Cloudflare 账号（一行）：域名、zone ID、API 令牌。（eb.10–eb.12 的优选地址也存在这里，升级时搬到 `easybox_settings`。）令牌不出现在任何接口返回和日志里。 |
 | `easybox_subscriptions` | 订阅用户：Email、SubID（订阅地址 token）、UUID、Auth（Hysteria2）、Password（TUIC、Trojan、Shadowsocks 共用；16 字节密钥的 base64，因为 Shadowsocks 2022 只接受这种格式）。上游在删除最后一个入站时会删掉 ClientRecord，这张表保证订阅地址不变 |
 | `easybox_endpoints` | 线路：名称、模板、对应的上游入站、状态、失败步骤与原因。端口、启用状态、流量实时读取上游入站 |

@@ -29,6 +29,7 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	e.GET("/link/:id", a.endpointLink)
 	e.POST("/setInSubscription/:id", a.setEndpointInSubscription)
 	e.POST("/regenerate/:id", a.regenerateEndpoint)
+	e.POST("/rename/:id", a.renameEndpoint)
 	g.GET("/templates", a.listTemplates)
 	g.GET("/subscription/preview", a.previewSubscription)
 	g.POST("/subscription/rotate", a.rotateSubscription)
@@ -37,6 +38,8 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	g.GET("/cloudflare", a.getCloudflare)
 	g.POST("/cloudflare", a.setCloudflare)
 	g.POST("/cloudflare/clear", a.clearCloudflare)
+	g.GET("/region", a.getRegion)
+	g.POST("/region", a.setRegion)
 	g.GET("/preferred", a.getPreferred)
 	g.POST("/preferred", a.setPreferred)
 }
@@ -242,6 +245,40 @@ func (a *EasyboxController) setSubscriptionCDN(c *gin.Context) {
 		return
 	}
 	view, err := a.svc.GetSubscription(c.Request.Host)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) renameEndpoint(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	var f struct {
+		Name string `json:"name" form:"name"`
+	}
+	if err := c.ShouldBind(&f); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonMsg(c, "", a.svc.RenameEndpoint(id, f.Name))
+}
+
+func (a *EasyboxController) getRegion(c *gin.Context) {
+	jsonObj(c, a.svc.GetRegion(), nil)
+}
+
+func (a *EasyboxController) setRegion(c *gin.Context) {
+	var req easybox.RegionRequest
+	if err := c.ShouldBind(&req); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	view, err := a.svc.SetRegion(req)
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
 		return

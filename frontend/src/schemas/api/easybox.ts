@@ -5,6 +5,7 @@ import {
   EndpointViewSchema,
   PreferredViewSchema,
   PreviewViewSchema,
+  RegionViewSchema,
   SubscriptionViewSchema,
   TemplateViewSchema,
 } from '@/generated/zod';
@@ -14,12 +15,14 @@ export {
   EndpointViewSchema,
   PreferredViewSchema,
   PreviewViewSchema,
+  RegionViewSchema,
   SubscriptionViewSchema,
 };
 export type {
   CloudflareView,
   PreferredAddress,
   PreferredView,
+  RegionView,
   EndpointView,
   PreviewView,
   SubscriptionView,

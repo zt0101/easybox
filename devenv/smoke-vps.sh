@@ -51,32 +51,34 @@ if api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-cdn
 else
   echo "  [SKIP] vless-cdn, vless-cdn-xhttp: Cloudflare is not connected in the panel"
 fi
-# One tunnel line per server: test ours, never create a second next to another.
+# One tunnel line per server: test the existing one, or create it when possible.
 tunnel_name=$(api GET /panel/api/easybox/endpoints/list | jq -r '[.obj[]? | select(.template=="vless-tunnel")][0].name // empty')
-if [ "$tunnel_name" = test-vless-tunnel ] || { [ -z "$tunnel_name" ] && api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-tunnel") | .available' >/dev/null; }; then
+if [ -n "$tunnel_name" ] || api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-tunnel") | .available' >/dev/null; then
   TEMPLATES="$TEMPLATES vless-tunnel"; XRAY_TEMPLATES="$XRAY_TEMPLATES vless-tunnel"
-elif [ -n "$tunnel_name" ]; then
-  echo "  [SKIP] vless-tunnel: the server's tunnel line is named $tunnel_name, not test-vless-tunnel"
 else
   echo "  [SKIP] vless-tunnel: not available on this server"
 fi
 api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="shadowsocks") | .passwordUpgrade' >/dev/null \
   && echo "  [NOTE] creating test-shadowsocks upgrades the shared password: refresh the subscription on devices"
-declare -A ID LINK
+# Lines are found by template, whatever they are called (names follow the
+# HK-VLESS-Reality rule or the admin's choice); test-<template> only when the
+# server has none of that kind yet.
+declare -A ID LINK NAME
 for tpl in $TEMPLATES; do
-  name="test-$tpl"
-  existing=$(api GET /panel/api/easybox/endpoints/list | jq -r --arg n "$name" '.obj[]? | select(.name==$n) | .id')
-  if [ -n "$existing" ]; then ID[$tpl]=$existing; else
-    res=$(api POST /panel/api/easybox/endpoints/create "{\"template\":\"$tpl\",\"name\":\"$name\",\"address\":\"$VPS\"}")
+  existing=$(api GET /panel/api/easybox/endpoints/list | jq -c --arg t "$tpl" '[.obj[]? | select(.template==$t and .inboundId>0)][0] // empty')
+  if [ -n "$existing" ]; then
+    ID[$tpl]=$(jq -r .id <<<"$existing"); NAME[$tpl]=$(jq -r .name <<<"$existing")
+  else
+    res=$(api POST /panel/api/easybox/endpoints/create "{\"template\":\"$tpl\",\"name\":\"test-$tpl\",\"address\":\"$VPS\"}")
     jq -e '.success and .obj.status=="RUNNING"' <<<"$res" >/dev/null || { bad "create $tpl: $res"; continue; }
-    ID[$tpl]=$(jq -r .obj.id <<<"$res")
+    ID[$tpl]=$(jq -r .obj.id <<<"$res"); NAME[$tpl]=$(jq -r .obj.name <<<"$res")
   fi
 done
 # Links only after every create: a Shadowsocks create can change the shared password.
 for tpl in $TEMPLATES; do
   [ -n "${ID[$tpl]:-}" ] || continue
   LINK[$tpl]=$(api GET "/panel/api/easybox/endpoints/link/${ID[$tpl]}" | jq -r .obj)
-  ok "$tpl line RUNNING (id ${ID[$tpl]}): $(sed -E 's#://[^@]+@#://***@#; s/(password|auth|obfs-password)=[^&]+/\1=***/g' <<<"${LINK[$tpl]}")"
+  ok "$tpl line ${NAME[$tpl]} RUNNING (id ${ID[$tpl]}): $(sed -E 's#://[^@]+@#://***@#; s/(password|auth|obfs-password)=[^&]+/\1=***/g' <<<"${LINK[$tpl]}")"
   grep -q pinSHA256 <<<"${LINK[$tpl]}" && bad "$tpl link pins a cert (should use the trusted panel cert)"
 done
 
@@ -87,7 +89,7 @@ raw=$(curl -fsS "$sub" | base64 -d)
 for tpl in $TEMPLATES; do
   # REALITY lines pick one of several server names and short IDs per render: compare without them.
   nosni() { sed -E 's/(sni|sid)=[^&#]*//g'; }
-  nosni <<<"$raw" | grep -qxF "$(nosni <<<"${LINK[$tpl]:-none}")" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
+  nosni <<<"$raw" | grep -xF "$(nosni <<<"${LINK[$tpl]:-none}")" >/dev/null && ok "raw subscription has ${NAME[$tpl]:-$tpl}" || bad "raw subscription lacks ${NAME[$tpl]:-$tpl}"
 done
 
 # 1) xray client via upstream link parser (Xray has no TUIC client)
@@ -103,7 +105,7 @@ done
 curl -fsS -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/sb.json" "$sub"
 "$SINGBOX" check -c "$WORK/sb.json" && ok "sing-box config check" || bad "sing-box check"
 for tpl in $TEMPLATES; do
-  tag=test-$tpl
+  tag=${NAME[$tpl]:-test-$tpl}
   if [[ $tpl == *xhttp* ]]; then # sing-box has no XHTTP transport
     ! jq -e --arg tag "$tag" '.outbounds[]|select(.tag==$tag)' "$WORK/sb.json" >/dev/null \
       && ok "sing-box config leaves out $tag" || bad "sing-box config carries $tag"
@@ -123,8 +125,8 @@ mkdir -p "$WORK/mh"
   grep -vE '^(mixed-port|port|socks-port|external-controller|allow-lan):' "$WORK/sub.yaml"; } > "$WORK/mh/config.yaml"
 "$MIHOMO" -d "$WORK/mh" >"$WORK/mh.log" 2>&1 & pid=$!; sleep 4
 for tpl in $TEMPLATES; do
-  tag=test-$tpl
-  d=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$tag/delay?url=$(jq -rn --arg u "$PROBE" '$u|@uri')&timeout=8000")
+  tag=${NAME[$tpl]:-test-$tpl}
+  d=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$(jq -rn --arg t "$tag" '$t|@uri')/delay?url=$(jq -rn --arg u "$PROBE" '$u|@uri')&timeout=8000")
   jq -e '.delay>0' <<<"$d" >/dev/null && ok "Mihomo → $tag delay $(jq .delay <<<"$d")ms" || { bad "Mihomo $tag: $d"; tail -5 "$WORK/mh.log"; }
 done
 kill $pid; wait $pid 2>/dev/null; pid=""
@@ -144,8 +146,9 @@ if [ -n "$cdn_sub" ]; then
     && ok "subscription through Cloudflare is not cacheable" || bad "subscription through Cloudflare lacks no-store"
   curl -fsS --max-time 30 -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/cdn-sb.json" "$cdn_sub" \
     && "$SINGBOX" check -c "$WORK/cdn-sb.json" && ok "sing-box config through Cloudflare checks" || bad "sing-box config through Cloudflare"
-  [ -z "$cdn_clash" ] || { curl -fsS --max-time 30 -A "mihomo/1.19.32" "$cdn_clash" | grep -q '^proxies:' \
-    && ok "Clash YAML through Cloudflare" || bad "Clash YAML through Cloudflare"; }
+  # Into a file first: grep -q closing the pipe early fails curl under pipefail.
+  [ -z "$cdn_clash" ] || { curl -fsS --max-time 30 -A "mihomo/1.19.32" -o "$WORK/cdn-clash.yaml" "$cdn_clash" \
+    && grep -q '^proxies:' "$WORK/cdn-clash.yaml" && ok "Clash YAML through Cloudflare" || bad "Clash YAML through Cloudflare"; }
 else
   echo "  [SKIP] subscription through Cloudflare: off in the panel"
 fi

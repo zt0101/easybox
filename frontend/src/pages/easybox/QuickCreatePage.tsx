@@ -11,11 +11,14 @@ import {
   fetchEndpointLink,
   useEasyboxMutations,
   useEasyboxSubscription,
+  useEasyboxRegion,
   useEasyboxTemplates,
   type CreateResult,
 } from '@/api/queries/useEasybox';
 import { QuickCreateFormSchema, type QuickCreateFormValues } from '@/schemas/api/easybox';
 import CloudflareCard from './CloudflareCard';
+import RegionField from './RegionField';
+import TemplateDetails, { TierTag } from './TemplateDetails';
 import PreferredCard from './PreferredCard';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 
@@ -39,6 +42,7 @@ function QuickCreate(api: EasyboxPageApi) {
   const { create, creating } = useEasyboxMutations();
   const subscription = useEasyboxSubscription();
   const templates = useEasyboxTemplates();
+  const region = useEasyboxRegion();
   const [template, setTemplate] = useState('vless-reality');
   const [result, setResult] = useState<CreateResult | null>(null);
   const methods = useZodForm(QuickCreateFormSchema, { defaultValues: { name: '', address: '' } });
@@ -73,6 +77,9 @@ function QuickCreate(api: EasyboxPageApi) {
     (tpl) => !tpl.available && !CDN_TEMPLATES.has(tpl.id) && tpl.id !== TUNNEL_TEMPLATE,
   );
   const tunnel = template === TUNNEL_TEMPLATE;
+  const selected = templates.data?.find((tpl) => tpl.id === template);
+  const style = selected?.nameStyle ?? '';
+  const autoName = [region.data?.code, style].filter(Boolean).join('-');
 
   const failedIndex = result?.line?.failedStep
     ? CREATE_STEPS.indexOf(result.line.failedStep as (typeof CREATE_STEPS)[number])
@@ -90,6 +97,9 @@ function QuickCreate(api: EasyboxPageApi) {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div>
           <Typography.Text strong>{t('easybox.create.protocol')}</Typography.Text>
+          <div>
+            <Typography.Text type="secondary">{t('easybox.tiers.legend')}</Typography.Text>
+          </div>
           <div className="easybox-protocols" style={{ marginTop: 8 }}>
             {(templates.data ?? []).map((tpl) => (
               <button
@@ -100,7 +110,10 @@ function QuickCreate(api: EasyboxPageApi) {
                 disabled={!tpl.available}
                 onClick={() => setTemplate(tpl.id)}
               >
-                <Typography.Text strong>{tpl.name}</Typography.Text>
+                <span className="easybox-protocol-title">
+                  <Typography.Text strong>{tpl.name}</Typography.Text>
+                  <TierTag tier={tpl.tier} />
+                </span>
                 <span className="easybox-protocol-hint">
                   {tpl.available
                     ? t(`easybox.templates.${tpl.id}`)
@@ -113,6 +126,11 @@ function QuickCreate(api: EasyboxPageApi) {
               </button>
             ))}
           </div>
+          {selected && (
+            <div style={{ marginTop: 16 }}>
+              <TemplateDetails id={selected.id} name={selected.name} tier={selected.tier} />
+            </div>
+          )}
         </div>
 
         {needsCertificate && (
@@ -140,8 +158,16 @@ function QuickCreate(api: EasyboxPageApi) {
                 label={t('easybox.create.name')}
                 rules={{ validate: rhfZodValidate(QuickCreateFormSchema.shape.name) }}
               >
-                <Input maxLength={64} placeholder={t('easybox.create.namePlaceholder')} />
+                <Input
+                  maxLength={64}
+                  placeholder={
+                    autoName
+                      ? t('easybox.create.namePlaceholderAuto', { name: autoName })
+                      : t('easybox.create.namePlaceholder')
+                  }
+                />
               </FormField>
+              <RegionField {...api} />
               {!tunnel && (
                 <FormField
                   name="address"

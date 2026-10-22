@@ -2746,6 +2746,91 @@
     "settings": "Pengaturan"
   },
   "easybox": {
+    "tiers": {
+      "recommended": "Recommended",
+      "backup": "Backup",
+      "risky": "Easy to detect",
+      "legend": "Recommended: use these first. Backup: switch to these when the recommended lines do not work. Easy to detect: easily identified from China and can get the server IP blocked; use abroad or in emergencies only."
+    },
+    "templateDetails": {
+      "labels": {
+        "how": "How it works",
+        "pros": "Pros",
+        "cons": "Cons",
+        "use": "Best for",
+        "clients": "Clients"
+      },
+      "vless-reality": {
+        "how": "Looks like a visit to a real large website (borrows its TLS handshake). No domain, no certificate.",
+        "pros": "Very hard to identify; fast, low latency; the simplest to create.",
+        "cons": "Clients connect straight to the server IP, so it stops working once the IP is blocked; needs a recent client.",
+        "use": "Your main line.",
+        "clients": "v2rayN, current v2rayNG, Mihomo (Clash Meta) and Stash work. Shadowrocket cannot connect yet (waiting for an app update). sing-box is not supported; the subscription leaves it out."
+      },
+      "vless-xhttp": {
+        "how": "REALITY plus XHTTP: traffic is split into ordinary HTTP requests, which looks more like normal browsing.",
+        "pros": "The hardest direct line to identify today.",
+        "cons": "A little slower than REALITY; stops working once the IP is blocked; needs a recent client.",
+        "use": "Main line, or when REALITY is being disrupted.",
+        "clients": "v2rayN, current v2rayNG and Mihomo work (v2rayNG 1.9.45 failed, 2.3.11 works). Shadowrocket cannot connect yet; sing-box has no XHTTP."
+      },
+      "hysteria2": {
+        "how": "QUIC (UDP) with its own congestion control, so it keeps full speed on lossy networks. No domain (self-signed certificate, pinned).",
+        "pros": "Much faster on weak networks, at peak hours and on mobile data.",
+        "cons": "Some ISPs throttle or cut UDP; stops working once the IP is blocked.",
+        "use": "Peak hours, mobile data, high packet loss. If it is slow on a network, switch to REALITY.",
+        "clients": "v2rayN, v2rayNG, Mihomo, sing-box and Shadowrocket all work."
+      },
+      "vless-cdn-xhttp": {
+        "how": "Traffic goes to Cloudflare first and Cloudflare forwards it to the server; observers only see a visit to Cloudflare. Transport: XHTTP.",
+        "pros": "Keeps working when the server IP is blocked; harder to identify than WebSocket; with preferred addresses the latency drops a lot.",
+        "cons": "Needs your own domain on Cloudflare; higher latency than direct lines; without preferred addresses it can be slow or time out from China.",
+        "use": "The main line once the IP is blocked, and a long-term backup for the direct lines.",
+        "clients": "v2rayN, current v2rayNG, Mihomo and Shadowrocket work; sing-box has no XHTTP."
+      },
+      "vless-cdn": {
+        "how": "Relayed by Cloudflare like XHTTP + CDN, with WebSocket as the transport.",
+        "pros": "Keeps working when the server IP is blocked; the widest client support (sing-box included).",
+        "cons": "WebSocket is easier to recognise than XHTTP; higher latency than direct lines; needs your own domain.",
+        "use": "Backup for XHTTP + CDN, or for clients without XHTTP (such as sing-box).",
+        "clients": "All clients."
+      },
+      "vless-tunnel": {
+        "how": "The server dials out to Cloudflare and opens a temporary tunnel (xxx.trycloudflare.com). No domain, no open port.",
+        "pros": "A line that survives an IP block even without a domain.",
+        "cons": "The address is temporary and changes when the VPS reboots, so clients must refresh the subscription; if the IP is blocked by then, the line is lost. Average speed. One per server.",
+        "use": "The last resort when you have no domain. From China, add preferred addresses.",
+        "clients": "All clients."
+      },
+      "tuic": {
+        "how": "QUIC (UDP), like Hysteria2. Needs the panel certificate.",
+        "pros": "Low latency, good on weak networks.",
+        "cons": "Fewer clients than Hysteria2; some ISPs throttle UDP; stops working once the IP is blocked.",
+        "use": "Backup for Hysteria2.",
+        "clients": "Mihomo, sing-box and Shadowrocket work; v2rayN switches to its sing-box core (Xray has no TUIC)."
+      },
+      "vless-tls": {
+        "how": "Standard TLS with the server's IP certificate. Needs the panel certificate.",
+        "pros": "The widest client support.",
+        "cons": "TLS on a bare IP certificate is rare and TLS-in-TLS is visible, so it is easily identified from China and can get the server IP blocked over time.",
+        "use": "Networks abroad, emergencies, or clients that cannot use REALITY (Shadowrocket today).",
+        "clients": "All clients."
+      },
+      "trojan": {
+        "how": "A veteran protocol that looks like HTTPS, with the server's IP certificate. Needs the panel certificate.",
+        "pros": "Wide client support.",
+        "cons": "Well studied by censors; with an IP certificate it is easily identified from China and can get the server IP blocked.",
+        "use": "Networks abroad or emergencies.",
+        "clients": "All clients."
+      },
+      "shadowsocks": {
+        "how": "Fully encrypted traffic that looks random; no certificate; UDP supported.",
+        "pros": "Simple, light, supported by every client.",
+        "cons": "China actively blocks traffic that matches no known protocol, so it is blocked easily and can take the server IP with it.",
+        "use": "Networks abroad or short emergencies only.",
+        "clients": "All clients."
+      }
+    },
     "status": {
       "CREATING": "Creating",
       "RUNNING": "Running",
@@ -2764,6 +2849,13 @@
       "protocol": "Protocol",
       "name": "Line name (optional)",
       "namePlaceholder": "e.g. US-Oracle-01",
+      "namePlaceholderAuto": "Leave empty to name it {name}",
+      "region": "Server region",
+      "regionUnknown": "unknown",
+      "regionEdit": "Change",
+      "regionSave": "Save",
+      "regionHelp": "Region code for automatic names, detected from the server IP; change it if wrong (e.g. HK, JP, US). Existing line names stay.",
+      "regionSaved": "Region saved",
       "address": "Server address (optional)",
       "addressHelp": "Domain or IP that clients connect to. Leave empty to use the address you opened this panel with.",
       "addressHelpCdn": "CDN line: this server's IPv4, which the Cloudflare record points to; leave empty to detect it. Clients connect to a generated cdn-xxxxxx.<your domain>.",
@@ -2782,7 +2874,7 @@
       "needsCertificate": "Needs a trusted TLS certificate on the panel first",
       "needsCloudflare": "Connect Cloudflare first (API token and domain)",
       "tunnelUnavailable": "Not available here (needs systemd and the cloudflared bundled with the panel), or a tunnel line already exists",
-      "tunnelNotice": "The tunnel line is the backup for servers without a domain: it goes through a Cloudflare quick tunnel (xxx.trycloudflare.com) and keeps working when the server IP is blocked. The tunnel address changes when the VPS reboots; the panel updates the subscription and clients must refresh it. If the IP is blocked by then, the subscription cannot be refreshed and the line stops working. From China, fill in preferred addresses below first (without them it is slow and unstable). With a domain of your own, prefer VLESS + CDN. One per server.",
+      "tunnelNotice": "The tunnel line is the backup for servers without a domain: it goes through a Cloudflare quick tunnel (xxx.trycloudflare.com) and keeps working when the server IP is blocked. The tunnel address changes when the VPS reboots; the panel updates the subscription and clients must refresh it. If the IP is blocked by then, the subscription cannot be refreshed and the line stops working. From China, fill in preferred addresses below first (without them it is slow and unstable). With a domain of your own, prefer VLESS + WebSocket + CDN. One per server.",
       "tunnelCreatedHint": "Tunnel address: {host}. No firewall port needed. Clients get the line when they refresh the subscription.",
       "certificateGuide": "TUIC, VLESS + TLS and Trojan need a trusted TLS certificate. install.sh can issue one for the server IP; set it as the panel certificate in Panel Settings and restart the panel.",
       "passwordUpgradeTitle": "Refresh the subscription on your devices afterwards",
@@ -2811,6 +2903,10 @@
       "deleted": "Line deleted",
       "notInSubscription": "Not in subscription",
       "regenerate": "Regenerate",
+      "rename": "Rename",
+      "renameTitle": "Rename line: {name}",
+      "renameHint": "Clients show the new name after refreshing the subscription; preferred nodes follow (<new name>-<remark>). Clash / sing-box users who picked this node by hand pick it again.",
+      "renamed": "Renamed; clients pick it up when they refresh the subscription",
       "regenerateTitle": "Regenerate {name}",
       "regenerateHint": "Creates a fresh port and REALITY keys. The current line keeps working until the new one passes its health check.",
       "modeReplace": "Replace this line",
@@ -2883,7 +2979,7 @@
       "tuic": "QUIC · low latency · UDP",
       "vless-tls": "TLS · works on every client · TCP",
       "trojan": "TLS · classic, widely supported · TCP",
-      "shadowsocks": "No certificate · backup line, easier to block in China · TCP + UDP"
+      "shadowsocks": "No certificate · easy to block in China · TCP + UDP"
     },
     "overview": {
       "title": "EasyBox lines",

@@ -1104,6 +1104,16 @@ export const RealityScanResultSchema = z.object({
 });
 export type RealityScanResult = z.infer<typeof RealityScanResultSchema>;
 
+export const RegionRequestSchema = z.object({
+  code: z.string(),
+});
+export type RegionRequest = z.infer<typeof RegionRequestSchema>;
+
+export const RegionViewSchema = z.object({
+  code: z.string(),
+});
+export type RegionView = z.infer<typeof RegionViewSchema>;
+
 export const ServerSettingsSchema = z.object({
   contentPaddingAddition: z.string().optional(),
   disableCookies: z.boolean(),
@@ -1201,9 +1211,11 @@ export const TemplateViewSchema = z.object({
   available: z.boolean(),
   id: z.string(),
   name: z.string(),
+  nameStyle: z.string(),
   passwordUpgrade: z.boolean(),
   protocol: z.string(),
   reason: z.string(),
+  tier: z.string(),
   transport: z.string(),
 });
 export type TemplateView = z.infer<typeof TemplateViewSchema>;

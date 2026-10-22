@@ -7,6 +7,7 @@ export const keys = {
     templates: () => ['easybox', 'templates'] as const,
     cloudflare: () => ['easybox', 'cloudflare'] as const,
     preferred: () => ['easybox', 'preferred'] as const,
+    region: () => ['easybox', 'region'] as const,
     preview: (client: string) => ['easybox', 'preview', client] as const,
   },
   server: {

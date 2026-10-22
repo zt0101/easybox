@@ -7,6 +7,7 @@ import {
   CloudflareViewSchema,
   EndpointListSchema,
   PreferredViewSchema,
+  RegionViewSchema,
   EndpointViewSchema,
   PreviewViewSchema,
   SubscriptionViewSchema,
@@ -14,6 +15,7 @@ import {
   type CloudflareView,
   type PreferredAddress,
   type PreferredView,
+  type RegionView,
   type EndpointView,
   type PreviewView,
   type QuickCreateFormValues,
@@ -65,6 +67,32 @@ async function fetchCloudflare(): Promise<CloudflareView> {
 
 export function useEasyboxCloudflare() {
   return useQuery({ queryKey: keys.easybox.cloudflare(), queryFn: fetchCloudflare });
+}
+
+async function fetchRegion(): Promise<RegionView> {
+  const msg = await HttpUtil.get('/panel/api/easybox/region', undefined, { silent: true });
+  if (!msg?.success || !msg.obj) throw new Error(msg?.msg || 'Failed to fetch the region');
+  return parseMsg(msg, RegionViewSchema, 'easybox/region').obj as RegionView;
+}
+
+export function useEasyboxRegion() {
+  return useQuery({ queryKey: keys.easybox.region(), queryFn: fetchRegion });
+}
+
+export function useEasyboxRegionMutation() {
+  const queryClient = useQueryClient();
+  const mut = useMutation({
+    mutationFn: async (code: string) => {
+      const msg = await HttpUtil.post(
+        '/panel/api/easybox/region',
+        { code },
+        { ...JSON_HEADERS, silent: true },
+      );
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: keys.easybox.root() }),
+  });
+  return { saveRegion: mut.mutateAsync, savingRegion: mut.isPending };
 }
 
 async function fetchPreferred(): Promise<PreferredView> {
@@ -249,6 +277,18 @@ export function useEasyboxMutations() {
     onSettled: () => invalidate(),
   });
 
+  const renameMut = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const msg = await HttpUtil.post(
+        `/panel/api/easybox/endpoints/rename/${id}`,
+        { name },
+        { ...JSON_HEADERS, silent: true },
+      );
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => invalidate(),
+  });
+
   const rotateMut = useMutation({
     mutationFn: () =>
       HttpUtil.post('/panel/api/easybox/subscription/rotate', undefined, { silentSuccess: true }),
@@ -267,6 +307,8 @@ export function useEasyboxMutations() {
     regenerate: (id: number, keepOld: boolean) => regenerateMut.mutateAsync({ id, keepOld }),
     regenerating: regenerateMut.isPending,
     rotateSubscription: rotateMut.mutateAsync,
+    rename: (id: number, name: string) => renameMut.mutateAsync({ id, name }),
+    renaming: renameMut.isPending,
     setSubscriptionCdn: subscriptionCdnMut.mutateAsync,
     settingSubscriptionCdn: subscriptionCdnMut.isPending,
   };

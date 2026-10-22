@@ -1,11 +1,25 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { Button, Card, Empty, Result, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Empty,
+  Input,
+  Modal,
+  Result,
+  Space,
+  Switch,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
 import type { TableColumnsType } from 'antd';
 import {
   CopyOutlined,
   DeleteOutlined,
+  EditOutlined,
   PlusOutlined,
   QrcodeOutlined,
   SyncOutlined,
@@ -39,7 +53,24 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const lines = useEasyboxEndpoints();
-  const { remove, setEnable, regenerate, regenerating } = useEasyboxMutations();
+  const { remove, setEnable, regenerate, regenerating, rename, renaming } = useEasyboxMutations();
+  const [renameLine, setRenameLine] = useState<EndpointView | null>(null);
+  const [newName, setNewName] = useState('');
+
+  const openRename = (line: EndpointView) => {
+    setRenameLine(line);
+    setNewName(line.name);
+  };
+  const confirmRename = async () => {
+    if (!renameLine) return;
+    const result = await rename(renameLine.id, newName);
+    if (!result.ok) {
+      messageApi.error(result.message);
+      return;
+    }
+    setRenameLine(null);
+    messageApi.success(t('easybox.lines.renamed'));
+  };
   const [qr, setQr] = useState<{ name: string; link: string } | null>(null);
   const [regenLine, setRegenLine] = useState<EndpointView | null>(null);
 
@@ -75,7 +106,18 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
       key: 'name',
       render: (_, line) => (
         <Space direction="vertical" size={0}>
-          <Typography.Text strong>{line.name}</Typography.Text>
+          <Space size={4}>
+            <Typography.Text strong>{line.name}</Typography.Text>
+            <Tooltip title={t('easybox.lines.rename')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                aria-label={t('easybox.lines.rename')}
+                onClick={() => openRename(line)}
+              />
+            </Tooltip>
+          </Space>
           {line.port > 0 && (
             <span className="easybox-mono">
               {`${line.address || window.location.hostname}:${line.port}/${line.transport}`}
@@ -235,6 +277,28 @@ function Lines({ messageApi, modal }: EasyboxPageApi) {
         onCopy={copy}
         onClose={() => setQr(null)}
       />
+      <Modal
+        open={renameLine !== null}
+        title={t('easybox.lines.renameTitle', { name: renameLine?.name ?? '' })}
+        okText={t('easybox.lines.rename')}
+        cancelText={t('cancel')}
+        confirmLoading={renaming}
+        okButtonProps={{ disabled: !newName.trim() || newName.trim() === renameLine?.name }}
+        onOk={confirmRename}
+        onCancel={() => setRenameLine(null)}
+        destroyOnHidden
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onPressEnter={confirmRename}
+            maxLength={64}
+            autoFocus
+          />
+          <Typography.Text type="secondary">{t('easybox.lines.renameHint')}</Typography.Text>
+        </Space>
+      </Modal>
       <RegenerateModal
         name={regenLine?.name ?? null}
         loading={regenerating}
