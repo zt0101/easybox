@@ -45,11 +45,11 @@ api GET /panel/api/easybox/templates 2>/dev/null | jq -c '[.obj[]? | {id, availa
 
 TEMPLATES="tuic hysteria2 vless-tls trojan shadowsocks vless-xhttp"
 XRAY_TEMPLATES="hysteria2 vless-tls trojan shadowsocks vless-xhttp"
-# The CDN line needs Cloudflare connected in the panel (API token + domain).
+# CDN lines need Cloudflare connected in the panel (API token + domain).
 if api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-cdn") | .available' >/dev/null; then
-  TEMPLATES="$TEMPLATES vless-cdn"; XRAY_TEMPLATES="$XRAY_TEMPLATES vless-cdn"
+  TEMPLATES="$TEMPLATES vless-cdn vless-cdn-xhttp"; XRAY_TEMPLATES="$XRAY_TEMPLATES vless-cdn vless-cdn-xhttp"
 else
-  echo "  [SKIP] vless-cdn: Cloudflare is not connected in the panel"
+  echo "  [SKIP] vless-cdn, vless-cdn-xhttp: Cloudflare is not connected in the panel"
 fi
 api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="shadowsocks") | .passwordUpgrade' >/dev/null \
   && echo "  [NOTE] creating test-shadowsocks upgrades the shared password: refresh the subscription on devices"
@@ -95,7 +95,7 @@ curl -fsS -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/sb.json
 "$SINGBOX" check -c "$WORK/sb.json" && ok "sing-box config check" || bad "sing-box check"
 for tpl in $TEMPLATES; do
   tag=test-$tpl
-  if [ "$tpl" = vless-xhttp ]; then # sing-box has no XHTTP transport
+  if [[ $tpl == *xhttp* ]]; then # sing-box has no XHTTP transport
     ! jq -e --arg tag "$tag" '.outbounds[]|select(.tag==$tag)' "$WORK/sb.json" >/dev/null \
       && ok "sing-box config leaves out $tag" || bad "sing-box config carries $tag"
     continue

@@ -138,7 +138,10 @@ type cdnResources struct {
 
 // prepareCDN creates the proxied DNS record and origin certificate and builds
 // the inbound. On error nothing is left at Cloudflare.
-func (s *Service) prepareCDN(name, address string, id Identity) (*model.Inbound, *cdnResources, error) {
+func (s *Service) prepareCDN(
+	build func(name string, id Identity, host, certPEM, keyPEM string) (*model.Inbound, error),
+	name, address string, id Identity,
+) (*model.Inbound, *cdnResources, error) {
 	cfg, ok, err := loadCloudflare()
 	if err != nil {
 		return nil, nil, err
@@ -172,7 +175,7 @@ func (s *Service) prepareCDN(name, address string, id Identity) (*model.Inbound,
 	if res.certID, certPEM, err = c.createOriginCert(csrPEM, res.host); err != nil {
 		return fail(err)
 	}
-	ib, err := BuildVlessCDNInbound(name, id, res.host, certPEM, keyPEM)
+	ib, err := build(name, id, res.host, certPEM, keyPEM)
 	if err != nil {
 		return fail(err)
 	}

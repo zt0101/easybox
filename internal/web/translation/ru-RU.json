@@ -2868,6 +2868,7 @@
       "vless-reality": "REALITY · no domain or certificate needed · TCP",
       "vless-xhttp": "REALITY + XHTTP · harder to detect, not for sing-box · TCP",
       "vless-cdn": "Through Cloudflare · works when the IP is blocked · higher latency · TCP",
+      "vless-cdn-xhttp": "Through Cloudflare · harder to detect than WebSocket · not for sing-box · TCP",
       "hysteria2": "QUIC · fast on lossy networks · UDP",
       "tuic": "QUIC · low latency · UDP",
       "vless-tls": "TLS · works on every client · TCP",
