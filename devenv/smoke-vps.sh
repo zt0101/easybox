@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Real-network check of the certificate and Shadowsocks lines on an installed EasyBox VPS,
+# Real-network check of the certificate, Shadowsocks and XHTTP lines on an installed EasyBox VPS,
 # run from the dev container:
 #   VPS=203.0.113.10 SSH_KEY=/root/.cache/ssh/easybox_vps bash devenv/smoke-vps.sh
 # Reads the panel credentials over SSH (install.sh's /etc/x-ui/install-result.env) into
@@ -43,7 +43,7 @@ curl -fsS -b "$JAR" -c "$JAR" -H "X-CSRF-Token: $t" --data-urlencode "username=$
 
 api GET /panel/api/easybox/templates 2>/dev/null | jq -c '[.obj[]? | {id, available: (.unavailable // .reason // "")}]' || true
 
-TEMPLATES="tuic hysteria2 vless-tls trojan shadowsocks"
+TEMPLATES="tuic hysteria2 vless-tls trojan shadowsocks vless-xhttp"
 api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="shadowsocks") | .passwordUpgrade' >/dev/null \
   && echo "  [NOTE] creating test-shadowsocks upgrades the shared password: refresh the subscription on devices"
 declare -A ID LINK
@@ -74,7 +74,7 @@ done
 
 # 1) xray client via upstream link parser (Xray has no TUIC client)
 cd "$(dirname "$0")/.."
-for tpl in hysteria2 vless-tls trojan shadowsocks; do
+for tpl in hysteria2 vless-tls trojan shadowsocks vless-xhttp; do
   go run ./devenv/linkclient "${LINK[$tpl]}" > "$WORK/x.json" || { bad "linkclient $tpl"; continue; }
   "$XRAY" run -c "$WORK/x.json" >"$WORK/x.log" 2>&1 & pid=$!; sleep 3
   r=$(probe); kill $pid; wait $pid 2>/dev/null; pid=""
@@ -86,6 +86,11 @@ curl -fsS -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/sb.json
 "$SINGBOX" check -c "$WORK/sb.json" && ok "sing-box config check" || bad "sing-box check"
 for tpl in $TEMPLATES; do
   tag=test-$tpl
+  if [ "$tpl" = vless-xhttp ]; then # sing-box has no XHTTP transport
+    ! jq -e --arg tag "$tag" '.outbounds[]|select(.tag==$tag)' "$WORK/sb.json" >/dev/null \
+      && ok "sing-box config leaves out $tag" || bad "sing-box config carries $tag"
+    continue
+  fi
   jq --arg tag "$tag" '.inbounds=[{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
     | (.outbounds[]|select(.tag=="proxy")).default=$tag | del(.route.auto_detect_interface)' "$WORK/sb.json" > "$WORK/sbr.json"
   "$SINGBOX" run -c "$WORK/sbr.json" >"$WORK/sb.log" 2>&1 & pid=$!; sleep 3

@@ -2806,7 +2806,7 @@ export const sections: readonly Section[] = [
         method: 'GET',
         path: '/panel/api/easybox/templates',
         summary:
-          'Line templates for Quick Create (vless-reality, vless-tls, trojan, hysteria2, tuic, shadowsocks) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.',
+          'Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.',
         responseSchema: 'TemplateView',
         responseSchemaArray: true,
       },
