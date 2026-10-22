@@ -2419,6 +2419,23 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "CloudflarePreferredRequest": {
+    "properties": {
+      "addresses": {
+        "example": [
+          "104.17.138.161"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "addresses"
+    ],
+    "type": "object"
+  },
   "CloudflareRequest": {
     "properties": {
       "domain": {
@@ -2446,6 +2463,15 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "example.com",
         "type": "string"
       },
+      "preferredAddresses": {
+        "example": [
+          "104.17.138.161"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
       "tokenHint": {
         "example": "…a1b2",
         "type": "string"
@@ -2454,6 +2480,7 @@ export const SCHEMAS: Record<string, unknown> = {
     "required": [
       "configured",
       "domain",
+      "preferredAddresses",
       "tokenHint"
     ],
     "type": "object"

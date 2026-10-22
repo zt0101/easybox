@@ -57,6 +57,7 @@ func (s *Service) RegenerateEndpoint(id int, keepOld bool) (*EndpointView, error
 	if err := database.GetDB().Save(row).Error; err != nil {
 		return nil, err
 	}
+	syncHostsAfter(row)
 	needRestart, delErr := s.inbounds.DelInbound(oldInboundID)
 	if needRestart {
 		s.xray.SetToNeedRestart()

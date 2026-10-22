@@ -15,6 +15,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
    password.go    共用密码升级为 Shadowsocks 2022 密钥（第一次建 SS 线路时）
    cloudflare.go  Cloudflare v4 API：找域名、增删 DNS 记录、读写 SSL/TLS 模式、签发和吊销源站证书
    cdn_line.go / cdn_store.go   CDN 线路：Cloudflare 设置、建线路时的解析和证书、失败或删除时清理
+   cdn_preferred.go   优选地址：写成上游 Host 组 easybox-cdn-0（原地址）和 easybox-cdn-N（优选 N），订阅多出「线路名-优选N」
    reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 的第一个可用结果
    cert.go        面板证书 / 自签证书（内嵌 + GetCertHash 指纹）
    port.go        端口范围 20000–20099，交给上游 CheckPortConflict 判断
@@ -35,7 +36,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
 
 | 表 | 内容 |
 |---|---|
-| `easybox_cloudflare` | CDN 线路用的 Cloudflare 账号（一行）：域名、zone ID、API 令牌。令牌不出现在任何接口返回和日志里。 |
+| `easybox_cloudflare` | CDN 线路用的 Cloudflare 账号（一行）：域名、zone ID、API 令牌、优选地址（换行分隔）。令牌不出现在任何接口返回和日志里。 |
 | `easybox_subscriptions` | 订阅用户：Email、SubID（订阅地址 token）、UUID、Auth（Hysteria2）、Password（TUIC、Trojan、Shadowsocks 共用；16 字节密钥的 base64，因为 Shadowsocks 2022 只接受这种格式）。上游在删除最后一个入站时会删掉 ClientRecord，这张表保证订阅地址不变 |
 | `easybox_endpoints` | 线路：名称、模板、对应的上游入站、状态、失败步骤与原因。端口、启用状态、流量实时读取上游入站 |
 | `easybox_audit_logs` | 审计日志（创建、删除、重新生成、启用 / 禁用、订阅轮换），不记录凭据 |
@@ -53,7 +54,8 @@ sing-box 渲染器不直接读入站 JSON，而是先把上游订阅服务**已�
 
 在订阅服务器读取设置之前执行，用 `history_of_seeders` 保证只执行一次：
 
-1. `EasyBoxSubscriptionDefaults`：remark 模板仍为上游默认时改为 `{{INBOUND}}`；开启 Clash 订阅。
+1. `EasyBoxSubscriptionDefaults`：remark 模板仍为上游默认时改为 `{{INBOUND}}{{HOST}}`；开启 Clash 订阅。
+   `EasyBoxRemarkHostToken`：模板仍是旧的 `{{INBOUND}}` 时改为 `{{INBOUND}}{{HOST}}`（优选节点靠 `{{HOST}}` 带上「-优选N」）；管理员自己改过的不动。
 2. `EasyBoxSubTLSFromPanel`：面板有证书、订阅没有证书时，订阅服务复用面板证书（等到证书出现后才执行）。
 
 ## 对上游文件的改动

@@ -599,6 +599,11 @@ export const ClientsSummarySchema = z.object({
 });
 export type ClientsSummary = z.infer<typeof ClientsSummarySchema>;
 
+export const CloudflarePreferredRequestSchema = z.object({
+  addresses: z.array(z.string()),
+});
+export type CloudflarePreferredRequest = z.infer<typeof CloudflarePreferredRequestSchema>;
+
 export const CloudflareRequestSchema = z.object({
   domain: z.string(),
   token: z.string(),
@@ -608,6 +613,7 @@ export type CloudflareRequest = z.infer<typeof CloudflareRequestSchema>;
 export const CloudflareViewSchema = z.object({
   configured: z.boolean(),
   domain: z.string(),
+  preferredAddresses: z.array(z.string()),
   tokenHint: z.string(),
 });
 export type CloudflareView = z.infer<typeof CloudflareViewSchema>;

@@ -87,10 +87,24 @@ export function useEasyboxCloudflareMutations() {
     onSettled: () => invalidate(),
   });
 
+  const preferredMut = useMutation({
+    mutationFn: async (addresses: string[]) => {
+      const msg = await HttpUtil.post(
+        '/panel/api/easybox/cloudflare/preferred',
+        { addresses },
+        { ...JSON_HEADERS, silent: true },
+      );
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => invalidate(),
+  });
+
   return {
     save: saveMut.mutateAsync,
     saving: saveMut.isPending,
     clear: clearMut.mutateAsync,
+    savePreferred: preferredMut.mutateAsync,
+    savingPreferred: preferredMut.isPending,
   };
 }
 

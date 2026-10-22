@@ -11,10 +11,14 @@ import (
 )
 
 const (
-	initSeeder   = "EasyBoxSubscriptionDefaults"
-	subTLSSeeder = "EasyBoxSubTLSFromPanel"
-	// lineNameRemarkTemplate makes every subscription link show only the line name.
-	lineNameRemarkTemplate = "{{INBOUND}}"
+	initSeeder       = "EasyBoxSubscriptionDefaults"
+	subTLSSeeder     = "EasyBoxSubTLSFromPanel"
+	hostRemarkSeeder = "EasyBoxRemarkHostToken"
+	// lineNameRemarkTemplate makes every subscription link show only the line
+	// name, plus a Host's own suffix (a CDN preferred address: "<line>-优选1").
+	lineNameRemarkTemplate = "{{INBOUND}}{{HOST}}"
+	// oldLineNameRemarkTemplate is what EasyBox set before Host suffixes.
+	oldLineNameRemarkTemplate = "{{INBOUND}}"
 )
 
 // Init applies EasyBox first-run defaults. It must run before the sub server
@@ -26,7 +30,30 @@ func Init() error {
 	if err := applySubscriptionDefaults(); err != nil {
 		return err
 	}
+	if err := applyHostRemarkToken(); err != nil {
+		return err
+	}
 	return applySubTLSFromPanel()
+}
+
+// applyHostRemarkToken moves panels still on EasyBox's old remark template to
+// the one that names preferred-address nodes; a template the admin changed
+// stays as it is.
+func applyHostRemarkToken() error {
+	if done, err := seeded(hostRemarkSeeder); err != nil || done {
+		return err
+	}
+	settings := &service.SettingService{}
+	tmpl, err := settings.GetRemarkTemplate()
+	if err != nil {
+		return err
+	}
+	if tmpl == oldLineNameRemarkTemplate {
+		if err := settings.SetRemarkTemplate(lineNameRemarkTemplate); err != nil {
+			return err
+		}
+	}
+	return markSeeded(hostRemarkSeeder)
 }
 
 // No surrounding transactions here: SettingService writes on its own handle and
