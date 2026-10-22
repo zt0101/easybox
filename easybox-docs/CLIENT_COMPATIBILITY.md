@@ -21,6 +21,7 @@ client core imported the subscription EasyBox serves and fetched
 | VLESS + REALITY + Vision | **PASS** | **FAIL** ⁵ | untested | **FAIL → filtered** ¹ | **PASS** |
 | VLESS + XHTTP + REALITY | **PASS** ⁶ | untested | untested | n/a → filtered ⁸ | **PASS** ⁶ |
 | VLESS + WS + TLS through Cloudflare (CDN line) | **PASS** ⁹ | untested | untested | **PASS** ⁹ | **PASS** ⁹ |
+| VLESS + XHTTP + TLS through Cloudflare | **PASS** ¹⁰ | untested | untested | n/a → filtered ⁸ | **PASS** ¹⁰ |
 | Hysteria2, self-signed + pinned, salamander | **PASS** | untested | untested | **PASS** ² | **PASS** |
 | Hysteria2, panel certificate | **PASS** ³ | **PASS** ⁷ | untested | **PASS** ³ | **PASS** ³ |
 | TUIC v5, panel certificate | n/a ⁴ | **PASS** ⁷ | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
@@ -62,6 +63,11 @@ client core imported the subscription EasyBox serves and fetched
    on the line hostname 4 times out of 4, while the same node pointed at CloudflareSpeedTest-picked
    IPs (104.17.138.161 SJC, 104.29.111.157 FRA, …; 155-165 ms TCP ping) answered in 300-500 ms.
    Hence the preferred-address setting.
+
+10. 2026-10-22, loopback in the dev container: Xray-core 26.10.21 server with the template's shape
+    (XHTTP mode auto, TLS, ALPN h2 + http/1.1); Xray and Mihomo 1.19.32 clients both PASS (a TLS
+    client picks packet-up, the mode Cloudflare passes). Through Cloudflare: measured on the VPS after
+    the release, see `devenv/smoke-vps.sh`.
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.

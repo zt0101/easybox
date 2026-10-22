@@ -87,6 +87,7 @@ sudo cat /etc/x-ui/install-result.env
    | Trojan | 必须有面板证书 | 全部（含 Shadowrocket，已真机实测）。Xray 已标为「不推荐，将来可能移除」 |
    | Shadowsocks 2022 | 不需要 | 全部（含 Shadowrocket，已真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
    | VLESS + CDN | 不需要面板证书，要有自己的域名并接入 Cloudflare（见下） | 全部（VLESS + WebSocket + TLS）。经 Cloudflare 中转，服务器 IP 被封也能用；延迟比直连高 |
+   | VLESS + XHTTP + CDN | 同上 | v2rayN、v2rayNG、PassWall、Clash/Mihomo；sing-box 不支持 XHTTP，订阅里自动去掉。比 WebSocket 更难识别，可以和上一条互为备份（各占一个 Cloudflare 端口，443 之后是 8443） |
 
    老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。
 

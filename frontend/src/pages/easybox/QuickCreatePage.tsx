@@ -19,6 +19,8 @@ import CloudflareCard from './CloudflareCard';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
 
 const CDN_TEMPLATE = 'vless-cdn';
+// Templates that need Cloudflare connected (they share its card and hint).
+const CDN_TEMPLATES = new Set([CDN_TEMPLATE, 'vless-cdn-xhttp']);
 
 // Quick Create's steps in the order the backend runs them (EasyBox.md §12).
 const CREATE_STEPS = ['prepare', 'create_inbound', 'apply_runtime', 'health_check'] as const;
@@ -63,8 +65,10 @@ function QuickCreate(api: EasyboxPageApi) {
   };
 
   const cdn = templates.data?.find((tpl) => tpl.id === CDN_TEMPLATE);
-  const showCloudflare = Boolean(cdn) && (!cdn?.available || template === CDN_TEMPLATE);
-  const needsCertificate = templates.data?.some((tpl) => !tpl.available && tpl.id !== CDN_TEMPLATE);
+  const showCloudflare = Boolean(cdn) && (!cdn?.available || CDN_TEMPLATES.has(template));
+  const needsCertificate = templates.data?.some(
+    (tpl) => !tpl.available && !CDN_TEMPLATES.has(tpl.id),
+  );
 
   const failedIndex = result?.line?.failedStep
     ? CREATE_STEPS.indexOf(result.line.failedStep as (typeof CREATE_STEPS)[number])
@@ -96,7 +100,7 @@ function QuickCreate(api: EasyboxPageApi) {
                 <span className="easybox-protocol-hint">
                   {tpl.available
                     ? t(`easybox.templates.${tpl.id}`)
-                    : tpl.id === CDN_TEMPLATE
+                    : CDN_TEMPLATES.has(tpl.id)
                       ? t('easybox.create.needsCloudflare')
                       : t('easybox.create.needsCertificate')}
                 </span>
@@ -134,7 +138,7 @@ function QuickCreate(api: EasyboxPageApi) {
                 name="address"
                 label={t('easybox.create.address')}
                 extra={
-                  template === CDN_TEMPLATE
+                  CDN_TEMPLATES.has(template)
                     ? t('easybox.create.addressHelpCdn')
                     : t('easybox.create.addressHelp')
                 }

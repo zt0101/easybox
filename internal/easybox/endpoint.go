@@ -168,8 +168,8 @@ func (s *Service) provision(tpl lineTemplate, name, address string, id Identity)
 	}
 	var ib *model.Inbound
 	var err error
-	if tpl.cdn {
-		ib, cdn, err = s.prepareCDN(name, address, id)
+	if tpl.cdnInbound != nil {
+		ib, cdn, err = s.prepareCDN(tpl.cdnInbound, name, address, id)
 	} else {
 		ib, err = tpl.build(s, name, id)
 	}

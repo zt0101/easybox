@@ -6,14 +6,15 @@ import (
 
 // Line templates (EasyBox.md §10): each builds one upstream inbound shape.
 const (
-	TemplateVlessReality = "vless-reality"
-	TemplateVlessXhttp   = "vless-xhttp"
-	TemplateVlessTLS     = "vless-tls"
-	TemplateTrojan       = "trojan"
-	TemplateHysteria2    = "hysteria2"
-	TemplateTuic         = "tuic"
-	TemplateShadowsocks  = "shadowsocks"
-	TemplateVlessCDN     = "vless-cdn"
+	TemplateVlessReality  = "vless-reality"
+	TemplateVlessXhttp    = "vless-xhttp"
+	TemplateVlessTLS      = "vless-tls"
+	TemplateTrojan        = "trojan"
+	TemplateHysteria2     = "hysteria2"
+	TemplateTuic          = "tuic"
+	TemplateShadowsocks   = "shadowsocks"
+	TemplateVlessCDN      = "vless-cdn"
+	TemplateVlessXhttpCDN = "vless-cdn-xhttp"
 )
 
 const (
@@ -34,10 +35,11 @@ type lineTemplate struct {
 	// relayed lines reach Xray through a relay inbound that only exists after an
 	// Xray restart; upstream defers that restart to its 30-second job.
 	relayed bool
-	// cdn lines are built by prepareCDN (Cloudflare record + certificate) instead
-	// of build; ports, when set, replaces the EasyBox port range.
-	cdn   bool
-	ports []int
+	// cdnInbound marks a CDN line: prepareCDN makes the Cloudflare record and
+	// certificate, then cdnInbound (not build) shapes the inbound. ports, when
+	// set, replaces the EasyBox port range.
+	cdnInbound func(name string, id Identity, host, certPEM, keyPEM string) (*model.Inbound, error)
+	ports      []int
 }
 
 var lineTemplates = []lineTemplate{
@@ -111,7 +113,13 @@ var lineTemplates = []lineTemplate{
 	{
 		id: TemplateVlessCDN, name: "VLESS + CDN", label: "vless",
 		transport: transportTCP, namePrefix: "CDN",
-		cdn: true, ports: cdnPorts,
+		cdnInbound: BuildVlessCDNInbound, ports: cdnPorts,
+		available: cloudflareAvailable,
+	},
+	{
+		id: TemplateVlessXhttpCDN, name: "VLESS + XHTTP + CDN", label: "vless",
+		transport: transportTCP, namePrefix: "CDN-XHTTP",
+		cdnInbound: BuildVlessXhttpCDNInbound, ports: cdnPorts,
 		available: cloudflareAvailable,
 	},
 }

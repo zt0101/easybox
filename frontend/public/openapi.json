@@ -16816,7 +16816,7 @@
         "tags": [
           "EasyBox"
         ],
-        "summary": "Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn until a Cloudflare API token and domain are set. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.",
+        "summary": "Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn, vless-cdn-xhttp) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn and vless-cdn-xhttp until a Cloudflare API token and domain are set. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.",
         "operationId": "get_panel_api_easybox_templates",
         "responses": {
           "200": {
