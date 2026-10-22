@@ -787,7 +787,9 @@ func (s *Server) stop(stopXray bool, stopTgBot bool) error {
 		amneziawgnet.GetOutboundManager().StopAll()
 	}
 	if stopXray {
-		if err := s.xrayService.StopXray(); err != nil {
+		// EasyBox: systemd signals the whole cgroup, so Xray may already have exited; only a
+		// process that is still running counts as a failed stop.
+		if err := s.xrayService.StopXray(); err != nil && s.xrayService.IsXrayRunning() {
 			err2 = common.Combine(err2, err)
 		}
 	}
