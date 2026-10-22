@@ -600,7 +600,7 @@ export const ClientsSummarySchema = z.object({
 export type ClientsSummary = z.infer<typeof ClientsSummarySchema>;
 
 export const CloudflarePreferredRequestSchema = z.object({
-  addresses: z.array(z.string()),
+  addresses: z.array(z.lazy(() => PreferredAddressSchema)),
 });
 export type CloudflarePreferredRequest = z.infer<typeof CloudflarePreferredRequestSchema>;
 
@@ -613,7 +613,7 @@ export type CloudflareRequest = z.infer<typeof CloudflareRequestSchema>;
 export const CloudflareViewSchema = z.object({
   configured: z.boolean(),
   domain: z.string(),
-  preferredAddresses: z.array(z.string()),
+  preferredAddresses: z.array(z.lazy(() => PreferredAddressSchema)),
   tokenHint: z.string(),
 });
 export type CloudflareView = z.infer<typeof CloudflareViewSchema>;
@@ -1046,6 +1046,12 @@ export const PeerActivitySchema = z.object({
   up: z.number().int(),
 });
 export type PeerActivity = z.infer<typeof PeerActivitySchema>;
+
+export const PreferredAddressSchema = z.object({
+  address: z.string(),
+  remark: z.string(),
+});
+export type PreferredAddress = z.infer<typeof PreferredAddressSchema>;
 
 export const PreviewViewSchema = z.object({
   body: z.string(),

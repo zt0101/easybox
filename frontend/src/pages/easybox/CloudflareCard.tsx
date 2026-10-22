@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
-import { CloudOutlined } from '@ant-design/icons';
+import { CloudOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 
 import { useEasyboxCloudflare, useEasyboxCloudflareMutations } from '@/api/queries/useEasybox';
+import type { PreferredAddress } from '@/schemas/api/easybox';
 import type { EasyboxPageApi } from './EasyboxShell';
 
 const TOKEN_PAGE = 'https://dash.cloudflare.com/profile/api-tokens';
 const SPEEDTEST_PAGE = 'https://github.com/XIU2/CloudflareSpeedTest/releases';
+// Mirror the backend limits (internal/easybox/cdn_preferred.go).
+const MAX_PREFERRED = 10;
+const MAX_REMARK = 24;
 
 /* CDN lines need a Cloudflare API token and the domain it manages. The token
  * is write-only: the panel shows only its last characters. */
@@ -19,22 +23,21 @@ export default function CloudflareCard({ messageApi, modal }: EasyboxPageApi) {
   const [token, setToken] = useState('');
   const [domain, setDomain] = useState('');
   const [error, setError] = useState('');
-  // null until the admin edits: the box shows what is saved.
-  const [draft, setDraft] = useState<string | null>(null);
+  // null until the admin edits: the rows show what is saved.
+  const [draft, setDraft] = useState<PreferredAddress[] | null>(null);
   const [preferredError, setPreferredError] = useState('');
 
   const view = cloudflare.data;
   const showForm = editing || !view?.configured;
-  const savedPreferred = (view?.preferredAddresses ?? []).join('\n');
-  const preferred = draft ?? savedPreferred;
+  const saved = view?.preferredAddresses ?? [];
+  const preferred = draft ?? saved;
+  const updateRow = (i: number, patch: Partial<PreferredAddress>) =>
+    setDraft(preferred.map((row, j) => (j === i ? { ...row, ...patch } : row)));
 
   const submitPreferred = async () => {
     setPreferredError('');
     const res = await savePreferred(
-      preferred
-        .split(/[\s,]+/)
-        .map((a) => a.trim())
-        .filter(Boolean),
+      preferred.filter((row) => row.address.trim() || row.remark.trim()),
     );
     if (!res.ok) {
       setPreferredError(res.message);
@@ -98,21 +101,50 @@ export default function CloudflareCard({ messageApi, modal }: EasyboxPageApi) {
               CloudflareSpeedTest
             </Typography.Link>
           </Typography.Paragraph>
-          <Input.TextArea
-            value={preferred}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder={'104.17.138.161\n104.29.111.157'}
-            autoSize={{ minRows: 2, maxRows: 6 }}
-            dir="ltr"
-          />
+          {preferred.map((row, i) => (
+            <Space.Compact key={i} style={{ width: '100%' }}>
+              <Input
+                value={row.address}
+                onChange={(e) => updateRow(i, { address: e.target.value })}
+                placeholder="104.17.138.161"
+                aria-label={t('easybox.cloudflare.preferredAddress')}
+                maxLength={253}
+                dir="ltr"
+                style={{ flex: 3 }}
+              />
+              <Input
+                value={row.remark}
+                onChange={(e) => updateRow(i, { remark: e.target.value })}
+                placeholder={t('easybox.cloudflare.preferredRemarkPlaceholder')}
+                aria-label={t('easybox.cloudflare.preferredRemark')}
+                maxLength={MAX_REMARK}
+                style={{ flex: 2 }}
+              />
+              <Button
+                icon={<DeleteOutlined />}
+                aria-label={t('delete')}
+                onClick={() => setDraft(preferred.filter((_, j) => j !== i))}
+              />
+            </Space.Compact>
+          ))}
           {preferredError && <Alert type="error" showIcon message={preferredError} />}
-          <Button
-            loading={savingPreferred}
-            disabled={preferred.trim() === savedPreferred}
-            onClick={submitPreferred}
-          >
-            {t('easybox.cloudflare.preferredSave')}
-          </Button>
+          <Space wrap>
+            <Button
+              icon={<PlusOutlined />}
+              disabled={preferred.length >= MAX_PREFERRED}
+              onClick={() => setDraft([...preferred, { address: '', remark: '' }])}
+            >
+              {t('easybox.cloudflare.preferredAdd', { max: MAX_PREFERRED })}
+            </Button>
+            <Button
+              type="primary"
+              loading={savingPreferred}
+              disabled={JSON.stringify(preferred) === JSON.stringify(saved)}
+              onClick={submitPreferred}
+            >
+              {t('easybox.cloudflare.preferredSave')}
+            </Button>
+          </Space>
         </Space>
       )}
       {showForm && (

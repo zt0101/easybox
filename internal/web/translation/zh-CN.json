@@ -2856,7 +2856,11 @@
       "clearTitle": "断开 Cloudflare？",
       "clearContent": "已有的 CDN 线路仍可使用，但之后删除它们时面板无法再删除对应的 DNS 记录，需要你在 Cloudflare 后台手动删除。",
       "preferredTitle": "优选地址（可选）",
-      "preferredHelp": "每行一个 Cloudflare IP 或域名，最多 5 个。每条 CDN 线路会在订阅里多出「线路名-优选1」等节点，连接这些地址，域名和证书不变；原节点保留。国内直连 Cloudflare 常常很慢，在自己常用的网络下用测速工具挑出延迟最低的 IP 填在这里：",
+      "preferredHelp": "每行一个 Cloudflare IP（或域名）和一个备注，最多 10 个。每条 CDN 线路会在订阅里多出「线路名-备注」节点（备注留空则为「线路名-优选1」），连接这个地址，域名和证书不变；原节点保留。国内直连 Cloudflare 常常很慢，在自己常用的网络下用测速工具挑出延迟最低的 IP：",
+      "preferredAddress": "优选 IP 或域名",
+      "preferredRemark": "备注",
+      "preferredRemarkPlaceholder": "备注，如：公司移动",
+      "preferredAdd": "添加优选 IP（最多 {max} 个）",
       "preferredSave": "保存优选地址",
       "preferredSaved": "已保存，客户端刷新订阅后生效"
     },

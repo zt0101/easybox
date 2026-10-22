@@ -2422,11 +2422,8 @@ export const SCHEMAS: Record<string, unknown> = {
   "CloudflarePreferredRequest": {
     "properties": {
       "addresses": {
-        "example": [
-          "104.17.138.161"
-        ],
         "items": {
-          "type": "string"
+          "$ref": "#/components/schemas/PreferredAddress"
         },
         "type": "array"
       }
@@ -2464,11 +2461,8 @@ export const SCHEMAS: Record<string, unknown> = {
         "type": "string"
       },
       "preferredAddresses": {
-        "example": [
-          "104.17.138.161"
-        ],
         "items": {
-          "type": "string"
+          "$ref": "#/components/schemas/PreferredAddress"
         },
         "type": "array"
       },
@@ -4302,6 +4296,24 @@ export const SCHEMAS: Record<string, unknown> = {
       "online",
       "tag",
       "up"
+    ],
+    "type": "object"
+  },
+  "PreferredAddress": {
+    "description": "PreferredAddress is one preferred Cloudflare address and the remark that\nnames its subscription nodes.",
+    "properties": {
+      "address": {
+        "example": "104.17.138.161",
+        "type": "string"
+      },
+      "remark": {
+        "example": "公司移动",
+        "type": "string"
+      }
+    },
+    "required": [
+      "address",
+      "remark"
     ],
     "type": "object"
   },
