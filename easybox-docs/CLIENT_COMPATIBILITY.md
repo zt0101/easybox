@@ -71,6 +71,18 @@ client core imported the subscription EasyBox serves and fetched
     Same day, v2rayN (company network) and v2rayNG (mobile data) in China: as fast as the WebSocket CDN
     line; nodes on preferred IPs stable, the plain hostname node prone to timeouts.
 
+## Minimum client versions
+
+REALITY and XHTTP lines need a recent client core. Measured 2026-10-22 on Android: v2rayNG 1.9.45
+(Xray-core 25.3.31) failed `test-vless-xhttp` with "EOF" and the XHTTP CDN line with "TLS handshake
+timeout"; a packet capture showed its REALITY ClientHello offering x25519 only, which Xray 26.9+
+REALITY servers answer with the real target certificate. After updating to v2rayNG 2.3.11 (from
+GitHub releases; app stores lag) the REALITY line, the direct XHTTP line and the XHTTP CDN line all
+connected on the same phone and network. The WebSocket CDN line worked on both versions.
+
+Rule of thumb: an Xray-core based client from 2026 (v2rayN / v2rayNG current releases). When a REALITY
+or XHTTP line fails on one device but works on another, check the client's core version first.
+
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.
 

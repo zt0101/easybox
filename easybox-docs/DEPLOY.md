@@ -137,6 +137,7 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 保存 Cloudflare 时提示 "rejected the API token" | 令牌没复制完整，或者已被删除；重新复制一次 |
 | 建 CDN 线路时提示 "lacks a permission" | 令牌少了某项权限，按上面四项补齐（在 Cloudflare 里编辑令牌即可，令牌本身不变） |
 | CDN 线路建好了但连不上 | 等一两分钟让解析生效；确认云厂商防火墙放行了线路的端口（443 等）；Cloudflare 的 SSL/TLS 模式不能是「灵活」 |
+| 某台设备上 REALITY、XHTTP 线路连不上（报 EOF 或 TLS handshake timeout），别的设备正常 | 客户端内核太旧。例如 v2rayNG 1.9.45（Xray 25.3.31）连不上，更新到 2.3.11 后正常；应用商店常滞后，从 GitHub 下载最新版 |
 | CDN 线路能连但延迟很高，或时通时断 | 国内到 Cloudflare 默认节点的线路差，填「优选地址」，见上 |
 | 访问面板根路径返回 404 | 正常现象：面板地址带随机路径，要用 `XUI_ACCESS_URL` 里的完整地址 |
 | VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address） |
