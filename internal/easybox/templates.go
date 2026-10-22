@@ -13,6 +13,7 @@ const (
 	TemplateHysteria2    = "hysteria2"
 	TemplateTuic         = "tuic"
 	TemplateShadowsocks  = "shadowsocks"
+	TemplateVlessCDN     = "vless-cdn"
 )
 
 const (
@@ -33,6 +34,10 @@ type lineTemplate struct {
 	// relayed lines reach Xray through a relay inbound that only exists after an
 	// Xray restart; upstream defers that restart to its 30-second job.
 	relayed bool
+	// cdn lines are built by prepareCDN (Cloudflare record + certificate) instead
+	// of build; ports, when set, replaces the EasyBox port range.
+	cdn   bool
+	ports []int
 }
 
 var lineTemplates = []lineTemplate{
@@ -102,6 +107,12 @@ var lineTemplates = []lineTemplate{
 			return BuildShadowsocks2022Inbound(name, id)
 		},
 		available: func() string { return "" },
+	},
+	{
+		id: TemplateVlessCDN, name: "VLESS + CDN", label: "vless",
+		transport: transportTCP, namePrefix: "CDN",
+		cdn: true, ports: cdnPorts,
+		available: cloudflareAvailable,
 	},
 }
 

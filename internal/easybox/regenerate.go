@@ -51,8 +51,9 @@ func (s *Service) RegenerateEndpoint(id int, keepOld bool) (*EndpointView, error
 		audit("endpoint.regenerate", id, err)
 		return s.view(row), err
 	}
-	oldInboundID := row.InboundId
+	oldInboundID, oldLine := row.InboundId, *row
 	row.InboundId, row.Status, row.FailedStep, row.LastError = p.inboundID, StatusRunning, "", ""
+	p.cdn.store(row)
 	if err := database.GetDB().Save(row).Error; err != nil {
 		return nil, err
 	}
@@ -62,6 +63,9 @@ func (s *Service) RegenerateEndpoint(id int, keepOld bool) (*EndpointView, error
 	}
 	if delErr != nil {
 		delErr = fmt.Errorf("new inbound is live but removing old inbound %d failed: %w", oldInboundID, delErr)
+	}
+	if cdnErr := releaseLineCDN(&oldLine); cdnErr != nil {
+		delErr = errors.Join(delErr, fmt.Errorf("new line is live but the old Cloudflare record was not removed: %w", cdnErr))
 	}
 	audit("endpoint.regenerate", id, delErr)
 	return s.view(row), delErr

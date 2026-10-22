@@ -26,11 +26,29 @@ type EasyboxEndpoint struct {
 	Status         string `json:"status" gorm:"not null"`
 	FailedStep     string `json:"failedStep"`
 	LastError      string `json:"lastError"`
-	CreatedAt      int64  `json:"createdAt" gorm:"autoCreateTime:milli"`
-	UpdatedAt      int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
+	// A CDN line also owns a proxied DNS record and an Origin CA certificate at
+	// Cloudflare; deleting the line removes both.
+	CdnZoneID   string `json:"-" gorm:"column:cdn_zone_id"`
+	CdnHost     string `json:"cdnHost" gorm:"column:cdn_host"`
+	CdnRecordID string `json:"-" gorm:"column:cdn_record_id"`
+	CdnCertID   string `json:"-" gorm:"column:cdn_cert_id"`
+	CreatedAt   int64  `json:"createdAt" gorm:"autoCreateTime:milli"`
+	UpdatedAt   int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
 }
 
 func (EasyboxEndpoint) TableName() string { return "easybox_endpoints" }
+
+// EasyboxCloudflare is the Cloudflare account CDN lines use (one row). The API
+// token is a credential: no API response or log carries it.
+type EasyboxCloudflare struct {
+	Id        int    `json:"-" gorm:"primaryKey"`
+	Domain    string `json:"domain" gorm:"not null"`
+	ZoneID    string `json:"-" gorm:"column:zone_id;not null"`
+	APIToken  string `json:"-" gorm:"column:api_token;not null"`
+	UpdatedAt int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
+}
+
+func (EasyboxCloudflare) TableName() string { return "easybox_cloudflare" }
 
 // EasyboxAuditLog records EasyBox actions (EasyBox.md §53); never credentials.
 type EasyboxAuditLog struct {

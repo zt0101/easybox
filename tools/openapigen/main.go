@@ -126,7 +126,7 @@ func run(root, outDir string) error {
 		},
 		{
 			Path:        resolveRel(root, "internal/easybox"),
-			StructAllow: setOf("EndpointView", "CreateEndpointRequest", "SubscriptionView", "TemplateView", "PreviewView"),
+			StructAllow: setOf("EndpointView", "CreateEndpointRequest", "SubscriptionView", "TemplateView", "PreviewView", "CloudflareView", "CloudflareRequest"),
 		},
 	}
 

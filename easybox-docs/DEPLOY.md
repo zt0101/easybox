@@ -26,6 +26,7 @@ eb.1 到 eb.3 是改动之前发布的，都还是预发布；在 eb.4 发布之
 | 面板端口（安装时指定） | TCP | 面板后台 |
 | 2096 | TCP | 订阅地址 |
 | 20000–20099 | TCP + UDP | EasyBox 线路：VLESS、Trojan 走 TCP，Hysteria2 和 TUIC 走 UDP，Shadowsocks 两者都用 |
+| 443、8443、2053、2083、2087 | TCP | 只有建 CDN 线路时需要：Cloudflare 只会回源到这几个 HTTPS 端口，面板按顺序挑第一个空闲的（2096 是订阅地址） |
 
 ## 2. 安装
 
@@ -85,8 +86,18 @@ sudo cat /etc/x-ui/install-result.env
    | VLESS + TLS | 必须有面板证书 | 全部；不走 REALITY，所以 sing-box 和 Shadowrocket 也能用（2026-10-22 真机实测） |
    | Trojan | 必须有面板证书 | 全部（含 Shadowrocket，已真机实测）。Xray 已标为「不推荐，将来可能移除」 |
    | Shadowsocks 2022 | 不需要 | 全部（含 Shadowrocket，已真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
+   | VLESS + CDN | 不需要面板证书，要有自己的域名并接入 Cloudflare（见下） | 全部（VLESS + WebSocket + TLS）。经 Cloudflare 中转，服务器 IP 被封也能用；延迟比直连高 |
 
    老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。
+
+   **CDN 线路的准备**（只做一次）：
+   1. 域名的 NS 改成 Cloudflare 的，在 Cloudflare 后台显示「有效」。
+   2. Cloudflare 后台 → 我的个人资料 → API 令牌 → 创建令牌 →「创建自定义令牌」，添加四项权限：区域-区域-读取、区域-DNS-编辑、区域-SSL 和证书-编辑、区域-区域设置-编辑；区域资源选「特定区域」和这个域名。
+   3. 快速创建页的「CDN 线路：连接 Cloudflare」里填域名和令牌，点「验证并保存」。
+
+   之后每建一条 CDN 线路，面板自动在域名下加一条橙色云解析 `cdn-xxxxxx.你的域名`，申请 Cloudflare 源站证书（15 年有效，不用续期）；SSL/TLS 模式是「关闭」或「灵活」时改成「完全」，已经是「完全」或「完全（严格）」的不动（这个设置对整个域名生效）。删除线路时解析记录和证书一起删掉。
+
+   trycloudflare.com 的临时隧道不需要域名，但国内连不上（2026-10-22 实测），所以没有做成功能。
 
 2. 在**订阅**页复制**通用订阅**地址，导入任何客户端都用这一个地址，服务端会按客户端返回对应的格式。Clash / Mihomo 地址一般用不到，sing-box App 导入它也能用。
 
@@ -118,5 +129,8 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 证书申请失败 | 80 端口没放行，或者被其他程序占用。用 `sudo ss -ltnp \| grep ':80 '` 查看 |
 | 能打开面板，但节点连不上 | 20000–20099 没放行，Hysteria2 和 TUIC 要放行 **UDP** |
 | 某些网络下 Hysteria2 / TUIC 连不上 | 当前网络限制了 UDP，换一个网络（比如手机流量）再试 |
+| 保存 Cloudflare 时提示 "rejected the API token" | 令牌没复制完整，或者已被删除；重新复制一次 |
+| 建 CDN 线路时提示 "lacks a permission" | 令牌少了某项权限，按上面四项补齐（在 Cloudflare 里编辑令牌即可，令牌本身不变） |
+| CDN 线路建好了但连不上 | 等一两分钟让解析生效；确认云厂商防火墙放行了线路的端口（443 等）；Cloudflare 的 SSL/TLS 模式不能是「灵活」 |
 | 访问面板根路径返回 404 | 正常现象：面板地址带随机路径，要用 `XUI_ACCESS_URL` 里的完整地址 |
 | VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address） |

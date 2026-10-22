@@ -610,6 +610,15 @@ export const EXAMPLES: Record<string, unknown> = {
     "onlineCount": 1,
     "total": 2000
   },
+  "CloudflareRequest": {
+    "domain": "example.com",
+    "token": ""
+  },
+  "CloudflareView": {
+    "configured": true,
+    "domain": "example.com",
+    "tokenHint": "…a1b2"
+  },
   "CreateEndpointRequest": {
     "address": "node.example.com",
     "name": "US-Oracle-01",

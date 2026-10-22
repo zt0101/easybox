@@ -44,6 +44,13 @@ curl -fsS -b "$JAR" -c "$JAR" -H "X-CSRF-Token: $t" --data-urlencode "username=$
 api GET /panel/api/easybox/templates 2>/dev/null | jq -c '[.obj[]? | {id, available: (.unavailable // .reason // "")}]' || true
 
 TEMPLATES="tuic hysteria2 vless-tls trojan shadowsocks vless-xhttp"
+XRAY_TEMPLATES="hysteria2 vless-tls trojan shadowsocks vless-xhttp"
+# The CDN line needs Cloudflare connected in the panel (API token + domain).
+if api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="vless-cdn") | .available' >/dev/null; then
+  TEMPLATES="$TEMPLATES vless-cdn"; XRAY_TEMPLATES="$XRAY_TEMPLATES vless-cdn"
+else
+  echo "  [SKIP] vless-cdn: Cloudflare is not connected in the panel"
+fi
 api GET /panel/api/easybox/templates | jq -e '.obj[] | select(.id=="shadowsocks") | .passwordUpgrade' >/dev/null \
   && echo "  [NOTE] creating test-shadowsocks upgrades the shared password: refresh the subscription on devices"
 declare -A ID LINK
@@ -69,12 +76,14 @@ sub=$(jq -r .obj.subUrl <<<"$info"); clash=$(jq -r .obj.clashUrl <<<"$info")
 echo "  subUrl host: $(sed -E 's#(https?://[^/]+)/.*#\1#' <<<"$sub")"
 raw=$(curl -fsS "$sub" | base64 -d)
 for tpl in $TEMPLATES; do
-  grep -qxF "${LINK[$tpl]:-none}" <<<"$raw" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
+  # REALITY lines pick one of several server names and short IDs per render: compare without them.
+  nosni() { sed -E 's/(sni|sid)=[^&#]*//g'; }
+  nosni <<<"$raw" | grep -qxF "$(nosni <<<"${LINK[$tpl]:-none}")" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
 done
 
 # 1) xray client via upstream link parser (Xray has no TUIC client)
 cd "$(dirname "$0")/.."
-for tpl in hysteria2 vless-tls trojan shadowsocks vless-xhttp; do
+for tpl in $XRAY_TEMPLATES; do
   go run ./devenv/linkclient "${LINK[$tpl]}" > "$WORK/x.json" || { bad "linkclient $tpl"; continue; }
   "$XRAY" run -c "$WORK/x.json" >"$WORK/x.log" 2>&1 & pid=$!; sleep 3
   r=$(probe); kill $pid; wait $pid 2>/dev/null; pid=""

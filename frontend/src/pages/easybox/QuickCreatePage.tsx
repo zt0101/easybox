@@ -15,7 +15,10 @@ import {
   type CreateResult,
 } from '@/api/queries/useEasybox';
 import { QuickCreateFormSchema, type QuickCreateFormValues } from '@/schemas/api/easybox';
+import CloudflareCard from './CloudflareCard';
 import EasyboxShell, { type EasyboxPageApi } from './EasyboxShell';
+
+const CDN_TEMPLATE = 'vless-cdn';
 
 // Quick Create's steps in the order the backend runs them (EasyBox.md §12).
 const CREATE_STEPS = ['prepare', 'create_inbound', 'apply_runtime', 'health_check'] as const;
@@ -24,7 +27,8 @@ export default function QuickCreatePage() {
   return <EasyboxShell>{(api) => <QuickCreate {...api} />}</EasyboxShell>;
 }
 
-function QuickCreate({ messageApi, modal }: EasyboxPageApi) {
+function QuickCreate(api: EasyboxPageApi) {
+  const { messageApi, modal } = api;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { create, creating } = useEasyboxMutations();
@@ -58,6 +62,10 @@ function QuickCreate({ messageApi, modal }: EasyboxPageApi) {
     if (text && (await ClipboardManager.copyText(text))) messageApi.success(t('copied'));
   };
 
+  const cdn = templates.data?.find((tpl) => tpl.id === CDN_TEMPLATE);
+  const showCloudflare = Boolean(cdn) && (!cdn?.available || template === CDN_TEMPLATE);
+  const needsCertificate = templates.data?.some((tpl) => !tpl.available && tpl.id !== CDN_TEMPLATE);
+
   const failedIndex = result?.line?.failedStep
     ? CREATE_STEPS.indexOf(result.line.failedStep as (typeof CREATE_STEPS)[number])
     : -1;
@@ -88,14 +96,16 @@ function QuickCreate({ messageApi, modal }: EasyboxPageApi) {
                 <span className="easybox-protocol-hint">
                   {tpl.available
                     ? t(`easybox.templates.${tpl.id}`)
-                    : t('easybox.create.needsCertificate')}
+                    : tpl.id === CDN_TEMPLATE
+                      ? t('easybox.create.needsCloudflare')
+                      : t('easybox.create.needsCertificate')}
                 </span>
               </button>
             ))}
           </div>
         </div>
 
-        {templates.data?.some((tpl) => !tpl.available) && (
+        {needsCertificate && (
           <Alert
             type="info"
             showIcon
@@ -107,6 +117,8 @@ function QuickCreate({ messageApi, modal }: EasyboxPageApi) {
             }
           />
         )}
+
+        {showCloudflare && <CloudflareCard {...api} />}
 
         <FormProvider {...methods}>
           <form onSubmit={submit}>
@@ -121,7 +133,11 @@ function QuickCreate({ messageApi, modal }: EasyboxPageApi) {
               <FormField
                 name="address"
                 label={t('easybox.create.address')}
-                extra={t('easybox.create.addressHelp')}
+                extra={
+                  template === CDN_TEMPLATE
+                    ? t('easybox.create.addressHelpCdn')
+                    : t('easybox.create.addressHelp')
+                }
                 rules={{ validate: rhfZodValidate(QuickCreateFormSchema.shape.address) }}
               >
                 <Input maxLength={253} placeholder="node.example.com" dir="ltr" />
