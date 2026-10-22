@@ -54,7 +54,7 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 | `go.mod`、`.oss-scanner/Dockerfile` | Go 版本 | 取较高的版本；两处要一致 |
 | `.github/workflows/release.yml` | 文件末尾新增 `promote-latest` job：eb 版本构建完成后标为 latest；Linux 和 Windows 的 `go build` 前把 tag 里的 `eb.N` 写入 `config.easyboxRelease` | 保留这个 job 和两处 `EasyBox: stamp eb.N` 代码块；如果上游改了 build / build-windows 的 job 名，要同步修改 `needs` |
 | `internal/config/config.go`、`internal/util/version/version.go`、`internal/web/service/panel/panel.go`、`x-ui.sh` | 版本号带 `-eb.N`：`GetPanelVersion` 调 `GetReleaseVersion`；`parse` 先去掉 `-eb.N`；检查更新用 `version.CompareRelease`；`installed_script_url` 的正则允许 `-eb.N` | 每处只有一两行，带 `EasyBox:` 注释；`internal/config/easybox_test.go`、`internal/util/version/easybox_test.go`、`internal/web/service/panel/easybox_version_test.go` 会验证 |
-| `internal/web/web.go`、`internal/sub/sub.go` | 停止时忽略监听端口「已关闭」的错误（`httpServer.Shutdown` 已经关过一次） | 上游如果自己修了，用上游的写法 |
+| `internal/web/web.go`、`internal/sub/sub.go` | 停止时忽略监听端口「已关闭」的错误（`httpServer.Shutdown` 已经关过一次）；web.go 停止 Xray 时，如果 Xray 已经退出（systemd 会同时给它发信号）不算错误 | 上游如果自己修了，用上游的写法 |
 
 ## 合并后必查
 
