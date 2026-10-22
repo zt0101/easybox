@@ -51,11 +51,13 @@ func SingboxClient(userAgent string) (isSingbox, tooOld bool) {
 // (EasyBox.md §26-§27); renderers read only this, never inbound JSON.
 type CanonicalNode struct {
 	Name              string
-	Protocol          string // vless | hysteria2 | tuic
+	Protocol          string // vless | trojan | shadowsocks | hysteria2 | tuic
 	Server            string
 	Port              int
 	UUID              string
 	Password          string
+	Method            string // shadowsocks cipher
+	Security          string // vless / trojan: tls | reality
 	Flow              string
 	SNI               string
 	ALPN              []string
@@ -86,14 +88,30 @@ func canonicalFromLink(raw string) (CanonicalNode, error) {
 	}
 	switch u.Scheme {
 	case "vless":
-		if q.Get("security") != "reality" || (q.Get("type") != "" && q.Get("type") != "tcp") {
-			return n, fmt.Errorf("vless %s/%s: %w", q.Get("type"), q.Get("security"), errSingboxUnsupported)
+		n.Security = q.Get("security")
+		if (n.Security != "reality" && n.Security != "tls") || (q.Get("type") != "" && q.Get("type") != "tcp") {
+			return n, fmt.Errorf("vless %s/%s: %w", q.Get("type"), n.Security, errSingboxUnsupported)
 		}
-		if q.Get("support-x25519mlkem768") == "true" {
+		if n.Security == "reality" && q.Get("support-x25519mlkem768") == "true" {
 			return n, errSingboxRealityMLKEM
 		}
 		n.Protocol, n.UUID, n.Flow = "vless", u.User.Username(), q.Get("flow")
 		n.Fingerprint, n.RealityPublicKey, n.RealityShortID = q.Get("fp"), q.Get("pbk"), q.Get("sid")
+	case "trojan":
+		n.Security = q.Get("security")
+		if n.Security != "tls" || (q.Get("type") != "" && q.Get("type") != "tcp") {
+			return n, fmt.Errorf("trojan %s/%s: %w", q.Get("type"), n.Security, errSingboxUnsupported)
+		}
+		n.Protocol, n.Password, n.Fingerprint = "trojan", u.User.Username(), q.Get("fp")
+	case "ss":
+		// SIP022 userinfo is method:serverKey:userKey; sing-box takes the two keys
+		// as one "serverKey:userKey" password. Older SIP002 lines are not EasyBox's.
+		n.Method = u.User.Username()
+		n.Password, _ = u.User.Password()
+		if !strings.HasPrefix(n.Method, "2022-blake3-") || q.Get("plugin") != "" {
+			return n, fmt.Errorf("shadowsocks %s: %w", n.Method, errSingboxUnsupported)
+		}
+		n.Protocol = "shadowsocks"
 	case "hysteria2", "hy2":
 		n.Protocol, n.Password = "hysteria2", u.User.Username()
 		if obfs := q.Get("obfs"); obfs != "" {
@@ -114,6 +132,10 @@ func canonicalFromLink(raw string) (CanonicalNode, error) {
 
 func singboxOutbound(n CanonicalNode) map[string]any {
 	out := map[string]any{"type": n.Protocol, "tag": n.Name, "server": n.Server, "server_port": n.Port}
+	if n.Protocol == "shadowsocks" {
+		out["method"], out["password"] = n.Method, n.Password
+		return out
+	}
 	tls := map[string]any{"enabled": true}
 	if n.SNI != "" {
 		tls["server_name"] = n.SNI
@@ -132,7 +154,14 @@ func singboxOutbound(n CanonicalNode) map[string]any {
 			fp = "chrome"
 		}
 		tls["utls"] = map[string]any{"enabled": true, "fingerprint": fp}
-		tls["reality"] = map[string]any{"enabled": true, "public_key": n.RealityPublicKey, "short_id": n.RealityShortID}
+		if n.Security == "reality" {
+			tls["reality"] = map[string]any{"enabled": true, "public_key": n.RealityPublicKey, "short_id": n.RealityShortID}
+		}
+	case "trojan":
+		out["password"] = n.Password
+		if n.Fingerprint != "" {
+			tls["utls"] = map[string]any{"enabled": true, "fingerprint": n.Fingerprint}
+		}
 	case "hysteria2":
 		out["password"] = n.Password
 		if n.ObfsType != "" {

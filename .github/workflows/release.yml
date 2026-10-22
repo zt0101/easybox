@@ -100,6 +100,12 @@ jobs:
           if [[ "$GITHUB_REF" != refs/tags/* ]]; then
             LDFLAGS="$LDFLAGS -X github.com/mhsanaei/3x-ui/v3/internal/config.buildCommit=${GITHUB_SHA::8} -X github.com/mhsanaei/3x-ui/v3/internal/config.buildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           fi
+          # EasyBox: stamp eb.N from a v<upstream>-eb.N tag; the upstream part must match internal/config/version.
+          if [[ "$GITHUB_REF_NAME" =~ ^v(.+)-(eb\.[0-9]+)$ ]]; then
+            [[ "${BASH_REMATCH[1]}" == "$(tr -d '[:space:]' < internal/config/version)" ]] \
+              || { echo "tag $GITHUB_REF_NAME does not match internal/config/version" >&2; exit 1; }
+            LDFLAGS="$LDFLAGS -X github.com/mhsanaei/3x-ui/v3/internal/config.easyboxRelease=${BASH_REMATCH[2]}"
+          fi
           go build -buildvcs=true -ldflags "$LDFLAGS" -o xui-release -v .
           file xui-release
           ldd xui-release || echo "Static binary confirmed"
@@ -270,6 +276,12 @@ jobs:
           LDFLAGS="-w -s"
           if [[ "$GITHUB_REF" != refs/tags/* ]]; then
             LDFLAGS="$LDFLAGS -X github.com/mhsanaei/3x-ui/v3/internal/config.buildCommit=${GITHUB_SHA:0:8} -X github.com/mhsanaei/3x-ui/v3/internal/config.buildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          fi
+          # EasyBox: stamp eb.N from a v<upstream>-eb.N tag; the upstream part must match internal/config/version.
+          if [[ "$GITHUB_REF_NAME" =~ ^v(.+)-(eb\.[0-9]+)$ ]]; then
+            [[ "${BASH_REMATCH[1]}" == "$(tr -d '[:space:]' < internal/config/version)" ]] \
+              || { echo "tag $GITHUB_REF_NAME does not match internal/config/version" >&2; exit 1; }
+            LDFLAGS="$LDFLAGS -X github.com/mhsanaei/3x-ui/v3/internal/config.easyboxRelease=${BASH_REMATCH[2]}"
           fi
           go build -buildvcs=true -ldflags "$LDFLAGS" -o xui-release.exe -v .
 
@@ -445,4 +457,6 @@ jobs:
             exit 0
           fi
           retry gh release edit "$TAG" --prerelease=false --latest
-          gh release view "$TAG" --json tagName,isPrerelease,isLatest
+          latest=$(retry gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)
+          echo "releases/latest -> $latest"
+          [[ "$latest" == "$TAG" ]]

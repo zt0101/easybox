@@ -4192,6 +4192,8 @@ MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=s
              Canonical Node Model（由上游链接解析）、能力过滤、模拟客户端预览
              CLIENT_COMPATIBILITY.md（只记录实测）
 文档    完成  easybox-docs/：README / ARCHITECTURE / DEVELOPMENT / HOW_TO_ADD_* / SPEC 副本
+第一批新协议  完成（eb.6）  VLESS + TLS + Vision、Trojan + TLS（需面板证书）、Shadowsocks 2022（无需证书，备用）
+             三种真实客户端内核（Xray / sing-box / Mihomo）回环实测通过，见 CLIENT_COMPATIBILITY.md
 发布    完成  install.sh / update.sh / x-ui.sh / 面板内更新改为从 zt0101/easybox 获取（否则会装回原版）
 ```
 
@@ -4207,7 +4209,11 @@ TUIC 面板证书       —（Xray 无 TUIC 客户端）PASS                 PAS
 ² 2026-10-21 在 VPS（v3.10.2-eb.2，Let's Encrypt IP 证书）实测，出口 IP 为 VPS
 ```
 
-真机（用户反馈，2026-10-21，VPS）：v2rayN、手机 Clash、PassWall、手机 sing-box（通用地址）均可导入并连接；Shadowrocket 未测。
+真机（用户反馈，2026-10-21，VPS）：v2rayN、手机 Clash、PassWall、手机 sing-box（通用地址）均可导入并连接；Stash（iOS）的 VLESS 可连接。
+Shadowrocket：TUIC、Hysteria2 可连接；VLESS + REALITY + Vision 不通。
+  原因：开着 Vision 时，Shadowrocket 不使用所选指纹，固定发只带 x25519 的 ClientHello，被 Xray 26.9+ REALITY 拒绝。
+  证据：VPS 抓包证实；同一入站加一个不带 Vision 的用户，再选 Chrome140 指纹，就能连通。
+  处理：不改 EasyBox（线路只保留一个标准 Vision 用户），等 Shadowrocket 修复。详见 easybox-docs/CLIENT_COMPATIBILITY.md「Known issue: Shadowrocket + Vision」。
 
 ```
 ```
@@ -4223,6 +4229,9 @@ TUIC 面板证书       —（Xray 无 TUIC 客户端）PASS                 PAS
 §68   路由沿用上游风格：/endpoints/list、/create、/del/:id、/setEnable/:id、/regenerate/:id、/setInSubscription/:id、/link/:id
 §31   Clash / Mihomo 地址遇到 sing-box App（≥1.12）也返回 sing-box 配置，导错地址也能用
 §22   Hysteria 链接在指纹为空时不输出 fp=（上游会输出空的 fp=）
+§57   eb.5 起 x-ui -v、面板版本号显示 3.10.2-eb.N（发布构建写入 eb.N）；检查更新比较 eb 号，修复了一直提示有新版本的问题
+§37   订阅用户的共用密码改为 16 字节密钥的 base64（Shadowsocks 2022 要求）；老面板第一次建 SS 线路时升级，界面先确认，设备需刷新订阅
+§12   TUIC 线路创建后立即重启 Xray（上游要等最多 30 秒），否则「运行中」的线路暂时无法转发
 ```
 
 需要人工处理的事项见交付说明。

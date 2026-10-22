@@ -2779,7 +2779,10 @@
       "goLines": "View lines",
       "copySubscription": "Copy subscription",
       "needsCertificate": "Needs a trusted TLS certificate on the panel first",
-      "certificateGuide": "TUIC needs a trusted TLS certificate. install.sh can issue one for the server IP; set it as the panel certificate in Panel Settings and restart the panel.",
+      "certificateGuide": "TUIC, VLESS + TLS and Trojan need a trusted TLS certificate. install.sh can issue one for the server IP; set it as the panel certificate in Panel Settings and restart the panel.",
+      "passwordUpgradeTitle": "Refresh the subscription on your devices afterwards",
+      "passwordUpgradeContent": "Shadowsocks 2022 needs a new password format. Creating this line changes the password of your TUIC and Trojan lines too; they stop working on a device until it refreshes the subscription.",
+      "passwordUpgradeOk": "Create the line",
       "setCertificate": "Open Panel Settings"
     },
     "lines": {
@@ -2837,7 +2840,10 @@
     "templates": {
       "vless-reality": "REALITY · no domain or certificate needed · TCP",
       "hysteria2": "QUIC · fast on lossy networks · UDP",
-      "tuic": "QUIC · low latency · UDP"
+      "tuic": "QUIC · low latency · UDP",
+      "vless-tls": "TLS · works on every client · TCP",
+      "trojan": "TLS · classic, widely supported · TCP",
+      "shadowsocks": "No certificate · backup line, easier to block in China · TCP + UDP"
     },
     "overview": {
       "title": "EasyBox lines",

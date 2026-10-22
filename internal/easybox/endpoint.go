@@ -172,7 +172,7 @@ func (s *Service) provision(tpl lineTemplate, name, address string, id Identity)
 	if err != nil {
 		return fail(StepCreateInbound, err)
 	}
-	if needRestart {
+	if needRestart || tpl.relayed {
 		if err := s.restart(); err != nil {
 			return fail(StepApplyRuntime, s.compensate(created.Id, err))
 		}

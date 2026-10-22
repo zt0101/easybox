@@ -1169,6 +1169,7 @@ export const TemplateViewSchema = z.object({
   available: z.boolean(),
   id: z.string(),
   name: z.string(),
+  passwordUpgrade: z.boolean(),
   protocol: z.string(),
   reason: z.string(),
   transport: z.string(),

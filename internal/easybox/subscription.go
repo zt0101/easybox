@@ -29,7 +29,7 @@ func ensureDefaultSubscriptionRow() (Identity, int, error) {
 				SubID:     random.NumLower(16),
 				UUID:      uuid.NewString(),
 				Auth:      random.NumLower(16),
-				Password:  random.NumLower(16),
+				Password:  newSharedPassword(),
 				IsDefault: true,
 			}
 			return tx.Create(&row).Error
@@ -41,7 +41,7 @@ func ensureDefaultSubscriptionRow() (Identity, int, error) {
 				row.Auth = random.NumLower(16)
 			}
 			if row.Password == "" {
-				row.Password = random.NumLower(16)
+				row.Password = newSharedPassword()
 			}
 			return tx.Save(&row).Error
 		}

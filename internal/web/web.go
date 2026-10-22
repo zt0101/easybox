@@ -810,8 +810,11 @@ func (s *Server) stop(stopXray bool, stopTgBot bool) error {
 	if s.wsHub != nil {
 		s.wsHub.Stop()
 	}
+	// EasyBox: httpServer.Shutdown already closed the listener.
 	if s.listener != nil {
-		err1 = common.Combine(err1, s.listener.Close())
+		if err := s.listener.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+			err1 = common.Combine(err1, err)
+		}
 	}
 	return common.Combine(err1, err2)
 }

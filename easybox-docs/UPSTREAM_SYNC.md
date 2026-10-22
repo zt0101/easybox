@@ -52,7 +52,9 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 | `frontend/public/openapi.json`、`frontend/src/generated/*` | EasyBox 接口的文档和类型 | 不要手工合并，跑 `make gen` |
 | `frontend/src/pages/api-docs/endpoints.ts` | EasyBox 接口出现在 API 文档页 | 两边都保留 |
 | `go.mod`、`.oss-scanner/Dockerfile` | Go 版本 | 取较高的版本；两处要一致 |
-| `.github/workflows/release.yml` | 文件末尾新增 `promote-latest` job：eb 版本构建完成后标为 latest | 保留这个 job；如果上游改了 build / build-windows 的 job 名，要同步修改它的 `needs` |
+| `.github/workflows/release.yml` | 文件末尾新增 `promote-latest` job：eb 版本构建完成后标为 latest；Linux 和 Windows 的 `go build` 前把 tag 里的 `eb.N` 写入 `config.easyboxRelease` | 保留这个 job 和两处 `EasyBox: stamp eb.N` 代码块；如果上游改了 build / build-windows 的 job 名，要同步修改 `needs` |
+| `internal/config/config.go`、`internal/util/version/version.go`、`internal/web/service/panel/panel.go`、`x-ui.sh` | 版本号带 `-eb.N`：`GetPanelVersion` 调 `GetReleaseVersion`；`parse` 先去掉 `-eb.N`；检查更新用 `version.CompareRelease`；`installed_script_url` 的正则允许 `-eb.N` | 每处只有一两行，带 `EasyBox:` 注释；`internal/config/easybox_test.go`、`internal/util/version/easybox_test.go`、`internal/web/service/panel/easybox_version_test.go` 会验证 |
+| `internal/web/web.go`、`internal/sub/sub.go` | 停止时忽略监听端口「已关闭」的错误（`httpServer.Shutdown` 已经关过一次） | 上游如果自己修了，用上游的写法 |
 
 ## 合并后必查
 
@@ -80,7 +82,9 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 
 4. **上游改了 EasyBox 依赖的接口**。EasyBox 调用了上游的入站服务、订阅服务、REALITY 扫描（`ScanRealityTargets`）、证书设置（`GetCertFile` / `GetKeyFile`）。编译或 `internal/easybox` 测试失败，就说明这里有变化，要跟着上游改，不要去改上游。
 
-5. **govulncheck**。CI 用 go.mod 里的 Go 版本跑 govulncheck，标准库有新漏洞时会失败（eb.1 就是这样）。需要时把 Go 版本升到修复版。
+5. **版本号**。合并后 `internal/config/version` 改成上游的新版本，第一个 tag 必须是 `v<这个版本>-eb.1`：release.yml 会核对 tag 和这个文件，不一致就构建失败。
+
+6. **govulncheck**。CI 用 go.mod 里的 Go 版本跑 govulncheck，标准库有新漏洞时会失败（eb.1 就是这样）。需要时把 Go 版本升到修复版。
 
 ## VPS 实测
 

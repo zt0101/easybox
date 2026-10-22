@@ -137,7 +137,7 @@ func (s *PanelService) GetUpdateInfo() (*PanelUpdateInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	current := config.GetBaseVersion()
+	current := config.GetReleaseVersion()
 	return &PanelUpdateInfo{
 		Channel:         "stable",
 		CurrentVersion:  current,
@@ -523,7 +523,7 @@ func resolveUpdateFolders() (string, string) {
 }
 
 func isNewerVersion(latest string, current string) bool {
-	cmp, ok := version.Compare(latest, current)
+	cmp, ok := version.CompareRelease(latest, current)
 	if !ok {
 		return version.Normalize(latest) != version.Normalize(current)
 	}

@@ -78,7 +78,7 @@ func IsDevBuild() bool {
 // as up to date instead of always showing "update available".
 func GetPanelVersion() string {
 	if !IsDevBuild() {
-		return GetBaseVersion()
+		return GetReleaseVersion() // EasyBox: "<upstream>-eb.N" on release builds
 	}
 	commit := GetBuildCommit()
 	if len(commit) > 8 {
