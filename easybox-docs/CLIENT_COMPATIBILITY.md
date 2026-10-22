@@ -10,7 +10,7 @@ client core imported the subscription EasyBox serves and fetched
 | Item | Value |
 |---|---|
 | Date | 2026-10-21 |
-| Server | EasyBox dev container, Xray-core 26.10.10, upstream 3x-ui a8d0700 |
+| Server | EasyBox dev container, Xray-core 26.10.10, upstream 3x-ui a8d0700. Re-run 2026-10-22 on Xray-core 26.10.21 (26.10.10 was withdrawn for a root-CA problem): smoke-easybox, smoke-tcp-lines and smoke-baseline PASS |
 | Network | loopback inside the dev container; panel-certificate rows: real VPS (GCP asia-east2, v3.10.2-eb.2, Let's Encrypt IP certificate), client cores in the dev container over the internet |
 | Kind of test | client **core** consuming the subscription format its app uses |
 
