@@ -60,6 +60,7 @@ sing-box 渲染器不直接读入站 JSON，而是先把上游订阅服务**已�
 在订阅服务器读取设置之前执行，用 `history_of_seeders` 保证只执行一次：
 
 1. `EasyBoxSubscriptionDefaults`：remark 模板仍为上游默认时改为 `{{INBOUND}}{{HOST}}`；开启 Clash 订阅。
+   `EasyBoxCdnXhttpPacketUp`：eb.12–eb.14 建的 XHTTP + CDN 线路，XHTTP 模式从 auto 改成 packet-up（Cloudflare 只转发得了分包上传；Shadowrocket 在 auto 下不选它）。
    `EasyBoxPreferredStandalone`：把 eb.10–eb.12 存在 Cloudflare 那一行里的优选地址搬到 `easybox_settings`（断开 Cloudflare 不再丢失）。
    `EasyBoxRemarkHostToken`：模板仍是旧的 `{{INBOUND}}` 时改为 `{{INBOUND}}{{HOST}}`（优选节点靠 `{{HOST}}` 带上「-优选N」）；管理员自己改过的不动。
 2. `EasyBoxSubTLSFromPanel`：面板有证书、订阅没有证书时，订阅服务复用面板证书（等到证书出现后才执行）。

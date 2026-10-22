@@ -19,10 +19,10 @@ client core imported the subscription EasyBox serves and fetched
 | Line | v2rayN (Xray core 26.10.10, raw links) | Shadowrocket | PassWall | sing-box 1.14.3 (sing-box JSON) | Mihomo 1.19.32 (Clash YAML) |
 |---|---|---|---|---|---|
 | VLESS + REALITY + Vision | **PASS** | **FAIL** ⁵ | untested | **FAIL → filtered** ¹ | **PASS** |
-| VLESS + XHTTP + REALITY | **PASS** ⁶ | untested | untested | n/a → filtered ⁸ | **PASS** ⁶ |
-| VLESS + WS + TLS through Cloudflare (CDN line) | **PASS** ⁹ | untested | untested | **PASS** ⁹ | **PASS** ⁹ |
-| VLESS + XHTTP + TLS through Cloudflare | **PASS** ¹⁰ | untested | untested | n/a → filtered ⁸ | **PASS** ¹⁰ |
-| VLESS + WS through a Cloudflare quick tunnel (tunnel line) | **PASS** ¹¹ | untested | untested | **PASS** ¹¹ | **PASS** ¹¹ |
+| VLESS + XHTTP + REALITY | **PASS** ⁶ | **FAIL** ¹² | untested | n/a → filtered ⁸ | **PASS** ⁶ |
+| VLESS + WS + TLS through Cloudflare (CDN line) | **PASS** ⁹ | **PASS** ¹² | untested | **PASS** ⁹ | **PASS** ⁹ |
+| VLESS + XHTTP + TLS through Cloudflare | **PASS** ¹⁰ | **PASS** ¹² | untested | n/a → filtered ⁸ | **PASS** ¹⁰ |
+| VLESS + WS through a Cloudflare quick tunnel (tunnel line) | **PASS** ¹¹ | **PASS** ¹² | untested | **PASS** ¹¹ | **PASS** ¹¹ |
 | Hysteria2, self-signed + pinned, salamander | **PASS** | untested | untested | **PASS** ² | **PASS** |
 | Hysteria2, panel certificate | **PASS** ³ | **PASS** ⁷ | untested | **PASS** ³ | **PASS** ³ |
 | TUIC v5, panel certificate | n/a ⁴ | **PASS** ⁷ | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
@@ -81,6 +81,17 @@ client core imported the subscription EasyBox serves and fetched
     measured with `devenv/smoke-vps.sh` after its release: on v3.10.2-eb.13 Xray, sing-box and Mihomo
     PASS through the panel-made tunnel, whose hostname survived an x-ui restart; v2rayNG in China
     connected on the tunnel node and its preferred-IP nodes, the preferred ones with low latency.
+
+12. Shadowrocket 2.2.92 (3445) on iOS against v3.10.2-eb.14, 2026-10-22, with VPS packet captures:
+    - Both REALITY lines fail. Its REALITY ClientHello carries x25519 only, on the Vision line and on
+      the XHTTP line (a different TLS stack there: ALPN h2,http/1.1), and Xray 26.9+ REALITY answers
+      with the target's real certificate. Same cause as the known issue below; nothing to fix here.
+    - XHTTP through Cloudflare with mode `auto` reached the origin but carried no data: Shadowrocket
+      did not pick packet-up, the only mode Cloudflare's request buffering passes. Its own node set
+      to `packet-up` worked, so CDN XHTTP lines name `packet-up` from v3.10.2-eb.15 on (Xray and
+      Mihomo connect either way, checked in loopback for auto and packet-up on both sides).
+    - WebSocket early data: the CDN node with `?ed=2560` added to its path did not connect, so
+      EasyBox does not use early data (it would only save one round trip on a new connection).
 
 ## Minimum client versions
 

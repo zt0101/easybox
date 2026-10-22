@@ -88,7 +88,7 @@ sudo cat /etc/x-ui/install-result.env
    | Shadowsocks 2022 | 不需要 | 全部（含 Shadowrocket，已真机实测）。备用线路：国内较易被识别；同样被 Xray 标为不推荐 |
    | VLESS + CDN | 不需要面板证书，要有自己的域名并接入 Cloudflare（见下） | 全部（VLESS + WebSocket + TLS）。经 Cloudflare 中转，服务器 IP 被封也能用；延迟比直连高 |
    | VLESS + Tunnel（备用） | 都不需要：经 Cloudflare 临时隧道（xxx.trycloudflare.com），没有域名也能有一条 IP 被封后仍可用的线路 | 全部（VLESS + WebSocket + TLS）。每台服务器一条；**国内要配合优选地址**（不填时延迟高、不稳定）。VPS 重启后隧道地址会变，面板自动更新订阅，客户端要刷新订阅——如果那时 IP 已被封、订阅刷不到，这条线路就失效了。有域名的话优先用 VLESS + CDN。需要 systemd 和发布包附带的 cloudflared（amd64、arm64、armv7、386） |
-   | VLESS + XHTTP + CDN | 同上 | v2rayN、v2rayNG、PassWall、Clash/Mihomo；sing-box 不支持 XHTTP，订阅里自动去掉。比 WebSocket 更难识别，可以和上一条互为备份（各占一个 Cloudflare 端口，443 之后是 8443） |
+   | VLESS + XHTTP + CDN | 同上 | v2rayN、v2rayNG、PassWall、Clash/Mihomo、Shadowrocket（eb.15 起，XHTTP 模式固定为 packet-up）；sing-box 不支持 XHTTP，订阅里自动去掉。比 WebSocket 更难识别，可以和上一条互为备份（各占一个 Cloudflare 端口，443 之后是 8443） |
 
    老面板第一次建 Shadowsocks 2022 时，会把 TUIC / Trojan 共用的密码换成新格式（界面会先确认），之后设备要刷新一次订阅。
 
@@ -105,7 +105,7 @@ sudo cat /etc/x-ui/install-result.env
 
    隧道线路（VLESS + Tunnel）不需要域名和 Cloudflare 账号：面板用随发布包附带的 cloudflared 开一个 Cloudflare 临时隧道，作为单独的 systemd 服务 `easybox-tunnel` 运行（以无权限的临时用户运行、不能写文件），所以面板重启、升级、证书续期都不会改变隧道地址；只有 VPS 重启或 cloudflared 崩溃时地址才会变，面板每分钟检查一次并更新订阅。
 
-   **订阅走 CDN**（有域名时强烈建议）：在**订阅**页打开「通过 Cloudflare 提供订阅」，面板加一条橙色云解析 `sub-xxxxxx.你的域名`，订阅多一个经 Cloudflare 的地址；服务器 IP 被封后客户端仍能用它刷新订阅（隧道地址变化等也能及时拿到）。IP 订阅地址照常可用。客户端里换成这个地址，并打开「通过代理更新订阅」。条件：已连接 Cloudflare、订阅端口是 Cloudflare 支持的（默认 2096 就是）、SSL/TLS 模式不是「完全（严格）」。
+   **订阅走 CDN**（有域名时强烈建议）：在**订阅**页打开「通过 Cloudflare 提供订阅」，面板加一条橙色云解析 `sub-xxxxxx.你的域名`，订阅多一个经 Cloudflare 的地址；服务器 IP 被封后客户端仍能用它刷新订阅（隧道地址变化等也能及时拿到）。IP 订阅地址照常可用。客户端里换成这个地址，并打开「通过代理更新订阅」。条件：已连接 Cloudflare、订阅端口是 Cloudflare 支持的（默认 2096 就是）、SSL/TLS 模式不是「完全（严格）」。2026-10-22 实测：国内手机 v2rayNG 经这个地址（开着「通过代理更新订阅」）刷新成功，节点和 IP 订阅一致。
 
 2. 在**订阅**页复制**通用订阅**地址，导入任何客户端都用这一个地址，服务端会按客户端返回对应的格式。Clash / Mihomo 地址一般用不到，sing-box App 导入它也能用。
 

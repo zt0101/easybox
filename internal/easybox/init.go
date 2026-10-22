@@ -3,6 +3,7 @@ package easybox
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -18,6 +19,9 @@ const (
 	subTLSSeeder     = "EasyBoxSubTLSFromPanel"
 	hostRemarkSeeder = "EasyBoxRemarkHostToken"
 	preferredSeeder  = "EasyBoxPreferredStandalone"
+	// cdnXhttpModeSeeder moves eb.12-eb.14 CDN XHTTP lines from mode auto to
+	// packet-up (cdn_xhttp.go).
+	cdnXhttpModeSeeder = "EasyBoxCdnXhttpPacketUp"
 	// lineNameRemarkTemplate makes every subscription link show only the line
 	// name, plus a Host's own suffix (a CDN preferred address: "<line>-优选1").
 	lineNameRemarkTemplate = "{{INBOUND}}{{HOST}}"
@@ -39,6 +43,9 @@ func Init() error {
 		return err
 	}
 	if err := movePreferredToSettings(); err != nil {
+		return err
+	}
+	if err := moveCDNXhttpToPacketUp(); err != nil {
 		return err
 	}
 	return applySubTLSFromPanel()
@@ -164,4 +171,44 @@ func movePreferredToSettings() error {
 		}
 	}
 	return markSeeded(preferredSeeder)
+}
+
+// moveCDNXhttpToPacketUp rewrites the stored inbound of each CDN XHTTP line;
+// Init runs before Xray starts, so the new mode is what Xray loads.
+func moveCDNXhttpToPacketUp() error {
+	if done, err := seeded(cdnXhttpModeSeeder); err != nil || done {
+		return err
+	}
+	db := database.GetDB()
+	var ids []int
+	if err := db.Model(&model.EasyboxEndpoint{}).
+		Where("template = ? AND inbound_id <> 0", TemplateVlessXhttpCDN).Pluck("inbound_id", &ids).Error; err != nil {
+		return err
+	}
+	for _, id := range ids {
+		var in model.Inbound
+		if err := db.First(&in, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				continue
+			}
+			return err
+		}
+		var stream map[string]any
+		if err := json.Unmarshal([]byte(in.StreamSettings), &stream); err != nil {
+			return fmt.Errorf("inbound %d stream settings: %w", id, err)
+		}
+		xh, _ := stream["xhttpSettings"].(map[string]any)
+		if xh == nil || xh["mode"] == xhttpCDNMode {
+			continue
+		}
+		xh["mode"] = xhttpCDNMode
+		raw, err := json.Marshal(stream)
+		if err != nil {
+			return err
+		}
+		if err := db.Model(&model.Inbound{}).Where("id = ?", id).Update("stream_settings", string(raw)).Error; err != nil {
+			return err
+		}
+	}
+	return markSeeded(cdnXhttpModeSeeder)
 }
