@@ -80,7 +80,7 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 
    版本有变化的话，在 VPS 上用 Xray、sing-box、Mihomo 把所有线路模板都实测一遍（`devenv/smoke-vps.sh`），有真机条件也测一下，结果写进 CLIENT_COMPATIBILITY.md 再发版。
 
-   EasyBox 目前比上游新：eb.5 起用 Xray v26.10.21（release.yml 两处、DockerInit.sh 一处）。上游还停在 v26.10.10，而 Xray 已撤回这个版本（内置的根证书有问题），下载 404，用旧地址构建会失败。合并上游时，Xray 下载地址保留两者中较新的版本。
+   EasyBox 目前比上游新：eb.6 起用 Xray v26.10.21（release.yml 两处、DockerInit.sh 一处）。上游还停在 v26.10.10，而 Xray 已撤回这个版本（内置的根证书有问题），下载 404，用旧地址构建会失败（tag v3.10.2-eb.5 就是这样失败的，没有发布）。合并上游时，Xray 下载地址保留两者中较新的版本。
 
 4. **上游改了 EasyBox 依赖的接口**。EasyBox 调用了上游的入站服务、订阅服务、REALITY 扫描（`ScanRealityTargets`）、证书设置（`GetCertFile` / `GetKeyFile`）。编译或 `internal/easybox` 测试失败，就说明这里有变化，要跟着上游改，不要去改上游。
 
