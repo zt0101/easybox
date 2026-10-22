@@ -2829,8 +2829,8 @@ export const sections: readonly Section[] = [
         method: 'POST',
         path: '/panel/api/easybox/cloudflare/preferred',
         summary:
-          'Set up to 5 preferred Cloudflare IPs or domains. Every CDN line then also appears in the subscription as "<line>-优选N" nodes that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). An empty list removes them.',
-        body: '{\n  "addresses": ["104.17.138.161"]\n}',
+          'Set up to 10 preferred Cloudflare IPs or domains, each with an optional remark. Every CDN line then also appears in the subscription as "<line>-<remark>" nodes (remark empty: "<line>-优选N") that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). Addresses and remarks must be unique. An empty list removes them.',
+        body: '{\n  "addresses": [\n    { "address": "104.17.138.161", "remark": "公司移动" }\n  ]\n}',
         responseSchema: 'CloudflareView',
       },
       {

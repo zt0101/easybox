@@ -569,7 +569,7 @@ export interface ClientsSummary {
 }
 
 export interface CloudflarePreferredRequest {
-  addresses: string[];
+  addresses: PreferredAddress[];
 }
 
 export interface CloudflareRequest {
@@ -580,7 +580,7 @@ export interface CloudflareRequest {
 export interface CloudflareView {
   configured: boolean;
   domain: string;
-  preferredAddresses: string[];
+  preferredAddresses: PreferredAddress[];
   tokenHint: string;
 }
 
@@ -981,6 +981,11 @@ export interface PeerActivity {
   online: boolean;
   tag: string;
   up: number;
+}
+
+export interface PreferredAddress {
+  address: string;
+  remark: string;
 }
 
 export interface PreviewView {

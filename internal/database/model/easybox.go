@@ -45,8 +45,9 @@ type EasyboxCloudflare struct {
 	Domain   string `json:"domain" gorm:"not null"`
 	ZoneID   string `json:"-" gorm:"column:zone_id;not null"`
 	APIToken string `json:"-" gorm:"column:api_token;not null"`
-	// PreferredAddresses: Cloudflare IPs or domains, newline-separated, that every
-	// CDN line also offers as extra subscription nodes.
+	// PreferredAddresses: JSON list of {address, remark}, Cloudflare IPs or
+	// domains every CDN line also offers as extra subscription nodes (eb.10
+	// stored bare addresses, newline-separated; both are read).
 	PreferredAddresses string `json:"preferredAddresses" gorm:"column:preferred_addresses;type:text"`
 	UpdatedAt          int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
 }
