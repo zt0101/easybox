@@ -2924,6 +2924,14 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'POST',
+        path: '/panel/api/easybox/subscription/cdn',
+        summary:
+          'Serve the subscription through Cloudflare too: on adds a proxied sub-<label>.<domain> record to the sub server (needs Cloudflare connected, the sub port among 443/2053/2083/2087/2096/8443, a sub TLS certificate and SSL/TLS mode not "Full (strict)"); off removes it. The IP address keeps working. Answers with the subscription view (cdnSubUrl, cdnClashUrl, cdnUnavailable).',
+        body: '{\n  "enable": true\n}',
+        responseSchema: 'SubscriptionView',
+      },
+      {
+        method: 'POST',
         path: '/panel/api/easybox/subscription/rotate',
         summary:
           'Rotate the subscription after a leak: new subscription URL (SubID) and new UUID on every line. The old URL returns 404 and the old credentials stop working; clients must import the new URL.',

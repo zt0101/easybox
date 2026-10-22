@@ -1212,6 +1212,9 @@ export const EXAMPLES: Record<string, unknown> = {
     "updatedAt": 1710000000000
   },
   "SubscriptionView": {
+    "cdnClashUrl": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+    "cdnSubUrl": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+    "cdnUnavailable": "",
     "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
     "lines": [
       null

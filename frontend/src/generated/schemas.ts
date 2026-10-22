@@ -4850,6 +4850,18 @@ export const SCHEMAS: Record<string, unknown> = {
   "SubscriptionView": {
     "description": "SubscriptionView is the \"My Subscription\" page (EasyBox.md §24): one URL for\nevery client, plus the lines it carries.",
     "properties": {
+      "cdnClashUrl": {
+        "example": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "cdnSubUrl": {
+        "description": "The same subscription through Cloudflare (subscription_cdn), empty when\noff; CdnUnavailable says why it cannot be turned on (\"\" = it can).",
+        "example": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+        "type": "string"
+      },
+      "cdnUnavailable": {
+        "type": "string"
+      },
       "clashUrl": {
         "example": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
         "type": "string"
@@ -4879,6 +4891,9 @@ export const SCHEMAS: Record<string, unknown> = {
       }
     },
     "required": [
+      "cdnClashUrl",
+      "cdnSubUrl",
+      "cdnUnavailable",
       "clashUrl",
       "lines",
       "subId",

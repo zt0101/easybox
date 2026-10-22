@@ -1186,6 +1186,9 @@ export const SubBalancerSchema = z.object({
 export type SubBalancer = z.infer<typeof SubBalancerSchema>;
 
 export const SubscriptionViewSchema = z.object({
+  cdnClashUrl: z.string(),
+  cdnSubUrl: z.string(),
+  cdnUnavailable: z.string(),
   clashUrl: z.string(),
   lines: z.array(z.lazy(() => EndpointViewSchema).nullable()),
   subId: z.string(),

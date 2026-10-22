@@ -33,6 +33,7 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	g.GET("/subscription/preview", a.previewSubscription)
 	g.POST("/subscription/rotate", a.rotateSubscription)
 	g.GET("/subscription/info", a.subscriptionInfo)
+	g.POST("/subscription/cdn", a.setSubscriptionCDN)
 	g.GET("/cloudflare", a.getCloudflare)
 	g.POST("/cloudflare", a.setCloudflare)
 	g.POST("/cloudflare/clear", a.clearCloudflare)
@@ -219,6 +220,28 @@ func (a *EasyboxController) setPreferred(c *gin.Context) {
 		return
 	}
 	view, err := a.svc.SetPreferred(req)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
+}
+
+// setSubscriptionCDN turns the Cloudflare subscription address on or off and
+// answers with the subscription view, like rotate.
+func (a *EasyboxController) setSubscriptionCDN(c *gin.Context) {
+	var f struct {
+		Enable bool `json:"enable" form:"enable"`
+	}
+	if err := c.ShouldBind(&f); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	if err := a.svc.SetSubscriptionCDN(f.Enable); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	view, err := a.svc.GetSubscription(c.Request.Host)
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
 		return

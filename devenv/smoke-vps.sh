@@ -129,6 +129,27 @@ for tpl in $TEMPLATES; do
 done
 kill $pid; wait $pid 2>/dev/null; pid=""
 
+# 3b) subscription through Cloudflare (only when turned on in the panel): same
+# nodes as the IP address — direct lines must keep the server IP — and the
+# sing-box / Clash formats load.
+cdn_sub=$(jq -r '.obj.cdnSubUrl // ""' <<<"$info"); cdn_clash=$(jq -r '.obj.cdnClashUrl // ""' <<<"$info")
+if [ -n "$cdn_sub" ]; then
+  norm() { sed -E 's/(sni|sid)=[^&#]*//g' | sort; }
+  cdn_raw=$(curl -fsS --max-time 30 "$cdn_sub" | base64 -d)
+  [ -n "$cdn_raw" ] && [ "$(norm <<<"$cdn_raw")" = "$(norm <<<"$raw")" ] \
+    && ok "subscription through Cloudflare = IP subscription ($(wc -l <<<"$cdn_raw") nodes)" \
+    || bad "subscription through Cloudflare differs from the IP one"
+  grep -q "@$VPS:" <<<"$cdn_raw" && ok "direct lines keep $VPS through Cloudflare" || bad "no node on $VPS via Cloudflare"
+  curl -fsS -D "$WORK/cdn.h" -o /dev/null --max-time 30 "$cdn_sub" && grep -qi '^cache-control: no-cache, no-store' "$WORK/cdn.h" \
+    && ok "subscription through Cloudflare is not cacheable" || bad "subscription through Cloudflare lacks no-store"
+  curl -fsS --max-time 30 -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/cdn-sb.json" "$cdn_sub" \
+    && "$SINGBOX" check -c "$WORK/cdn-sb.json" && ok "sing-box config through Cloudflare checks" || bad "sing-box config through Cloudflare"
+  [ -z "$cdn_clash" ] || { curl -fsS --max-time 30 -A "mihomo/1.19.32" "$cdn_clash" | grep -q '^proxies:' \
+    && ok "Clash YAML through Cloudflare" || bad "Clash YAML through Cloudflare"; }
+else
+  echo "  [SKIP] subscription through Cloudflare: off in the panel"
+fi
+
 # 4) eb.3: Clash URL answers sing-box apps with JSON, Clash clients with YAML
 for ua in "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" "SFI/1.14.3 (Build 1; sing-box 1.14.3; language zh_CN)"; do
   curl -fsS -A "$ua" -o "$WORK/cl.json" "$clash"

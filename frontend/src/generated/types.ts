@@ -1112,6 +1112,9 @@ export interface SubBalancer {
 }
 
 export interface SubscriptionView {
+  cdnClashUrl: string;
+  cdnSubUrl: string;
+  cdnUnavailable: string;
   clashUrl: string;
   lines: EndpointView | null[];
   subId: string;
