@@ -11,6 +11,7 @@ import {
   SubscriptionViewSchema,
   TemplateListSchema,
   type CloudflareView,
+  type PreferredAddress,
   type EndpointView,
   type PreviewView,
   type QuickCreateFormValues,
@@ -88,7 +89,7 @@ export function useEasyboxCloudflareMutations() {
   });
 
   const preferredMut = useMutation({
-    mutationFn: async (addresses: string[]) => {
+    mutationFn: async (addresses: PreferredAddress[]) => {
       const msg = await HttpUtil.post(
         '/panel/api/easybox/cloudflare/preferred',
         { addresses },

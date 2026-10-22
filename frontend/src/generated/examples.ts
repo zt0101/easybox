@@ -612,7 +612,10 @@ export const EXAMPLES: Record<string, unknown> = {
   },
   "CloudflarePreferredRequest": {
     "addresses": [
-      "104.17.138.161"
+      {
+        "address": "104.17.138.161",
+        "remark": "公司移动"
+      }
     ]
   },
   "CloudflareRequest": {
@@ -623,7 +626,10 @@ export const EXAMPLES: Record<string, unknown> = {
     "configured": true,
     "domain": "example.com",
     "preferredAddresses": [
-      "104.17.138.161"
+      {
+        "address": "104.17.138.161",
+        "remark": "公司移动"
+      }
     ],
     "tokenHint": "…a1b2"
   },
@@ -1062,6 +1068,10 @@ export const EXAMPLES: Record<string, unknown> = {
     "online": true,
     "tag": "inbound-51820",
     "up": 1048576
+  },
+  "PreferredAddress": {
+    "address": "104.17.138.161",
+    "remark": "公司移动"
   },
   "PreviewView": {
     "body": "{\"outbounds\": []}",

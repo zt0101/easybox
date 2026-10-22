@@ -11,6 +11,7 @@ import {
 export { CloudflareViewSchema, EndpointViewSchema, PreviewViewSchema, SubscriptionViewSchema };
 export type {
   CloudflareView,
+  PreferredAddress,
   EndpointView,
   PreviewView,
   SubscriptionView,
