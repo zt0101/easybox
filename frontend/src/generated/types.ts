@@ -568,6 +568,10 @@ export interface ClientsSummary {
   total: number;
 }
 
+export interface CloudflarePreferredRequest {
+  addresses: string[];
+}
+
 export interface CloudflareRequest {
   domain: string;
   token: string;
@@ -576,6 +580,7 @@ export interface CloudflareRequest {
 export interface CloudflareView {
   configured: boolean;
   domain: string;
+  preferredAddresses: string[];
   tokenHint: string;
 }
 

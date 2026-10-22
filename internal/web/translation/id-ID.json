@@ -2854,7 +2854,11 @@
       "change": "Change",
       "clear": "Disconnect",
       "clearTitle": "Disconnect Cloudflare?",
-      "clearContent": "Existing CDN lines keep working, but deleting one afterwards cannot remove its DNS record; remove it in the Cloudflare dashboard."
+      "clearContent": "Existing CDN lines keep working, but deleting one afterwards cannot remove its DNS record; remove it in the Cloudflare dashboard.",
+      "preferredTitle": "Preferred addresses (optional)",
+      "preferredHelp": "One Cloudflare IP or domain per line, up to 5. Each CDN line gets extra subscription nodes (\"<line>-优选1\" …) that connect to these addresses with the same domain and certificate; the original node stays. Reaching Cloudflare directly is often slow from China: pick the lowest-latency IPs on your own network with",
+      "preferredSave": "Save preferred addresses",
+      "preferredSaved": "Saved; clients pick it up when they refresh the subscription"
     },
     "templates": {
       "vless-reality": "REALITY · no domain or certificate needed · TCP",

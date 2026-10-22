@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
+	"github.com/mhsanaei/3x-ui/v3/internal/logger"
 )
 
 // store records a new CDN line's Cloudflare resources on its row; a nil
@@ -50,4 +51,17 @@ func (s *Service) lookupPublicIPv4(address string) (string, error) {
 		return s.publicIPv4(address)
 	}
 	return detectPublicIPv4(address)
+}
+
+// syncHostsAfter keeps the preferred-address nodes in step after a CDN line
+// appears, moves to a new inbound or goes away. Only the subscription depends on
+// them, so a failure is logged and audited rather than failing the line.
+func syncHostsAfter(row *model.EasyboxEndpoint) {
+	if row.CdnHost == "" {
+		return
+	}
+	if err := syncCDNHosts(); err != nil {
+		logger.Warning("easybox: sync CDN preferred addresses:", err)
+		audit("endpoint.cdn_hosts", row.Id, err)
+	}
 }

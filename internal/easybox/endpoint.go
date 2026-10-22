@@ -141,6 +141,7 @@ func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error)
 	if err := db.Save(row).Error; err != nil {
 		return nil, err
 	}
+	syncHostsAfter(row)
 	audit("endpoint.create", row.Id, nil)
 	return s.view(row), nil
 }

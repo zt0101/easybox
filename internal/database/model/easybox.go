@@ -41,11 +41,14 @@ func (EasyboxEndpoint) TableName() string { return "easybox_endpoints" }
 // EasyboxCloudflare is the Cloudflare account CDN lines use (one row). The API
 // token is a credential: no API response or log carries it.
 type EasyboxCloudflare struct {
-	Id        int    `json:"-" gorm:"primaryKey"`
-	Domain    string `json:"domain" gorm:"not null"`
-	ZoneID    string `json:"-" gorm:"column:zone_id;not null"`
-	APIToken  string `json:"-" gorm:"column:api_token;not null"`
-	UpdatedAt int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
+	Id       int    `json:"-" gorm:"primaryKey"`
+	Domain   string `json:"domain" gorm:"not null"`
+	ZoneID   string `json:"-" gorm:"column:zone_id;not null"`
+	APIToken string `json:"-" gorm:"column:api_token;not null"`
+	// PreferredAddresses: Cloudflare IPs or domains, newline-separated, that every
+	// CDN line also offers as extra subscription nodes.
+	PreferredAddresses string `json:"preferredAddresses" gorm:"column:preferred_addresses;type:text"`
+	UpdatedAt          int64  `json:"updatedAt" gorm:"autoUpdateTime:milli"`
 }
 
 func (EasyboxCloudflare) TableName() string { return "easybox_cloudflare" }

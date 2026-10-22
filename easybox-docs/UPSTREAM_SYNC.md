@@ -49,6 +49,7 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 | `internal/web/translation/*.json` | `easybox.*` 文字，加在文件末尾 | 两边都保留 |
 | `install.sh`、`update.sh`、`x-ui.sh`、`DockerEntrypoint.sh` | 下载地址改成 zt0101/easybox；`x-ui setting -show` 等布尔参数不带 `true` | **最需要小心**：上游经常改这几个脚本，见「合并后必查」第 1 条 |
 | `internal/web/service/panel/panel.go` | 面板内更新改从 zt0101/easybox 下载 | 同上 |
+| `internal/sub/host_sub.go`、`internal/web/service/host.go`（只读依赖） | CDN 优选地址用上游 Host 组实现（组 ID `easybox-cdn-*`，名称靠 remark 模板里的 `{{HOST}}`）。上游如果改了 Host 的字段、`buildHostRows` 或 `{{HOST}}` 的含义，要重跑 `cdn_preferred_test.go` | 不改上游文件，只核对行为 |
 | `tools/openapigen/main.go` | `internal/easybox` 的类型白名单（含 CloudflareView / CloudflareRequest） | 两边都保留 |
 | `frontend/public/openapi.json`、`frontend/src/generated/*` | EasyBox 接口的文档和类型 | 不要手工合并，跑 `make gen` |
 | `frontend/src/pages/api-docs/endpoints.ts` | EasyBox 接口出现在 API 文档页 | 两边都保留 |

@@ -2827,6 +2827,14 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'POST',
+        path: '/panel/api/easybox/cloudflare/preferred',
+        summary:
+          'Set up to 5 preferred Cloudflare IPs or domains. Every CDN line then also appears in the subscription as "<line>-优选N" nodes that connect to that address with the line SNI and Host, through EasyBox-owned Host groups (easybox-cdn-*). An empty list removes them.',
+        body: '{\n  "addresses": ["104.17.138.161"]\n}',
+        responseSchema: 'CloudflareView',
+      },
+      {
+        method: 'POST',
         path: '/panel/api/easybox/cloudflare/clear',
         summary:
           'Forget the Cloudflare token. Existing CDN lines keep working; deleting one afterwards leaves its DNS record for the admin to remove.',
