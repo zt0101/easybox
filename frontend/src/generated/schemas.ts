@@ -2419,6 +2419,45 @@ export const SCHEMAS: Record<string, unknown> = {
     ],
     "type": "object"
   },
+  "CloudflareRequest": {
+    "properties": {
+      "domain": {
+        "example": "example.com",
+        "type": "string"
+      },
+      "token": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "domain",
+      "token"
+    ],
+    "type": "object"
+  },
+  "CloudflareView": {
+    "description": "CloudflareView is the API view of the Cloudflare settings; never the token.",
+    "properties": {
+      "configured": {
+        "example": true,
+        "type": "boolean"
+      },
+      "domain": {
+        "example": "example.com",
+        "type": "string"
+      },
+      "tokenHint": {
+        "example": "…a1b2",
+        "type": "string"
+      }
+    },
+    "required": [
+      "configured",
+      "domain",
+      "tokenHint"
+    ],
+    "type": "object"
+  },
   "CreateEndpointRequest": {
     "properties": {
       "address": {

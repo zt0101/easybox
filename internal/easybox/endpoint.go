@@ -79,6 +79,10 @@ type Service struct {
 	reality  func() (RealityParams, error)
 	restart  func() error
 	health   func(port int, transport string) error
+	// CDN lines: where the DNS record points, and whether a listed port is free
+	// of other programs (nil = the real checks).
+	publicIPv4   func(address string) (string, error)
+	portBindable func(port int) bool
 }
 
 func NewService() *Service {
@@ -133,6 +137,7 @@ func (s *Service) createLocked(req CreateEndpointRequest) (*EndpointView, error)
 	}
 
 	row.Name, row.InboundId, row.Status = p.name, p.inboundID, StatusRunning
+	p.cdn.store(row)
 	if err := db.Save(row).Error; err != nil {
 		return nil, err
 	}
@@ -144,22 +149,44 @@ type provisioned struct {
 	inboundID int
 	port      int
 	name      string
+	cdn       *cdnResources
 }
 
 // provision brings up one new inbound from tpl for id. On failure it leaves no
-// inbound behind and returns a *StepError naming the failed step.
+// inbound (and no Cloudflare record) behind and returns a *StepError naming the
+// failed step.
 func (s *Service) provision(tpl lineTemplate, name, address string, id Identity) (provisioned, error) {
+	var cdn *cdnResources
 	fail := func(step string, err error) (provisioned, error) {
+		if cdn != nil {
+			if rerr := releaseStoredCDN(cdn); rerr != nil {
+				err = fmt.Errorf("%w (Cloudflare cleanup also failed: %w)", err, rerr)
+			}
+		}
 		return provisioned{}, &StepError{Step: step, Err: err}
 	}
-	ib, err := tpl.build(s, name, id)
+	var ib *model.Inbound
+	var err error
+	if tpl.cdn {
+		ib, cdn, err = s.prepareCDN(name, address, id)
+	} else {
+		ib, err = tpl.build(s, name, id)
+	}
 	if err != nil {
 		return fail(StepPrepare, err)
 	}
-	if addr := strings.TrimSpace(address); addr != "" {
+	switch addr := strings.TrimSpace(address); {
+	case cdn != nil:
+		ib.ShareAddrStrategy, ib.ShareAddr = "custom", cdn.host
+	case addr != "":
 		ib.ShareAddrStrategy, ib.ShareAddr = "custom", addr
 	}
-	port, err := pickPort(ib, s.Ports, reservedPorts(), nil)
+	var port int
+	if tpl.ports != nil {
+		port, err = pickPortFrom(ib, tpl.ports, reservedPorts(), s.bindable())
+	} else {
+		port, err = pickPort(ib, s.Ports, reservedPorts(), nil)
+	}
 	if err != nil {
 		return fail(StepPrepare, err)
 	}
@@ -180,7 +207,7 @@ func (s *Service) provision(tpl lineTemplate, name, address string, id Identity)
 	if err := s.health(port, tpl.transport); err != nil {
 		return fail(StepHealthCheck, s.compensate(created.Id, err))
 	}
-	return provisioned{inboundID: created.Id, port: port, name: name}, nil
+	return provisioned{inboundID: created.Id, port: port, name: name, cdn: cdn}, nil
 }
 
 // compensate removes the inbound a failed provision left behind and folds a
@@ -261,7 +288,11 @@ func (s *Service) DeleteEndpoint(id int) error {
 			return getErr
 		}
 	}
+	cdnErr := releaseLineCDN(row)
 	err = db.Delete(row).Error
+	if err == nil && cdnErr != nil {
+		err = fmt.Errorf("line deleted, but Cloudflare cleanup failed: %w", cdnErr)
+	}
 	audit("endpoint.delete", id, err)
 	return err
 }

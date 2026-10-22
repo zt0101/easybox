@@ -20,6 +20,7 @@ client core imported the subscription EasyBox serves and fetched
 |---|---|---|---|---|---|
 | VLESS + REALITY + Vision | **PASS** | **FAIL** ⁵ | untested | **FAIL → filtered** ¹ | **PASS** |
 | VLESS + XHTTP + REALITY | **PASS** ⁶ | untested | untested | n/a → filtered ⁸ | **PASS** ⁶ |
+| VLESS + WS + TLS through Cloudflare (CDN line) | **PASS** ⁹ | untested | untested | **PASS** ⁹ | **PASS** ⁹ |
 | Hysteria2, self-signed + pinned, salamander | **PASS** | untested | untested | **PASS** ² | **PASS** |
 | Hysteria2, panel certificate | **PASS** ³ | **PASS** ⁷ | untested | **PASS** ³ | **PASS** ³ |
 | TUIC v5, panel certificate | n/a ⁴ | **PASS** ⁷ | untested | **PASS** ³ ⁶ | **PASS** ³ ⁶ |
@@ -50,6 +51,13 @@ client core imported the subscription EasyBox serves and fetched
 8. sing-box has no XHTTP transport, so the sing-box config leaves XHTTP lines out. Its XHTTP
    test is loopback in the dev container (`devenv/smoke-easybox.sh`, 2026-10-22, Xray-core 26.10.21),
    repeated against the VPS on v3.10.2-eb.8 (`devenv/smoke-vps.sh`): Xray and Mihomo PASS.
+
+9. 2026-10-22, a hand-built line of the same shape (own domain, orange cloud, SSL mode Full, Xray
+   VLESS + WS + TLS on 443) before the feature was written. Client cores from the dev container,
+   whose traffic leaves through an overseas proxy; v2rayN (Windows) and v2rayNG (Android) on a
+   Chinese company network and Chinese mobile data connected too, with higher latency than direct
+   lines. A `*.trycloudflare.com` quick tunnel tested the same day never reached the server from
+   either Chinese network.
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.

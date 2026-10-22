@@ -568,6 +568,17 @@ export interface ClientsSummary {
   total: number;
 }
 
+export interface CloudflareRequest {
+  domain: string;
+  token: string;
+}
+
+export interface CloudflareView {
+  configured: boolean;
+  domain: string;
+  tokenHint: string;
+}
+
 export interface CreateEndpointRequest {
   address: string;
   name: string;
