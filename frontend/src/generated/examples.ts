@@ -1120,6 +1120,12 @@ export const EXAMPLES: Record<string, unknown> = {
     "tlsVersion": "1.3",
     "x25519": true
   },
+  "RegionRequest": {
+    "code": "HK"
+  },
+  "RegionView": {
+    "code": "HK"
+  },
   "ServerSettings": {
     "contentPaddingAddition": "",
     "disableCookies": false,
@@ -1227,6 +1233,7 @@ export const EXAMPLES: Record<string, unknown> = {
     "available": false,
     "id": "tuic",
     "name": "TUIC v5",
+    "nameStyle": "VLESS-Reality",
     "passwordUpgrade": false,
     "protocol": "tuic",
     "reason": "no trusted TLS certificate: set the panel certificate first",

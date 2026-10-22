@@ -131,7 +131,7 @@ Quick Node
 系统自动完成：
 
 ```
-生成节点名称
+生成节点名称（没填时：<地区>-<协议>-<传输/安全>[-CDN|-Tunnel]，如 HK-VLESS-Reality、HK-VLESS-WS-CDN；重名加 -2）
 生成端口
 生成用户凭据
 生成 UUID / Password
@@ -2874,6 +2874,9 @@ POST  /panel/api/easybox/endpoints/create        {"name","address"}
 POST  /panel/api/easybox/endpoints/del/:id
 POST  /panel/api/easybox/endpoints/setEnable/:id {"enable"}
 POST  /panel/api/easybox/endpoints/setInSubscription/:id {"include"}（上游 excludeFromSub）
+POST  /panel/api/easybox/endpoints/rename/:id    {"name"}（同时改入站 remark，优选节点跟着变）
+GET   /panel/api/easybox/region                  自动命名用的地区代码
+POST  /panel/api/easybox/region                  {"code"}（空值 = 重新识别）
 GET   /panel/api/easybox/subscription/info       订阅地址 / Clash 地址 / 刷新间隔 / 线路
 ```
 

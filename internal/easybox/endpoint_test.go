@@ -2,7 +2,6 @@ package easybox
 
 import (
 	"errors"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -21,6 +20,8 @@ func newTestService(restartErr, healthErr error) *Service {
 		reality: func() (RealityParams, error) { return testReality, nil },
 		restart: func() error { return restartErr },
 		health:  func(int, string) error { return healthErr },
+		// No network in tests: the server is in Hong Kong.
+		regionLookup: func() string { return "HK" },
 	}
 }
 
@@ -84,17 +85,6 @@ func TestCreateEndpoint_RunningLineAppearsInSubscription(t *testing.T) {
 	}
 	if got := auditResults(t, "endpoint.create"); len(got) != 1 || got[0] != "ok" {
 		t.Fatalf("audit endpoint.create = %v, want [ok]", got)
-	}
-}
-
-func TestCreateEndpoint_DefaultNameUsesPort(t *testing.T) {
-	initTestDB(t)
-	ep, err := newTestService(nil, nil).CreateEndpoint(CreateEndpointRequest{})
-	if err != nil {
-		t.Fatalf("CreateEndpoint: %v", err)
-	}
-	if want := "VLESS-" + strconv.Itoa(ep.Port); ep.Name != want {
-		t.Fatalf("name = %q, want %q", ep.Name, want)
 	}
 }
 

@@ -83,6 +83,8 @@ type Service struct {
 	// of other programs (nil = the real checks).
 	publicIPv4   func(address string) (string, error)
 	portBindable func(port int) bool
+	// regionLookup detects the server's region code (nil = the real lookup).
+	regionLookup func() string
 }
 
 func NewService() *Service {
@@ -203,7 +205,9 @@ func (s *Service) provision(tpl lineTemplate, name, address string, id Identity)
 		return fail(StepPrepare, err)
 	}
 	if name == "" {
-		name = tpl.namePrefix + "-" + strconv.Itoa(port)
+		if name, err = s.defaultName(tpl); err != nil {
+			return fail(StepPrepare, err)
+		}
 		ib.Remark = name
 	}
 

@@ -4,7 +4,7 @@
 
 1. **模板**：在 `internal/easybox/templates.go` 的 `lineTemplates` 加一项：
    `id`、显示名、`label`（订阅/界面显示的协议名）、`transport`（`tcp` 或 `udp`，决定健康检查和防火墙提示）、
-   `namePrefix`（默认线路名前缀）、`build`、`available`（不可用时返回原因，例如缺少证书）。
+   `nameStyle`（默认线路名里地区后面的部分，如 `VLESS-Reality`，完整名是 `HK-VLESS-Reality`）、`build`、`available`（不可用时返回原因，例如缺少证书）。
 2. **入站生成**：`build` 按上游前端表单的默认值生成 `model.Inbound`
    （参考 `frontend/src/lib/xray/inbound-defaults.ts` 与 `pages/inbounds/form/InboundFormModal.tsx`）；
    客户端凭据用订阅用户 `Identity` 的字段，保证所有协议共用一个 ClientRecord。需要新凭据字段时，

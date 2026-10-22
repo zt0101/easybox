@@ -1035,6 +1035,14 @@ export interface RealityScanResult {
   x25519: boolean;
 }
 
+export interface RegionRequest {
+  code: string;
+}
+
+export interface RegionView {
+  code: string;
+}
+
 export interface ServerSettings {
   contentPaddingAddition?: string;
   disableCookies: boolean;
@@ -1126,6 +1134,7 @@ export interface TemplateView {
   available: boolean;
   id: string;
   name: string;
+  nameStyle: string;
   passwordUpgrade: boolean;
   protocol: string;
   reason: string;

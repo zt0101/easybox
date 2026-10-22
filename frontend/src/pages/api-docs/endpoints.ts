@@ -2863,6 +2863,29 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'POST',
+        path: '/panel/api/easybox/endpoints/rename/:id',
+        summary:
+          'Rename a line; its subscription node (and its preferred-address nodes, "<name>-<remark>") follow. Names are unique, at most 64 characters, without # { } or control characters. Devices see the new name after refreshing the subscription.',
+        params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],
+        body: '{\n  "name": "HK-VLESS-Reality"\n}',
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/region',
+        summary:
+          'The region code a new line name starts with when none is given (HK-VLESS-Reality). Detected from the server IP the first time (Cloudflare trace, then ipinfo.io); empty when unknown.',
+        responseSchema: 'RegionView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/region',
+        summary:
+          'Set the region code (2-8 letters or digits); an empty code detects it again. Existing line names do not change.',
+        body: '{\n  "code": "HK"\n}',
+        responseSchema: 'RegionView',
+      },
+      {
+        method: 'POST',
         path: '/panel/api/easybox/endpoints/del/:id',
         summary: 'Delete a line and its inbound. The subscription URL does not change.',
         params: [{ name: 'id', in: 'path', type: 'number', desc: 'Line ID.' }],

@@ -25,12 +25,13 @@ const (
 )
 
 type lineTemplate struct {
-	id         string
-	name       string
-	label      string
-	transport  string
-	namePrefix string
-	build      func(s *Service, name string, id Identity) (*model.Inbound, error)
+	id        string
+	name      string
+	label     string
+	transport string
+	// nameStyle is the default name after the region: HK-<nameStyle>.
+	nameStyle string
+	build     func(s *Service, name string, id Identity) (*model.Inbound, error)
 	// available reports why a template cannot be used right now ("" = usable).
 	available func() string
 	// relayed lines reach Xray through a relay inbound that only exists after an
@@ -48,7 +49,7 @@ type lineTemplate struct {
 var lineTemplates = []lineTemplate{
 	{
 		id: TemplateVlessReality, name: "VLESS + REALITY", label: "vless",
-		transport: transportTCP, namePrefix: "VLESS",
+		transport: transportTCP, nameStyle: "VLESS-Reality",
 		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
 			reality, err := s.reality()
 			if err != nil {
@@ -60,7 +61,7 @@ var lineTemplates = []lineTemplate{
 	},
 	{
 		id: TemplateVlessXhttp, name: "VLESS + XHTTP", label: "vless",
-		transport: transportTCP, namePrefix: "XHTTP",
+		transport: transportTCP, nameStyle: "VLESS-XHTTP-Reality",
 		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
 			reality, err := s.reality()
 			if err != nil {
@@ -72,19 +73,19 @@ var lineTemplates = []lineTemplate{
 	},
 	{
 		id: TemplateVlessTLS, name: "VLESS + TLS", label: "vless",
-		transport: transportTCP, namePrefix: "VLESS-TLS",
+		transport: transportTCP, nameStyle: "VLESS-TLS",
 		build:     withPanelCertificate(BuildVlessTLSInbound),
 		available: needsPanelCertificate,
 	},
 	{
 		id: TemplateTrojan, name: "Trojan", label: "trojan",
-		transport: transportTCP, namePrefix: "TROJAN",
+		transport: transportTCP, nameStyle: "Trojan-TLS",
 		build:     withPanelCertificate(BuildTrojanInbound),
 		available: needsPanelCertificate,
 	},
 	{
 		id: TemplateHysteria2, name: "Hysteria2", label: "hysteria2",
-		transport: transportUDP, namePrefix: "HY2",
+		transport: transportUDP, nameStyle: "HY2",
 		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
 			cert, err := hysteriaCertificate()
 			if err != nil {
@@ -96,14 +97,14 @@ var lineTemplates = []lineTemplate{
 	},
 	{
 		id: TemplateTuic, name: "TUIC v5", label: "tuic",
-		transport: transportUDP, namePrefix: "TUIC",
+		transport: transportUDP, nameStyle: "TUIC",
 		build:     withPanelCertificate(BuildTuicInbound),
 		available: needsPanelCertificate,
 		relayed:   true,
 	},
 	{
 		id: TemplateShadowsocks, name: "Shadowsocks 2022", label: "shadowsocks",
-		transport: transportTCPUDP, namePrefix: "SS",
+		transport: transportTCPUDP, nameStyle: "SS2022",
 		build: func(s *Service, name string, id Identity) (*model.Inbound, error) {
 			id, err := s.ensureSS2022Password(id)
 			if err != nil {
@@ -115,19 +116,19 @@ var lineTemplates = []lineTemplate{
 	},
 	{
 		id: TemplateVlessCDN, name: "VLESS + CDN", label: "vless",
-		transport: transportTCP, namePrefix: "CDN",
+		transport: transportTCP, nameStyle: "VLESS-WS-CDN",
 		cdnInbound: BuildVlessCDNInbound, ports: cdnPorts,
 		available: cloudflareAvailable,
 	},
 	{
 		id: TemplateVlessXhttpCDN, name: "VLESS + XHTTP + CDN", label: "vless",
-		transport: transportTCP, namePrefix: "CDN-XHTTP",
+		transport: transportTCP, nameStyle: "VLESS-XHTTP-CDN",
 		cdnInbound: BuildVlessXhttpCDNInbound, ports: cdnPorts,
 		available: cloudflareAvailable,
 	},
 	{
 		id: TemplateVlessTunnel, name: "VLESS + Tunnel", label: "vless",
-		transport: transportTCP, namePrefix: "TUNNEL",
+		transport: transportTCP, nameStyle: "VLESS-WS-Tunnel",
 		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
 			return BuildVlessTunnelInbound(name, id)
 		},
@@ -182,6 +183,8 @@ type TemplateView struct {
 	// PasswordUpgrade: creating this line first changes the password of existing
 	// TUIC / Trojan lines, so devices must refresh the subscription.
 	PasswordUpgrade bool `json:"passwordUpgrade" example:"false"`
+	// NameStyle is a new line's default name after the region (HK-<nameStyle>).
+	NameStyle string `json:"nameStyle" example:"VLESS-Reality"`
 }
 
 func (s *Service) ListTemplates() []TemplateView {
@@ -192,6 +195,7 @@ func (s *Service) ListTemplates() []TemplateView {
 			Id: t.id, Name: t.name, Protocol: t.label, Transport: t.transport,
 			Available: reason == "", Reason: reason,
 			PasswordUpgrade: t.id == TemplateShadowsocks && passwordUpgradePending(),
+			NameStyle:       t.nameStyle,
 		})
 	}
 	return out
