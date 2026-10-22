@@ -62,6 +62,7 @@ func migrationModels() []any {
 		&model.TuicTrafficReceipt{},
 		&model.EasyboxSubscription{},
 		&model.EasyboxEndpoint{},
+		&model.EasyboxCloudflare{},
 		&model.EasyboxAuditLog{},
 	}
 }

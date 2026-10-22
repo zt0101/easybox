@@ -49,6 +49,7 @@ git tag -l 'v*' --sort=-v:refname | grep -v eb | head -3
 | `internal/web/translation/*.json` | `easybox.*` 文字，加在文件末尾 | 两边都保留 |
 | `install.sh`、`update.sh`、`x-ui.sh`、`DockerEntrypoint.sh` | 下载地址改成 zt0101/easybox；`x-ui setting -show` 等布尔参数不带 `true` | **最需要小心**：上游经常改这几个脚本，见「合并后必查」第 1 条 |
 | `internal/web/service/panel/panel.go` | 面板内更新改从 zt0101/easybox 下载 | 同上 |
+| `tools/openapigen/main.go` | `internal/easybox` 的类型白名单（含 CloudflareView / CloudflareRequest） | 两边都保留 |
 | `frontend/public/openapi.json`、`frontend/src/generated/*` | EasyBox 接口的文档和类型 | 不要手工合并，跑 `make gen` |
 | `frontend/src/pages/api-docs/endpoints.ts` | EasyBox 接口出现在 API 文档页 | 两边都保留 |
 | `go.mod`、`.oss-scanner/Dockerfile` | Go 版本 | 取较高的版本；两处要一致 |

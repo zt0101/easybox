@@ -33,6 +33,9 @@ func (a *EasyboxController) initRouter(g *gin.RouterGroup) {
 	g.GET("/subscription/preview", a.previewSubscription)
 	g.POST("/subscription/rotate", a.rotateSubscription)
 	g.GET("/subscription/info", a.subscriptionInfo)
+	g.GET("/cloudflare", a.getCloudflare)
+	g.POST("/cloudflare", a.setCloudflare)
+	g.POST("/cloudflare/clear", a.clearCloudflare)
 }
 
 func (a *EasyboxController) listEndpoints(c *gin.Context) {
@@ -169,4 +172,31 @@ func (a *EasyboxController) previewSubscription(c *gin.Context) {
 		return
 	}
 	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) getCloudflare(c *gin.Context) {
+	view, err := a.svc.GetCloudflare()
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) setCloudflare(c *gin.Context) {
+	var req easybox.CloudflareRequest
+	if err := c.ShouldBind(&req); err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	view, err := a.svc.SetCloudflare(req)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "somethingWentWrong"), err)
+		return
+	}
+	jsonObj(c, view, nil)
+}
+
+func (a *EasyboxController) clearCloudflare(c *gin.Context) {
+	jsonMsg(c, "", a.svc.ClearCloudflare())
 }

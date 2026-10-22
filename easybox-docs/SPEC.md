@@ -4194,7 +4194,9 @@ MVP-2  完成  sing-box 完整配置（≥1.12，低版本退回 raw，?target=s
 文档    完成  easybox-docs/：README / ARCHITECTURE / DEVELOPMENT / HOW_TO_ADD_* / SPEC 副本
 第一批新协议  完成（eb.6）  VLESS + TLS + Vision、Trojan + TLS（需面板证书）、Shadowsocks 2022（无需证书，备用）
              三种真实客户端内核（Xray / sing-box / Mihomo）回环实测通过，见 CLIENT_COMPATIBILITY.md
-第二批新协议  开发中  VLESS + XHTTP + REALITY（无需域名和证书）；Xray / Mihomo 回环实测通过，sing-box 不支持 XHTTP，订阅里去掉
+第二批新协议  进行中  VLESS + XHTTP + REALITY（eb.8，无需域名和证书；sing-box 不支持 XHTTP，订阅里去掉）
+             VLESS + CDN（自己的域名 + Cloudflare API 令牌，一键建橙色云解析和源站证书）
+             trycloudflare 临时隧道实测国内连不上，放弃；Hysteria2 端口跳跃暂缓
 发布    完成  install.sh / update.sh / x-ui.sh / 面板内更新改为从 zt0101/easybox 获取（否则会装回原版）
 ```
 
@@ -4233,6 +4235,7 @@ Shadowrocket：TUIC、Hysteria2 可连接；VLESS + REALITY + Vision 不通。
 §57   eb.6 起 x-ui -v、面板版本号显示 3.10.2-eb.N（发布构建写入 eb.N）；检查更新比较 eb 号，修复了一直提示有新版本的问题
 §37   订阅用户的共用密码改为 16 字节密钥的 base64（Shadowsocks 2022 要求）；老面板第一次建 SS 线路时升级，界面先确认，设备需刷新订阅
 §12   TUIC 线路创建后立即重启 Xray（上游要等最多 30 秒），否则「运行中」的线路暂时无法转发
+§9    CDN 线路：SSL/TLS 模式只在「关闭」「灵活」时改成「完全」，不强制「完全（严格）」——这个设置对整个域名生效，强改会影响域名下的其他网站；源站证书本身是受信任的，管理员可以自己改成严格
 ```
 
 需要人工处理的事项见交付说明。

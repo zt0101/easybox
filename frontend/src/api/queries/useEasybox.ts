@@ -4,11 +4,13 @@ import { HttpUtil } from '@/utils';
 import { parseMsg } from '@/utils/zodValidate';
 import { keys } from '@/api/queryKeys';
 import {
+  CloudflareViewSchema,
   EndpointListSchema,
   EndpointViewSchema,
   PreviewViewSchema,
   SubscriptionViewSchema,
   TemplateListSchema,
+  type CloudflareView,
   type EndpointView,
   type PreviewView,
   type QuickCreateFormValues,
@@ -50,6 +52,46 @@ async function fetchTemplates(): Promise<TemplateView[]> {
 
 export function useEasyboxTemplates() {
   return useQuery({ queryKey: keys.easybox.templates(), queryFn: fetchTemplates });
+}
+
+async function fetchCloudflare(): Promise<CloudflareView> {
+  const msg = await HttpUtil.get('/panel/api/easybox/cloudflare', undefined, { silent: true });
+  if (!msg?.success || !msg.obj) throw new Error(msg?.msg || 'Failed to fetch Cloudflare settings');
+  return parseMsg(msg, CloudflareViewSchema, 'easybox/cloudflare').obj as CloudflareView;
+}
+
+export function useEasyboxCloudflare() {
+  return useQuery({ queryKey: keys.easybox.cloudflare(), queryFn: fetchCloudflare });
+}
+
+/* Saving checks the token against Cloudflare; the page shows the error text,
+ * so the call is silent. Both calls refresh the templates (CDN availability). */
+export function useEasyboxCloudflareMutations() {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: keys.easybox.root() });
+
+  const saveMut = useMutation({
+    mutationFn: async (values: { token: string; domain: string }) => {
+      const msg = await HttpUtil.post('/panel/api/easybox/cloudflare', values, {
+        ...JSON_HEADERS,
+        silent: true,
+      });
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => invalidate(),
+  });
+
+  const clearMut = useMutation({
+    mutationFn: () =>
+      HttpUtil.post('/panel/api/easybox/cloudflare/clear', undefined, { silentSuccess: true }),
+    onSettled: () => invalidate(),
+  });
+
+  return {
+    save: saveMut.mutateAsync,
+    saving: saveMut.isPending,
+    clear: clearMut.mutateAsync,
+  };
 }
 
 async function fetchPreview(client: string): Promise<PreviewView> {

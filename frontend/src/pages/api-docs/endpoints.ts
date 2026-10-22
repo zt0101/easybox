@@ -2806,9 +2806,30 @@ export const sections: readonly Section[] = [
         method: 'GET',
         path: '/panel/api/easybox/templates',
         summary:
-          'Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.',
+          'Line templates for Quick Create (vless-reality, vless-xhttp, vless-tls, trojan, hysteria2, tuic, shadowsocks, vless-cdn) with transport and availability. vless-tls, trojan and tuic are unavailable until the panel has a trusted TLS certificate, since their links never allow insecure TLS; vless-cdn until a Cloudflare API token and domain are set. passwordUpgrade marks a Shadowsocks 2022 line that would first change the password existing TUIC / Trojan lines share.',
         responseSchema: 'TemplateView',
         responseSchemaArray: true,
+      },
+      {
+        method: 'GET',
+        path: '/panel/api/easybox/cloudflare',
+        summary:
+          'Cloudflare settings for CDN lines: whether a token and domain are set, the domain and the last characters of the token. The token itself is never returned.',
+        responseSchema: 'CloudflareView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/cloudflare',
+        summary:
+          'Store the Cloudflare API token and domain for CDN lines after checking that the token can see the domain and that the domain is active. Token permissions: Zone Read, DNS Edit, SSL and Certificates Edit, Zone Settings Edit.',
+        body: '{\n  "token": "<Cloudflare API token>",\n  "domain": "example.com"\n}',
+        responseSchema: 'CloudflareView',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/easybox/cloudflare/clear',
+        summary:
+          'Forget the Cloudflare token. Existing CDN lines keep working; deleting one afterwards leaves its DNS record for the admin to remove.',
       },
       {
         method: 'GET',

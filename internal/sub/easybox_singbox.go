@@ -58,6 +58,9 @@ type CanonicalNode struct {
 	Password          string
 	Method            string // shadowsocks cipher
 	Security          string // vless / trojan: tls | reality
+	Transport         string // vless: tcp | ws (CDN lines)
+	WSPath            string
+	WSHost            string
 	Flow              string
 	SNI               string
 	ALPN              []string
@@ -88,10 +91,15 @@ func canonicalFromLink(raw string) (CanonicalNode, error) {
 	}
 	switch u.Scheme {
 	case "vless":
-		n.Security = q.Get("security")
-		if (n.Security != "reality" && n.Security != "tls") || (q.Get("type") != "" && q.Get("type") != "tcp") {
+		n.Security, n.Transport = q.Get("security"), q.Get("type")
+		if n.Transport == "" {
+			n.Transport = "tcp"
+		}
+		tlsOK := n.Security == "tls" || (n.Security == "reality" && n.Transport == "tcp")
+		if !tlsOK || (n.Transport != "tcp" && n.Transport != "ws") {
 			return n, fmt.Errorf("vless %s/%s: %w", q.Get("type"), n.Security, errSingboxUnsupported)
 		}
+		n.WSPath, n.WSHost = q.Get("path"), q.Get("host")
 		if n.Security == "reality" && q.Get("support-x25519mlkem768") == "true" {
 			return n, errSingboxRealityMLKEM
 		}
@@ -156,6 +164,13 @@ func singboxOutbound(n CanonicalNode) map[string]any {
 		tls["utls"] = map[string]any{"enabled": true, "fingerprint": fp}
 		if n.Security == "reality" {
 			tls["reality"] = map[string]any{"enabled": true, "public_key": n.RealityPublicKey, "short_id": n.RealityShortID}
+		}
+		if n.Transport == "ws" {
+			ws := map[string]any{"type": "ws", "path": n.WSPath}
+			if n.WSHost != "" {
+				ws["headers"] = map[string]any{"Host": n.WSHost}
+			}
+			out["transport"] = ws
 		}
 	case "trojan":
 		out["password"] = n.Password
