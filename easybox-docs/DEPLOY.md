@@ -144,4 +144,4 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 隧道线路突然连不上 | VPS 重启过、隧道地址变了：客户端刷新订阅。面板「线路」页显示当前隧道地址；`systemctl status easybox-tunnel` 看隧道服务 |
 | CDN 线路能连但延迟很高，或时通时断 | 国内到 Cloudflare 默认节点的线路差，填「优选地址」，见上 |
 | 访问面板根路径返回 404 | 正常现象：面板地址带随机路径，要用 `XUI_ACCESS_URL` 里的完整地址 |
-| VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address） |
+| VPS 重启后 IP 变了 | 证书和订阅都会失效。先把 IP 设为静态，再重新签发证书：`sudo x-ui` 菜单选 20（SSL Certificate Management），再选 6（Get SSL for IP Address）。开着「通过 Cloudflare 提供订阅」的话，到订阅页把它关掉再打开，解析记录才会指向新 IP |
