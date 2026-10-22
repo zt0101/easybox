@@ -69,7 +69,9 @@ sub=$(jq -r .obj.subUrl <<<"$info"); clash=$(jq -r .obj.clashUrl <<<"$info")
 echo "  subUrl host: $(sed -E 's#(https?://[^/]+)/.*#\1#' <<<"$sub")"
 raw=$(curl -fsS "$sub" | base64 -d)
 for tpl in $TEMPLATES; do
-  grep -qxF "${LINK[$tpl]:-none}" <<<"$raw" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
+  # REALITY lines pick one of several server names and short IDs per render: compare without them.
+  nosni() { sed -E 's/(sni|sid)=[^&#]*//g'; }
+  nosni <<<"$raw" | grep -qxF "$(nosni <<<"${LINK[$tpl]:-none}")" && ok "raw subscription has test-$tpl" || bad "raw subscription lacks test-$tpl"
 done
 
 # 1) xray client via upstream link parser (Xray has no TUIC client)

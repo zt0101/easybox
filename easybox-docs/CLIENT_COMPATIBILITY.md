@@ -48,7 +48,8 @@ client core imported the subscription EasyBox serves and fetched
    TLS accepts; only REALITY rejects it. Stash (iOS) passed VLESS + TLS and VLESS + REALITY the same day.
 
 8. sing-box has no XHTTP transport, so the sing-box config leaves XHTTP lines out. Its XHTTP
-   test is loopback in the dev container (`devenv/smoke-easybox.sh`, 2026-10-22, Xray-core 26.10.21).
+   test is loopback in the dev container (`devenv/smoke-easybox.sh`, 2026-10-22, Xray-core 26.10.21),
+   repeated against the VPS on v3.10.2-eb.8 (`devenv/smoke-vps.sh`): Xray and Mihomo PASS.
 
 Xray-core 26.10.10 logs on start that Trojan and Shadowsocks are deprecated ("might be removed")
 in favour of VLESS. Both still work; prefer VLESS lines for anything long-lived.
