@@ -2448,7 +2448,9 @@
       "CloudflarePreferredRequest": {
         "properties": {
           "addresses": {
-            "example": "104.17.138.161",
+            "example": [
+              "104.17.138.161"
+            ],
             "items": {
               "type": "string"
             },
@@ -2488,7 +2490,9 @@
             "type": "string"
           },
           "preferredAddresses": {
-            "example": "104.17.138.161",
+            "example": [
+              "104.17.138.161"
+            ],
             "items": {
               "type": "string"
             },
@@ -16875,7 +16879,9 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
-                    "preferredAddresses": "104.17.138.161",
+                    "preferredAddresses": [
+                      "104.17.138.161"
+                    ],
                     "tokenHint": "…a1b2"
                   }
                 }
@@ -16928,7 +16934,9 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
-                    "preferredAddresses": "104.17.138.161",
+                    "preferredAddresses": [
+                      "104.17.138.161"
+                    ],
                     "tokenHint": "…a1b2"
                   }
                 }
@@ -16984,7 +16992,9 @@
                   "obj": {
                     "configured": true,
                     "domain": "example.com",
-                    "preferredAddresses": "104.17.138.161",
+                    "preferredAddresses": [
+                      "104.17.138.161"
+                    ],
                     "tokenHint": "…a1b2"
                   }
                 }

@@ -45,7 +45,7 @@ type CloudflareView struct {
 	Configured         bool     `json:"configured" example:"true"`
 	Domain             string   `json:"domain" example:"example.com"`
 	TokenHint          string   `json:"tokenHint" example:"…a1b2"`
-	PreferredAddresses []string `json:"preferredAddresses" example:"104.17.138.161"`
+	PreferredAddresses []string `json:"preferredAddresses" example:"[\"104.17.138.161\"]"`
 }
 
 type CloudflareRequest struct {

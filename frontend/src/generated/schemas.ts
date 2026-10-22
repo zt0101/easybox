@@ -2422,7 +2422,9 @@ export const SCHEMAS: Record<string, unknown> = {
   "CloudflarePreferredRequest": {
     "properties": {
       "addresses": {
-        "example": "104.17.138.161",
+        "example": [
+          "104.17.138.161"
+        ],
         "items": {
           "type": "string"
         },
@@ -2462,7 +2464,9 @@ export const SCHEMAS: Record<string, unknown> = {
         "type": "string"
       },
       "preferredAddresses": {
-        "example": "104.17.138.161",
+        "example": [
+          "104.17.138.161"
+        ],
         "items": {
           "type": "string"
         },

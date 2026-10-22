@@ -611,7 +611,9 @@ export const EXAMPLES: Record<string, unknown> = {
     "total": 2000
   },
   "CloudflarePreferredRequest": {
-    "addresses": "104.17.138.161"
+    "addresses": [
+      "104.17.138.161"
+    ]
   },
   "CloudflareRequest": {
     "domain": "example.com",
@@ -620,7 +622,9 @@ export const EXAMPLES: Record<string, unknown> = {
   "CloudflareView": {
     "configured": true,
     "domain": "example.com",
-    "preferredAddresses": "104.17.138.161",
+    "preferredAddresses": [
+      "104.17.138.161"
+    ],
     "tokenHint": "…a1b2"
   },
   "CreateEndpointRequest": {

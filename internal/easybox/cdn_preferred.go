@@ -33,7 +33,7 @@ const (
 var hostnamePattern = regexp.MustCompile(`^(?i:[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)(\.(?i:[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?))+$`)
 
 type CloudflarePreferredRequest struct {
-	Addresses []string `json:"addresses" form:"addresses" example:"104.17.138.161"`
+	Addresses []string `json:"addresses" form:"addresses" example:"[\"104.17.138.161\"]"`
 }
 
 func normalizePreferred(in []string) ([]string, error) {
