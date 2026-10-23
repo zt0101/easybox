@@ -52,8 +52,9 @@ type lineTemplate struct {
 	cdnInbound func(name string, id Identity, host, certPEM, keyPEM string) (*model.Inbound, error)
 	ports      []int
 	// preferredPorts are tried before the EasyBox port range while free on this
-	// server: on 443 a REALITY line looks like an ordinary HTTPS site and a
-	// Hysteria2 line like HTTP/3. The first such line takes it.
+	// server: on 443 a REALITY line looks like an ordinary HTTPS site. The first
+	// such line takes it. Hysteria2 stays in the range: clouds often block UDP
+	// 443 by default and the local health check cannot see that.
 	preferredPorts []int
 	// tunnel lines get a Cloudflare quick tunnel once their inbound is healthy.
 	tunnel bool
@@ -91,7 +92,6 @@ var lineTemplates = []lineTemplate{
 	{
 		id: TemplateHysteria2, name: "Hysteria2", label: "hysteria2",
 		transport: transportUDP, nameStyle: "HY2", tier: tierRecommended,
-		preferredPorts: httpsPort,
 		build: func(_ *Service, name string, id Identity) (*model.Inbound, error) {
 			cert, err := hysteriaCertificate()
 			if err != nil {

@@ -24,7 +24,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
    cdn_preferred.go   优选地址（最多 10 个，各带备注）：写成上游 Host 组 easybox-cdn-0（原地址）和 easybox-cdn-N，订阅多出「线路名-备注」
    reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 扫描后，在最快的一批可用目标里随机选一个（优先选面板上还没有入站在用的）
    cert.go        面板证书 / 自签证书（内嵌 + GetCertHash 指纹）
-   port.go        端口范围 20000–20099，交给上游 CheckPortConflict 判断；REALITY / Hysteria2 先试 443（模板的 preferredPorts）
+   port.go        端口范围 20000–20099，交给上游 CheckPortConflict 判断；REALITY 先试 TCP 443（模板的 preferredPorts）
    endpoint.go    快速创建：prepare → AddInbound → apply → health check，失败补偿删除
    regenerate.go  重新生成（替换 / 保留旧线路）、订阅轮换
    subscription.go / subinfo.go / link.go / preview.go / init.go
