@@ -32,8 +32,9 @@ import (
 // server IP. trycloudflare.com was tried first and is unreachable from China.
 
 // cdnPorts are the HTTPS ports Cloudflare proxies; it connects to the origin on
-// the port the client used, so the inbound must listen on one of these.
-var cdnPorts = []int{443, 8443, 2053, 2083, 2087, 2096}
+// the port the client used, so the inbound must listen on one of these. 443
+// comes last: REALITY lines take it first (templates.go preferredPorts).
+var cdnPorts = []int{8443, 2053, 2083, 2087, 2096, 443}
 
 // cdnLabelLength is the random part of a line's hostname (cdn-<label>.<domain>).
 const cdnLabelLength = 6

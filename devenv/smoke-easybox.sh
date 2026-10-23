@@ -166,14 +166,21 @@ api POST "/panel/api/easybox/endpoints/setInSubscription/$line_id" '{"include":t
 [ -n "$(sub_link_for_port "$sub_url" "$port")" ] || fail "re-included line missing from the subscription"
 ok "exclude / include toggles the line in the subscription"
 
+old_link=$(sub_link_for_port "$sub_url" "$port")
 res=$(api POST "/panel/api/easybox/endpoints/regenerate/$line_id" '{"keepOld":false}')
 jq -e '.success == true and .obj.status == "RUNNING"' <<<"$res" >/dev/null || fail "regenerate: $res"
 new_port=$(jq -r .obj.port <<<"$res")
-[ "$new_port" != "$port" ] || fail "regenerate kept port $port"
-[ -z "$(sub_link_for_port "$sub_url" "$port")" ] || fail "old port $port still in the subscription"
+# A line on 443 comes back to 443 (templates.go preferredPorts); others get a new port.
+if [ "$port" = 443 ]; then
+  [ "$new_port" = 443 ] || fail "regenerate moved the line off 443 (now $new_port)"
+else
+  [ "$new_port" != "$port" ] || fail "regenerate kept port $port"
+  [ -z "$(sub_link_for_port "$sub_url" "$port")" ] || fail "old port $port still in the subscription"
+fi
 link=$(sub_link_for_port "$sub_url" "$new_port")
+{ [ -n "$link" ] && [ "$link" != "$old_link" ]; } || fail "regenerated line still has the old keys in the subscription"
 proxy_through "$link" "$new_port" || fail "request through the regenerated line failed"
-ok "regenerate (replace) → port $port → $new_port, old gone, new line proxies"
+ok "regenerate (replace) → port $port → $new_port, new keys, new line proxies"
 port=$new_port
 
 info=$(api POST /panel/api/easybox/subscription/rotate)

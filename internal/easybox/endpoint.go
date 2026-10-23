@@ -83,6 +83,9 @@ type Service struct {
 	// of other programs (nil = the real checks).
 	publicIPv4   func(address string) (string, error)
 	portBindable func(port int) bool
+	// preferredFree says whether nothing else on the server holds a preferred
+	// port for the transport (nil = really binding it).
+	preferredFree func(port int, transport string) bool
 	// regionLookup detects the server's region code (nil = the real lookup).
 	regionLookup func() string
 }
@@ -196,9 +199,14 @@ func (s *Service) provision(tpl lineTemplate, name, address string, id Identity)
 		ib.ShareAddrStrategy, ib.ShareAddr = "custom", addr
 	}
 	var port int
-	if tpl.ports != nil {
+	switch {
+	case tpl.ports != nil:
 		port, err = pickPortFrom(ib, tpl.ports, reservedPorts(), s.bindable())
-	} else {
+	case tpl.preferredPorts != nil:
+		if port, err = pickPortFrom(ib, tpl.preferredPorts, reservedPorts(), s.preferredBindable(tpl.transport)); err != nil {
+			port, err = pickPort(ib, s.Ports, reservedPorts(), nil)
+		}
+	default:
 		port, err = pickPort(ib, s.Ports, reservedPorts(), nil)
 	}
 	if err != nil {

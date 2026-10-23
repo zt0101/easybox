@@ -495,6 +495,15 @@ TUIC 本地 SOCKS 中转端口（上游 checkTuicSocks*）
 面板端口 / 订阅端口 / 80
 ```
 
+优先端口（2026-10-23 起，用户决定）：
+
+```
+REALITY 线路（VLESS + REALITY、VLESS + XHTTP + REALITY）优先 TCP 443，
+Hysteria2 优先 UDP 443：先建先用；443 已被入站或本机其他程序占用时，
+回到上面的端口范围。CDN 线路的端口顺序为 8443、2053、2083、2087、2096、443，
+把 443 留给 REALITY。已有线路不自动改，重新生成时按此规则重新选。
+```
+
 ---
 
 # 10. Protocol Template

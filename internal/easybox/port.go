@@ -1,7 +1,10 @@
 package easybox
 
 import (
+	"context"
 	"errors"
+	"net"
+	"strconv"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
 	"github.com/mhsanaei/3x-ui/v3/internal/util/random"
@@ -45,4 +48,30 @@ func pickPort(ib *model.Inbound, r PortRange, reserved map[int]bool, offset func
 	}
 	ib.Port = 0
 	return 0, ErrNoFreePort
+}
+
+func (s *Service) preferredBindable(transport string) func(int) bool {
+	if s.preferredFree != nil {
+		return func(port int) bool { return s.preferredFree(port, transport) }
+	}
+	return func(port int) bool { return portBindableFor(port, transport) }
+}
+
+func portBindableFor(port int, transport string) bool {
+	switch transport {
+	case transportUDP:
+		return udpPortBindable(port)
+	case transportTCPUDP:
+		return tcpPortBindable(port) && udpPortBindable(port)
+	}
+	return tcpPortBindable(port)
+}
+
+func udpPortBindable(port int) bool {
+	c, err := (&net.ListenConfig{}).ListenPacket(context.Background(), "udp", ":"+strconv.Itoa(port))
+	if err != nil {
+		return false
+	}
+	_ = c.Close()
+	return true
 }

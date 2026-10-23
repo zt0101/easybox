@@ -287,8 +287,8 @@ func TestCDNLine_ProxiedRecordOriginCertAndWebSocketInbound(t *testing.T) {
 	svc := cdnTestService(nil)
 	configureCloudflare(t, svc)
 	ep := createLine(t, svc, TemplateVlessCDN, "HK-CDN")
-	if ep.Port != 443 || ep.Status != StatusRunning || !cdnHost.MatchString(ep.Address) {
-		t.Fatalf("line = %+v, want RUNNING on 443 at cdn-<label>.example.com", ep)
+	if ep.Port != 8443 || ep.Status != StatusRunning || !cdnHost.MatchString(ep.Address) {
+		t.Fatalf("line = %+v, want RUNNING on 8443 at cdn-<label>.example.com", ep)
 	}
 	recs, certs := cf.snapshot()
 	if len(recs) != 1 || len(certs) != 1 {
@@ -311,8 +311,8 @@ func TestCDNLine_ProxiedRecordOriginCertAndWebSocketInbound(t *testing.T) {
 			t.Fatalf("link %s=%q, want %q (link %q)", k, q.Get(k), v, u)
 		}
 	}
-	if u.Hostname() != ep.Address || u.Port() != "443" || !regexp.MustCompile(`^/[0-9a-z]{10}$`).MatchString(q.Get("path")) {
-		t.Fatalf("link %q, want the CDN host on 443 with a random path", u)
+	if u.Hostname() != ep.Address || u.Port() != "8443" || !regexp.MustCompile(`^/[0-9a-z]{10}$`).MatchString(q.Get("path")) {
+		t.Fatalf("link %q, want the CDN host on 8443 with a random path", u)
 	}
 
 	var in model.Inbound
@@ -356,14 +356,14 @@ func TestCDNLine_SkipsPortsHeldByOtherPrograms(t *testing.T) {
 	initTestDB(t)
 	mustInit(t)
 	newFakeCloudflare(t)
-	svc := cdnTestService(nil, 443)
+	svc := cdnTestService(nil, 8443)
 	configureCloudflare(t, svc)
-	if ep := createLine(t, svc, TemplateVlessCDN, "a"); ep.Port != 8443 {
-		t.Fatalf("port = %d, want 8443 when 443 is busy", ep.Port)
+	// 2053 is also the panel's default port, so the first free one is 2083.
+	if ep := createLine(t, svc, TemplateVlessCDN, "a"); ep.Port != 2083 {
+		t.Fatalf("port = %d, want 2083 when 8443 is busy", ep.Port)
 	}
-	// 2053 is also the panel's default port, so the next free one is 2083.
-	if ep := createLine(t, svc, TemplateVlessCDN, "b"); ep.Port != 2083 {
-		t.Fatalf("second line port = %d, want 2083", ep.Port)
+	if ep := createLine(t, svc, TemplateVlessCDN, "b"); ep.Port != 2087 {
+		t.Fatalf("second line port = %d, want 2087", ep.Port)
 	}
 }
 
@@ -484,7 +484,7 @@ func TestSingboxConfig_RendersCDNLineOverWebSocket(t *testing.T) {
 	tr, _ := out["transport"].(map[string]any)
 	headers, _ := tr["headers"].(map[string]any)
 	tls, _ := out["tls"].(map[string]any)
-	if out["server"] != ep.Address || out["server_port"] != float64(443) || tr["type"] != "ws" ||
+	if out["server"] != ep.Address || out["server_port"] != float64(8443) || tr["type"] != "ws" ||
 		headers["Host"] != ep.Address || tls["server_name"] != ep.Address || tls["reality"] != nil {
 		t.Fatalf("outbound = %v", out)
 	}

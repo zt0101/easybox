@@ -22,6 +22,9 @@ func newTestService(restartErr, healthErr error) *Service {
 		health:  func(int, string) error { return healthErr },
 		// No network in tests: the server is in Hong Kong.
 		regionLookup: func() string { return "HK" },
+		// 443 is held elsewhere unless a test says otherwise, so lines land in
+		// the range whether or not the test process may bind it.
+		preferredFree: func(int, string) bool { return false },
 	}
 }
 
