@@ -3,12 +3,14 @@ package easybox
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
+	"github.com/mhsanaei/3x-ui/v3/internal/logger"
 	"github.com/mhsanaei/3x-ui/v3/internal/util/random"
 	"github.com/mhsanaei/3x-ui/v3/internal/web/service"
 )
@@ -71,8 +73,39 @@ func (s *Service) RegenerateEndpoint(id int, keepOld bool) (*EndpointView, error
 	if cdnErr := releaseLineCDN(&oldLine); cdnErr != nil {
 		delErr = errors.Join(delErr, fmt.Errorf("new line is live but the old Cloudflare record was not removed: %w", cdnErr))
 	}
+	if delErr == nil && slices.Contains(tpl.preferredPorts, old.Port) {
+		s.reclaimPreferredPort(row.InboundId, old.Port, tpl.transport)
+	}
 	audit("endpoint.regenerate", id, delErr)
 	return s.view(row), delErr
+}
+
+// reclaimPreferredPort moves a regenerated line back onto the preferred port
+// (443) its old inbound held: both ran side by side until the swap, so the new
+// one had to start in the range. Any failure leaves it on that working port.
+func (s *Service) reclaimPreferredPort(inboundID, port int, transport string) {
+	ib, err := s.inbounds.GetInbound(inboundID)
+	if err != nil || ib.Port == port {
+		return
+	}
+	from := ib.Port
+	moveTo := func(p int) error {
+		ib.Port = p
+		if _, _, err := s.inbounds.UpdateInbound(ib); err != nil {
+			return err
+		}
+		// A full restart also drops the old inbound if Xray still holds its port.
+		if err := s.restart(); err != nil {
+			return err
+		}
+		return s.health(p, transport)
+	}
+	if err := moveTo(port); err != nil {
+		logger.Warning("easybox: regenerated line stays on port", from, "- moving back to", port, "failed:", err)
+		if err := moveTo(from); err != nil {
+			logger.Warning("easybox: restore regenerated line to port", from, "failed:", err)
+		}
+	}
 }
 
 // RotateSubscription replaces the default subscription user's SubID (the URL)

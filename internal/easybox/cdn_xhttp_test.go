@@ -17,8 +17,9 @@ func TestXhttpCDNLine_OwnRecordCertAndNextPort(t *testing.T) {
 	configureCloudflare(t, svc)
 	ws := createLine(t, svc, TemplateVlessCDN, "hk-cdn")
 	xh := createLine(t, svc, TemplateVlessXhttpCDN, "hk-cdn-xhttp")
-	if ws.Port != 443 || xh.Port != 8443 || xh.Status != StatusRunning {
-		t.Fatalf("ports %d / %d, status %s; want 443 for WebSocket, 8443 for XHTTP", ws.Port, xh.Port, xh.Status)
+	// 2053 is the panel's default port.
+	if ws.Port != 8443 || xh.Port != 2083 || xh.Status != StatusRunning {
+		t.Fatalf("ports %d / %d, status %s; want 8443 for WebSocket, 2083 for XHTTP", ws.Port, xh.Port, xh.Status)
 	}
 	if !cdnHost.MatchString(xh.Address) || xh.Address == ws.Address {
 		t.Fatalf("XHTTP line address %q, want its own cdn-<label> host (WebSocket: %q)", xh.Address, ws.Address)
@@ -35,8 +36,8 @@ func TestXhttpCDNLine_OwnRecordCertAndNextPort(t *testing.T) {
 			t.Fatalf("link %s=%q, want %q (link %q)", k, q.Get(k), v, u)
 		}
 	}
-	if u.Hostname() != xh.Address || u.Port() != "8443" || !xhttpPath.MatchString(q.Get("path")) || q.Get("pbk") != "" {
-		t.Fatalf("link %q, want the CDN host on 8443, a random path and no REALITY", u)
+	if u.Hostname() != xh.Address || u.Port() != "2083" || !xhttpPath.MatchString(q.Get("path")) || q.Get("pbk") != "" {
+		t.Fatalf("link %q, want the CDN host on 2083, a random path and no REALITY", u)
 	}
 
 	var in model.Inbound
