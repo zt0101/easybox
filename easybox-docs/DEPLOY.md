@@ -25,7 +25,7 @@ eb.1 到 eb.3 是改动之前发布的，都还是预发布；在 eb.4 发布之
 | 80 | TCP | 申请和续期 Let's Encrypt IP 证书（acme.sh），需要一直开着 |
 | 面板端口（安装时指定） | TCP | 面板后台 |
 | 2096 | TCP | 订阅地址 |
-| 443 | TCP + UDP | 第一条 REALITY 线路用 TCP 443，第一条 Hysteria2 线路用 UDP 443，看起来就是普通的 HTTPS / HTTP/3 网站（不在 443 的 REALITY 更容易被封）。443 被别的程序占用时，线路改用下面的范围 |
+| 443 | TCP | 第一条 REALITY 线路用 TCP 443，看起来就是普通的 HTTPS 网站（不在 443 的 REALITY 更容易被封）。443 被别的程序占用时，线路改用下面的范围 |
 | 20000–20099 | TCP + UDP | EasyBox 线路：VLESS、Trojan 走 TCP，Hysteria2 和 TUIC 走 UDP，Shadowsocks 两者都用 |
 | 8443、2053、2083、2087 | TCP | 只有建 CDN 线路时需要：Cloudflare 只会回源到这几个 HTTPS 端口，面板按顺序挑第一个空闲的（2096 是订阅地址；443 留给 REALITY，排在最后） |
 
@@ -148,7 +148,7 @@ sudo XUI_UPDATE_TAG=<新版本> bash update.sh
 | 安装时提示 "Failed to fetch x-ui version" | 没写版本号，而且当前没有被标为 latest 的 Release，见开头 |
 | 证书申请失败 | 80 端口没放行，或者被其他程序占用。用 `sudo ss -ltnp \| grep ':80 '` 查看 |
 | 能打开面板，但节点连不上 | 20000–20099 没放行，Hysteria2 和 TUIC 要放行 **UDP** |
-| 只有 443 端口上的 REALITY 或 Hysteria2 连不上 | 云厂商防火墙没放行 443（Hysteria2 要放行 **UDP** 443），放行即可 |
+| 只有 443 端口上的 REALITY 连不上 | 云厂商防火墙没放行 TCP 443，放行即可 |
 | 某些网络下 Hysteria2 / TUIC 连不上 | 当前网络限制了 UDP，换一个网络（比如手机流量）再试 |
 | 保存 Cloudflare 时提示 "rejected the API token" | 令牌没复制完整，或者已被删除；重新复制一次 |
 | 建 CDN 线路时提示 "lacks a permission" | 令牌少了某项权限，按上面四项补齐（在 Cloudflare 里编辑令牌即可，令牌本身不变） |

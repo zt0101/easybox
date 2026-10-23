@@ -57,9 +57,9 @@ func TestPickPort_ReportsExhaustedRange(t *testing.T) {
 	}
 }
 
-// The first REALITY line takes TCP 443 and the first Hysteria2 line UDP 443;
-// the next REALITY line, with TCP 443 taken, goes to the range.
-func TestPreferredPort_FirstRealityAndHysteria2Take443(t *testing.T) {
+// The first REALITY line takes TCP 443; the next REALITY line, with TCP 443
+// taken, goes to the range. Hysteria2 never asks for 443.
+func TestPreferredPort_FirstRealityTakes443(t *testing.T) {
 	initTestDB(t)
 	mustInit(t)
 	svc := newTestService(nil, nil)
@@ -70,8 +70,8 @@ func TestPreferredPort_FirstRealityAndHysteria2Take443(t *testing.T) {
 	if ep := createLine(t, svc, TemplateVlessXhttp, "xhttp"); ep.Port < 20000 || ep.Port > 20099 {
 		t.Fatalf("second REALITY port = %d, want the range once 443 is taken", ep.Port)
 	}
-	if ep := createLine(t, svc, TemplateHysteria2, "hy2"); ep.Port != 443 {
-		t.Fatalf("Hysteria2 port = %d, want UDP 443 next to the TCP 443 REALITY line", ep.Port)
+	if ep := createLine(t, svc, TemplateHysteria2, "hy2"); ep.Port < 20000 || ep.Port > 20099 {
+		t.Fatalf("Hysteria2 port = %d, want the range (UDP 443 is often blocked)", ep.Port)
 	}
 }
 
