@@ -86,6 +86,8 @@ sudo cat /etc/x-ui/install-result.env
    - **备用**：VLESS + WebSocket + CDN、VLESS + Tunnel、TUIC v5
    - **易识别**：VLESS + TLS、Trojan、Shadowsocks 2022（国内容易被识别，可能连累服务器 IP；只建议境外或应急用）
 
+   订阅里的节点名也带同样的分级（eb.18 起），并按推荐、备用、易识别排序，例如 `🟢推荐|HK-VLESS-Reality`、`🔵备用|HK-VLESS-WS-Tunnel`。不想要的话在**订阅**页关掉「节点名显示分级」，排序不变。分级不是线路名的一部分，改线路名时不用管它。
+
    | 模板 | 证书 | 能用的客户端（实测见 [CLIENT_COMPATIBILITY.md](CLIENT_COMPATIBILITY.md)） |
    |---|---|---|
    | VLESS + REALITY | 不需要 | v2rayN、Clash/Mihomo、PassWall、Stash。sing-box 和 Shadowrocket 目前连不上：Xray 26.9+ 要求握手带 X25519MLKEM768，sing-box 不支持；Shadowrocket 开着 Vision 时不使用所选指纹（已知问题，等它修复，见 CLIENT_COMPATIBILITY.md） |

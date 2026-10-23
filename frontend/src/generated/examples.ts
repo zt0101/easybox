@@ -1227,6 +1227,7 @@ export const EXAMPLES: Record<string, unknown> = {
     ],
     "subId": "3dllwqwd8kpj3i5e",
     "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+    "tierLabels": true,
     "updateInterval": "12"
   },
   "TemplateView": {

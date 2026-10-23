@@ -2931,6 +2931,8 @@
       "rotate": "重置订阅地址",
       "cdnTitle": "通过 Cloudflare 提供订阅",
       "cdnIntro": "开启后，订阅多一个经 Cloudflare 的地址（sub-xxxxxx.你的域名）。服务器 IP 被封后，客户端用这个地址仍能刷新订阅，隧道地址变化等更新也能及时拿到。上面的 IP 订阅地址照常可用。订阅内容（节点列表）会经过 Cloudflare，和 CDN 线路一样。",
+      "tierTitle": "节点名显示分级",
+      "tierIntro": "开启后，订阅里的节点名前面会带上分级：🟢推荐、🔵备用、🟠易识别，和快速创建里的协议分级一致。无论开关与否，节点都按推荐、备用、易识别的顺序排列。改动后需要在客户端刷新订阅才能看到。",
       "cdnUnavailable": "现在无法开启",
       "cdnUniversal": "通用订阅（经 Cloudflare，推荐）",
       "cdnClash": "Clash / Mihomo 订阅（经 Cloudflare）",

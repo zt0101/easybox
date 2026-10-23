@@ -2955,6 +2955,14 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'POST',
+        path: '/panel/api/easybox/subscription/tierLabels',
+        summary:
+          'Start node names with the line tier (🟢推荐 / 🔵备用 / 🟠易识别, the Quick Create tiers) through the {{TIER}} remark token, or stop. Nodes are listed by tier either way. Answers with the subscription view (tierLabels).',
+        body: '{\n  "enable": true\n}',
+        responseSchema: 'SubscriptionView',
+      },
+      {
+        method: 'POST',
         path: '/panel/api/easybox/subscription/rotate',
         summary:
           'Rotate the subscription after a leak: new subscription URL (SubID) and new UUID on every line. The old URL returns 404 and the old credentials stop working; clients must import the new URL.',

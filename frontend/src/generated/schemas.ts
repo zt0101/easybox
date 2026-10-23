@@ -4910,6 +4910,11 @@ export const SCHEMAS: Record<string, unknown> = {
         "example": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
         "type": "string"
       },
+      "tierLabels": {
+        "description": "TierLabels: node names start with the line's tier tag (tier.go).",
+        "example": true,
+        "type": "boolean"
+      },
       "updateInterval": {
         "example": "12",
         "type": "string"
@@ -4923,6 +4928,7 @@ export const SCHEMAS: Record<string, unknown> = {
       "lines",
       "subId",
       "subUrl",
+      "tierLabels",
       "updateInterval"
     ],
     "type": "object"

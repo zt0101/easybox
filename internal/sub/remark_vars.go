@@ -25,6 +25,8 @@ type remarkContext struct {
 	hostRemark string
 	transport  string
 	security   string
+	// tier is the EasyBox tier tag behind {{TIER}} ("" for other inbounds).
+	tier string
 }
 
 // configName is the display name for a link: always the inbound's own remark.
@@ -201,6 +203,8 @@ func remarkVarValue(token string, ctx remarkContext) string {
 		return ctx.configName()
 	case "HOST":
 		return ctx.hostRemark
+	case "TIER":
+		return ctx.tier
 	case "ID":
 		return c.ID
 	case "SHORT_ID":
@@ -656,6 +660,7 @@ func (s *SubService) genTemplatedRemark(inbound *model.Inbound, client model.Cli
 		hostRemark: hostRemark,
 		transport:  transport,
 		security:   inboundSecurity(inbound),
+		tier:       s.tierFor(inbound).Label,
 	}
 	var tmpl string
 	if s.subscriptionBody {

@@ -60,6 +60,8 @@ type SubService struct {
 	// inbound whose NodeID is set. Keeps the per-link host derivation
 	// O(1) instead of O(N) DB hits.
 	nodesByID map[int]*model.Node
+	// tiers caches EasyBox line tiers per request (easybox_tier.go).
+	tiers map[int]InboundTier
 	// statsByEmail maps a client email to its traffic row across ALL inbounds
 	// loaded for the request. client_traffics.email is globally unique, so this
 	// lets statsForClient resolve usage for a client even on an inbound that
@@ -113,6 +115,7 @@ func (s *SubService) PrepareForRequest(host string) {
 	s.address = host
 	s.usageShown = map[string]bool{}
 	s.statsByEmail = map[string]xray.ClientTraffic{}
+	s.tiers = nil
 	s.clientsByInbound = map[int]map[string]model.Client{}
 	s.fullyPrimedInbounds = map[int]bool{}
 	s.settingsByInbound = map[int]map[string]any{}
@@ -696,6 +699,7 @@ func (s *SubService) getInboundsBySubId(subId string) ([]*model.Inbound, error) 
 	if err != nil {
 		return nil, err
 	}
+	s.sortByTier(inbounds)
 	s.indexStatsBySubId(subId)
 	return inbounds, nil
 }

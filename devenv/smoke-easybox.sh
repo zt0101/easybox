@@ -90,8 +90,10 @@ allow-lan: false
   "$MIHOMO" -d "$WORK/mh" > "$WORK/mh.log" 2>&1 &
   client_pid=$!
   sleep 3
-  local res
-  res=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$2/delay?url=$(jq -rn --arg u "$PROBE_URL" '$u|@uri')&timeout=8000" || true)
+  local res node
+  # Node names may start with the tier tag ("🟢推荐|<line>").
+  node=$(sed -n 's/^  name: //p' "$1" | awk -v n="$2" '$0 == n || substr($0, length($0) - length(n)) == "|" n' | head -1)
+  res=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$(jq -rn --arg n "$node" '$n|@uri')/delay?url=$(jq -rn --arg u "$PROBE_URL" '$u|@uri')&timeout=8000" || true)
   kill "$client_pid" 2>/dev/null || true; wait "$client_pid" 2>/dev/null || true; client_pid=""
   jq -e '.delay > 0' >/dev/null 2>&1 <<<"$res" || { echo "$res"; tail -5 "$WORK/mh.log"; return 1; }
 }
@@ -99,7 +101,9 @@ allow-lan: false
 # Runs the sing-box config a sing-box app would import, with TUN swapped for a
 # local SOCKS inbound and the selector pinned to one line, and fetches through it.
 singbox_through() { # config.json tag
-  jq --arg tag "$2" '.inbounds = [{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
+  # Node names may start with the tier tag ("🟢推荐|<line>").
+  jq --arg name "$2" '([.outbounds[].tag | select(. == $name or endswith("|" + $name))][0]) as $tag
+    | .inbounds = [{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
     | (.outbounds[] | select(.tag == "proxy")) .default = $tag
     | del(.route.auto_detect_interface)' "$1" > "$WORK/sb-run.json"
   "$SINGBOX" run -c "$WORK/sb-run.json" > "$WORK/sb.log" 2>&1 &
@@ -131,11 +135,26 @@ ok "subscription info: $sub_url"
 
 link=$(sub_link_for_port "$sub_url" "$port")
 [ -n "$link" ] || fail "subscription has no link for port $port"
-[ "${link##*#}" = "smoke-line" ] || fail "link name is '${link##*#}', want the line name smoke-line"
+link_name() { python3 -c 'import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]))' "${1##*#}"; }
+# Node names start with the line's Quick Create tier (REALITY = recommended)
+# while the switch on the Subscription page is on.
+want="smoke-line"; [ "$(jq -r .obj.tierLabels <<<"$info")" = true ] && want="🟢推荐|smoke-line"
+[ "$(link_name "$link")" = "$want" ] || fail "link name is '$(link_name "$link")', want '$want'"
+ok "link name: $want"
+tier_was=$(jq -r .obj.tierLabels <<<"$info")
+for on in false true; do
+  api POST /panel/api/easybox/subscription/tierLabels "{\"enable\":$on}" >/dev/null
+  want="smoke-line"; [ "$on" = true ] && want="🟢推荐|smoke-line"
+  got=$(link_name "$(sub_link_for_port "$sub_url" "$port")")
+  [ "$got" = "$want" ] || fail "tier tags $on: link name '$got', want '$want'"
+done
+api POST /panel/api/easybox/subscription/tierLabels "{\"enable\":$tier_was}" >/dev/null
+want="smoke-line"; [ "$tier_was" = true ] && want="🟢推荐|smoke-line"
+ok "tier tag switch: off = plain name, on = 🟢推荐|"
 ok "merged subscription contains the line, named after it"
 
 [ -n "$clash_url" ] || fail "Clash/Mihomo subscription not enabled"
-curl -fsS -A "mihomo/1.19" "$clash_url" | grep -q "name: smoke-line" || fail "Clash/Mihomo YAML lacks the line"
+curl -fsS -A "mihomo/1.19" "$clash_url" | grep -qxF "  name: $want" || fail "Clash/Mihomo YAML lacks the line $want"
 ok "Clash/Mihomo subscription serves the line"
 
 proxy_through "$link" "$port" || fail "request through the line failed"

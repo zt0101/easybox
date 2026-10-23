@@ -2931,6 +2931,8 @@
       "rotate": "Reset subscription address",
       "cdnTitle": "Serve the subscription through Cloudflare",
       "cdnIntro": "Adds a second subscription address through Cloudflare (sub-xxxxxx.<your domain>). Once the server IP is blocked, clients can still refresh the subscription with it and pick up changes such as a new tunnel address. The IP address above keeps working. The subscription content (the node list) passes Cloudflare, as with CDN lines.",
+      "tierTitle": "Show the tier in node names",
+      "tierIntro": "Node names start with the line's tier: 🟢推荐 (recommended), 🔵备用 (backup), 🟠易识别 (easy to identify), as on Quick Create. Either way, nodes are listed recommended first, then backup, then easy to identify. Refresh the subscription on devices to see a change.",
       "cdnUnavailable": "Cannot be turned on now",
       "cdnUniversal": "Universal subscription (through Cloudflare, recommended)",
       "cdnClash": "Clash / Mihomo subscription (through Cloudflare)",

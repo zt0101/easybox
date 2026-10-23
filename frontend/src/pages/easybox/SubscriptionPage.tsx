@@ -14,7 +14,13 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import { CloudOutlined, CopyOutlined, LinkOutlined, QrcodeOutlined } from '@ant-design/icons';
+import {
+  CloudOutlined,
+  CopyOutlined,
+  LinkOutlined,
+  QrcodeOutlined,
+  TagsOutlined,
+} from '@ant-design/icons';
 
 import { ClipboardManager } from '@/utils';
 import { useEasyboxMutations, useEasyboxSubscription } from '@/api/queries/useEasybox';
@@ -57,8 +63,14 @@ function UrlRow({
 function Subscription({ messageApi, modal }: EasyboxPageApi) {
   const { t } = useTranslation();
   const sub = useEasyboxSubscription();
-  const { setInSubscription, rotateSubscription, setSubscriptionCdn, settingSubscriptionCdn } =
-    useEasyboxMutations();
+  const {
+    setInSubscription,
+    rotateSubscription,
+    setSubscriptionCdn,
+    settingSubscriptionCdn,
+    setTierLabels,
+    settingTierLabels,
+  } = useEasyboxMutations();
   const [qrUrl, setQrUrl] = useState('');
 
   const copy = async (text: string) => {
@@ -67,6 +79,11 @@ function Subscription({ messageApi, modal }: EasyboxPageApi) {
 
   const toggleCdn = async (enable: boolean) => {
     const res = await setSubscriptionCdn(enable);
+    if (!res.ok) messageApi.error(res.message);
+  };
+
+  const toggleTierLabels = async (enable: boolean) => {
+    const res = await setTierLabels(enable);
     if (!res.ok) messageApi.error(res.message);
   };
 
@@ -95,8 +112,16 @@ function Subscription({ messageApi, modal }: EasyboxPageApi) {
   }
   if (!sub.data) return <Spin size="large" />;
 
-  const { subUrl, clashUrl, updateInterval, lines, cdnSubUrl, cdnClashUrl, cdnUnavailable } =
-    sub.data;
+  const {
+    subUrl,
+    clashUrl,
+    updateInterval,
+    lines,
+    cdnSubUrl,
+    cdnClashUrl,
+    cdnUnavailable,
+    tierLabels,
+  } = sub.data;
   const cdnOn = cdnSubUrl !== '';
   const visible = lines.filter((l): l is NonNullable<typeof l> => l !== null);
   return (
@@ -191,6 +216,25 @@ function Subscription({ messageApi, modal }: EasyboxPageApi) {
             </>
           )}
         </Space>
+      </Card>
+
+      <Card
+        title={
+          <Space>
+            <TagsOutlined />
+            {t('easybox.subscription.tierTitle')}
+          </Space>
+        }
+        extra={
+          <Switch
+            checked={tierLabels}
+            loading={settingTierLabels}
+            onChange={toggleTierLabels}
+            aria-label={t('easybox.subscription.tierTitle')}
+          />
+        }
+      >
+        <Typography.Text type="secondary">{t('easybox.subscription.tierIntro')}</Typography.Text>
       </Card>
 
       <Card title={t('easybox.subscription.lines')}>

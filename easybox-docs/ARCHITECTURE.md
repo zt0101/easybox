@@ -17,6 +17,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
    cdn_line.go / cdn_store.go   CDN 线路：Cloudflare 设置、建线路时的解析和证书、失败或删除时清理
    tunnel.go      隧道线路：127.0.0.1 上的 VLESS + WS，cloudflared 作为独立 systemd 单元 easybox-tunnel 运行（systemd-run，DynamicUser）；从 cloudflared 的 /quicktunnel、/ready 读地址和连接状态；StartTunnelWatch 每分钟检查（重启后拉起、地址变了更新订阅、没有线路时停掉）
    settings.go    easybox_settings 的读写
+   tier.go        订阅节点按快速创建的分级标注和排序：sub.InboundTiers 按入站查线路模板的 tier，remark 变量 {{TIER}} 输出「🟢推荐|」「🔵备用|」「🟠易识别|」（设置键 subTierLabels，没设置 = 开），订阅里按推荐、备用、易识别排序（同级保持 sub_sort_index 顺序），不是 EasyBox 建的入站不加标签、排在最后；分级不存进线路名
    names.go       线路命名：地区代码（设置键 regionCode，第一次用时按服务器 IP 识别，可修改）+ 模板的 nameStyle，如 HK-VLESS-Reality，重名加 -2、-3；改名同时改 easybox_endpoints.name 和入站 remark
    subcdn.go      订阅走 CDN：sub-<label>.<域名> 橙色云记录（设置键 subCdnHost / subCdnRecordId / subCdnZoneId / subCdnOrigin）；经这个域名来的订阅请求，默认节点地址换回服务器 IP（sub.SubRequestHostOverride）
    cdn_xhttp.go   XHTTP + TLS 的 CDN 入站（模板的 cdnInbound 决定入站形状，Cloudflare 部分两种 CDN 线路共用）
@@ -60,10 +61,11 @@ sing-box 渲染器不直接读入站 JSON，而是先把上游订阅服务**已�
 
 在订阅服务器读取设置之前执行，用 `history_of_seeders` 保证只执行一次：
 
-1. `EasyBoxSubscriptionDefaults`：remark 模板仍为上游默认时改为 `{{INBOUND}}{{HOST}}`；开启 Clash 订阅。
+1. `EasyBoxSubscriptionDefaults`：remark 模板仍为上游默认时改为 `{{TIER}}{{INBOUND}}{{HOST}}`；开启 Clash 订阅。
    `EasyBoxCdnXhttpPacketUp`：eb.12–eb.14 建的 XHTTP + CDN 线路，XHTTP 模式从 auto 改成 packet-up（Cloudflare 只转发得了分包上传；Shadowrocket 在 auto 下不选它）。
    `EasyBoxPreferredStandalone`：把 eb.10–eb.12 存在 Cloudflare 那一行里的优选地址搬到 `easybox_settings`（断开 Cloudflare 不再丢失）。
    `EasyBoxRemarkHostToken`：模板仍是旧的 `{{INBOUND}}` 时改为 `{{INBOUND}}{{HOST}}`（优选节点靠 `{{HOST}}` 带上「-优选N」）；管理员自己改过的不动。
+   `EasyBoxRemarkTierToken`：模板是 eb.10–eb.17 的 `{{INBOUND}}{{HOST}}` 时改为 `{{TIER}}{{INBOUND}}{{HOST}}`（节点名带分级）；管理员自己改过的不动。
 2. `EasyBoxSubTLSFromPanel`：面板有证书、订阅没有证书时，订阅服务复用面板证书（等到证书出现后才执行）。
 
 ## 对上游文件的改动
