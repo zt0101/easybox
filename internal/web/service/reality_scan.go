@@ -26,17 +26,65 @@ const (
 	realityScanMaxTotal    = 512
 )
 
+// EasyBox: large sites on CDNs with points of presence in every region, so
+// the fastest ones are near any VPS. Checked from a VPS for TLS 1.3, h2,
+// X25519, a trusted certificate and no redirect to another domain; nothing
+// Google-owned, blocked in China or Chinese.
 var defaultRealityScanCandidates = []string{
-	"www.cloudflare.com:443",
-	"www.microsoft.com:443",
-	"www.amazon.com:443",
-	"aws.amazon.com:443",
-	"www.samsung.com:443",
-	"www.nvidia.com:443",
+	// Akamai
+	"www.autodesk.com:443",
+	"www.redhat.com:443",
+	"www.homedepot.com:443",
+	"www.airbnb.com:443",
 	"www.amd.com:443",
+	"www.honda.com:443",
+	"www.oracle.com:443",
+	"www.panasonic.com:443",
+	"www.zara.com:443",
+	"www.lg.com:443",
+	"www.hkex.com.hk:443",
+	"www.singaporeair.com:443",
+	"www.cathaypacific.com:443",
+	"learn.microsoft.com:443",
+	"www.adobe.com:443",
+	"www.bing.com:443",
+	"www.dell.com:443",
+	"www.mastercard.com:443",
+	"www.nike.com:443",
+	"www.salesforce.com:443",
+	"www.samsung.com:443",
+	"www.sap.com:443",
+	"www.xbox.com:443",
+	"www.ebay.com:443",
 	"www.intel.com:443",
+	"www.mtr.com.hk:443",
+	"www.ea.com:443",
 	"www.sony.com:443",
-	"dl.google.com:443",
+	"www.acer.com:443",
+	"www.cisco.com:443",
+	"www.ibm.com:443",
+	"www.microsoft.com:443",
+	"www.apple.com:443",
+	"www.tesla.com:443",
+	// Cloudflare
+	"www.globalsign.com:443",
+	"www.ikea.com:443",
+	"www.qualcomm.com:443",
+	"www.vmware.com:443",
+	"www.wayfair.com:443",
+	"developers.cloudflare.com:443",
+	"www.shopify.com:443",
+	// CloudFront
+	"www.toyota.com:443",
+	"www.verisign.com:443",
+	"d1.awsstatic.com:443",
+	"aws.amazon.com:443",
+	"www.logitech.com:443",
+	"www.amazon.com:443",
+	// Fastly
+	"www.fastly.com:443",
+	"www.target.com:443",
+	"www.mozilla.org:443",
 }
 
 // DefaultRealityScanCandidatesCSV is the shipped default for the

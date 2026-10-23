@@ -11,7 +11,7 @@ export class AllSetting {
   sessionMaxAge = 360;
   trustedProxyCIDRs = '127.0.0.1/32,::1/128';
   realityScanCandidates =
-    'www.cloudflare.com:443,www.microsoft.com:443,www.amazon.com:443,aws.amazon.com:443,www.samsung.com:443,www.nvidia.com:443,www.amd.com:443,www.intel.com:443,www.sony.com:443,dl.google.com:443';
+    'www.autodesk.com:443,www.redhat.com:443,www.homedepot.com:443,www.airbnb.com:443,www.amd.com:443,www.honda.com:443,www.oracle.com:443,www.panasonic.com:443,www.zara.com:443,www.lg.com:443,www.hkex.com.hk:443,www.singaporeair.com:443,www.cathaypacific.com:443,learn.microsoft.com:443,www.adobe.com:443,www.bing.com:443,www.dell.com:443,www.mastercard.com:443,www.nike.com:443,www.salesforce.com:443,www.samsung.com:443,www.sap.com:443,www.xbox.com:443,www.ebay.com:443,www.intel.com:443,www.mtr.com.hk:443,www.ea.com:443,www.sony.com:443,www.acer.com:443,www.cisco.com:443,www.ibm.com:443,www.microsoft.com:443,www.apple.com:443,www.tesla.com:443,www.globalsign.com:443,www.ikea.com:443,www.qualcomm.com:443,www.vmware.com:443,www.wayfair.com:443,developers.cloudflare.com:443,www.shopify.com:443,www.toyota.com:443,www.verisign.com:443,d1.awsstatic.com:443,aws.amazon.com:443,www.logitech.com:443,www.amazon.com:443,www.fastly.com:443,www.target.com:443,www.mozilla.org:443';
   ipLimitAllowlist = '';
   panelOutbound = '';
   pageSize = 25;

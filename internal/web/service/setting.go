@@ -755,6 +755,10 @@ func (s *SettingService) GetRealityScanCandidates() (string, error) {
 	return s.getString("realityScanCandidates")
 }
 
+func (s *SettingService) SetRealityScanCandidates(value string) error {
+	return s.setString("realityScanCandidates", value)
+}
+
 func (s *SettingService) GetRemarkTemplate() (string, error) {
 	return s.getString("remarkTemplate")
 }

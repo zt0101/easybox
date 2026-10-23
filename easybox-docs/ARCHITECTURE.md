@@ -22,7 +22,7 @@ EasyBox 是 3X-UI 之上的一层产品逻辑，和面板编译进同一个 x-ui
    subcdn.go      订阅走 CDN：sub-<label>.<域名> 橙色云记录（设置键 subCdnHost / subCdnRecordId / subCdnZoneId / subCdnOrigin）；经这个域名来的订阅请求，默认节点地址换回服务器 IP（sub.SubRequestHostOverride）
    cdn_xhttp.go   XHTTP + TLS 的 CDN 入站（模板的 cdnInbound 决定入站形状，Cloudflare 部分两种 CDN 线路共用）
    cdn_preferred.go   优选地址（最多 10 个，各带备注）：写成上游 Host 组 easybox-cdn-0（原地址）和 easybox-cdn-N，订阅多出「线路名-备注」
-   reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 的第一个可用结果
+   reality.go     REALITY 参数：xray x25519 + 上游 ScanRealityTargets 扫描后，在最快的一批可用目标里随机选一个（优先选面板上还没有入站在用的）
    cert.go        面板证书 / 自签证书（内嵌 + GetCertHash 指纹）
    port.go        端口范围 20000–20099，交给上游 CheckPortConflict 判断
    endpoint.go    快速创建：prepare → AddInbound → apply → health check，失败补偿删除
@@ -66,11 +66,13 @@ sing-box 渲染器不直接读入站 JSON，而是先把上游订阅服务**已�
    `EasyBoxPreferredStandalone`：把 eb.10–eb.12 存在 Cloudflare 那一行里的优选地址搬到 `easybox_settings`（断开 Cloudflare 不再丢失）。
    `EasyBoxRemarkHostToken`：模板仍是旧的 `{{INBOUND}}` 时改为 `{{INBOUND}}{{HOST}}`（优选节点靠 `{{HOST}}` 带上「-优选N」）；管理员自己改过的不动。
    `EasyBoxRemarkTierToken`：模板是 eb.10–eb.17 的 `{{INBOUND}}{{HOST}}` 时改为 `{{TIER}}{{INBOUND}}{{HOST}}`（节点名带分级）；管理员自己改过的不动。
+   `EasyBoxRealityTargets`：设置里存的 REALITY 候选列表还是上游旧的 10 个时，换成 EasyBox 的 50 个；管理员自己改过的不动。
 2. `EasyBoxSubTLSFromPanel`：面板有证书、订阅没有证书时，订阅服务复用面板证书（等到证书出现后才执行）。
 
 ## 对上游文件的改动
 
 尽量只新增文件。必须改动的上游文件：`main.go`（调用 `easybox.Init`）、`internal/web/controller/api.go`
 （注册控制器）、`internal/sub/controller.go`（sing-box 分支）、`internal/database/db.go` 与 `migrate_data.go`、
-`tools/openapigen/main.go`、`frontend/src/{routes.tsx,layouts/AppSidebar.tsx,api/queryKeys.ts,pages/index/IndexPage.tsx,
+`tools/openapigen/main.go`、`internal/web/service/reality_scan.go` 与 `frontend/src/models/setting.ts`
+（REALITY 候选列表换成 EasyBox 的）、`internal/web/service/setting.go`（`SetRealityScanCandidates`）、`frontend/src/{routes.tsx,layouts/AppSidebar.tsx,api/queryKeys.ts,pages/index/IndexPage.tsx,
 pages/api-docs/endpoints.ts,hooks/usePageTitle.ts,pages/login/LoginPage.tsx}`、翻译文件，以及安装 / 更新地址。

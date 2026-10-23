@@ -23,6 +23,9 @@ const (
 	// cdnXhttpModeSeeder moves eb.12-eb.14 CDN XHTTP lines from mode auto to
 	// packet-up (cdn_xhttp.go).
 	cdnXhttpModeSeeder = "EasyBoxCdnXhttpPacketUp"
+	// realityTargetsSeeder moves a stored copy of upstream's old REALITY
+	// candidate list to the shipped one (reality_scan.go).
+	realityTargetsSeeder = "EasyBoxRealityTargets"
 	// lineNameRemarkTemplate makes every subscription link show the line's tier
 	// tag (tier.go) and name, plus a Host's own suffix (a CDN preferred address: "<line>-优选1").
 	lineNameRemarkTemplate = "{{TIER}}{{INBOUND}}{{HOST}}"
@@ -53,6 +56,9 @@ func Init() error {
 		return err
 	}
 	if err := moveCDNXhttpToPacketUp(); err != nil {
+		return err
+	}
+	if err := applyRealityTargets(); err != nil {
 		return err
 	}
 	return applySubTLSFromPanel()
@@ -95,6 +101,29 @@ func applyTierRemarkToken() error {
 		}
 	}
 	return markSeeded(tierRemarkSeeder)
+}
+
+// oldRealityScanCandidates is upstream's list before EasyBox replaced it; the
+// settings page stores it once the admin saves any setting.
+const oldRealityScanCandidates = "www.cloudflare.com:443,www.microsoft.com:443,www.amazon.com:443,aws.amazon.com:443,www.samsung.com:443,www.nvidia.com:443,www.amd.com:443,www.intel.com:443,www.sony.com:443,dl.google.com:443"
+
+// applyRealityTargets moves panels that stored the old candidate list to the
+// shipped one; a list the admin changed stays as it is.
+func applyRealityTargets() error {
+	if done, err := seeded(realityTargetsSeeder); err != nil || done {
+		return err
+	}
+	settings := &service.SettingService{}
+	csv, err := settings.GetRealityScanCandidates()
+	if err != nil {
+		return err
+	}
+	if csv == oldRealityScanCandidates {
+		if err := settings.SetRealityScanCandidates(service.DefaultRealityScanCandidatesCSV); err != nil {
+			return err
+		}
+	}
+	return markSeeded(realityTargetsSeeder)
 }
 
 // No surrounding transactions here: SettingService writes on its own handle and
