@@ -101,11 +101,16 @@ for tpl in $XRAY_TEMPLATES; do
   [[ $r == "204 $VPS" ]] && ok "Xray client → $tpl → $r" || { bad "Xray $tpl: $r"; tail -5 "$WORK/x.log"; }
 done
 
+# Node names start with the line tier ("🟢推荐|HK-TUIC"); these find the node
+# for a line name in a sing-box config / Clash YAML (the plain name if absent).
+sb_tag() { jq -r --arg n "$2" '[.outbounds[].tag | select(. == $n or endswith("|" + $n))][0] // $n' "$1"; }
+yaml_name() { sed -n 's/^  name: //p' "$1" | awk -v n="$2" '$0 == n || substr($0, length($0) - length(n)) == "|" n {print; f=1; exit} END {if (!f) print n}'; }
+
 # 2) sing-box client using the served sing-box config
 curl -fsS -A "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" -o "$WORK/sb.json" "$sub"
 "$SINGBOX" check -c "$WORK/sb.json" && ok "sing-box config check" || bad "sing-box check"
 for tpl in $TEMPLATES; do
-  tag=${NAME[$tpl]:-test-$tpl}
+  tag=$(sb_tag "$WORK/sb.json" "${NAME[$tpl]:-test-$tpl}")
   if [[ $tpl == *xhttp* ]]; then # sing-box has no XHTTP transport
     ! jq -e --arg tag "$tag" '.outbounds[]|select(.tag==$tag)' "$WORK/sb.json" >/dev/null \
       && ok "sing-box config leaves out $tag" || bad "sing-box config carries $tag"
@@ -125,7 +130,7 @@ mkdir -p "$WORK/mh"
   grep -vE '^(mixed-port|port|socks-port|external-controller|allow-lan):' "$WORK/sub.yaml"; } > "$WORK/mh/config.yaml"
 "$MIHOMO" -d "$WORK/mh" >"$WORK/mh.log" 2>&1 & pid=$!; sleep 4
 for tpl in $TEMPLATES; do
-  tag=${NAME[$tpl]:-test-$tpl}
+  tag=$(yaml_name "$WORK/sub.yaml" "${NAME[$tpl]:-test-$tpl}")
   d=$(curl -s --max-time 15 "http://127.0.0.1:19090/proxies/$(jq -rn --arg t "$tag" '$t|@uri')/delay?url=$(jq -rn --arg u "$PROBE" '$u|@uri')&timeout=8000")
   jq -e '.delay>0' <<<"$d" >/dev/null && ok "Mihomo → $tag delay $(jq .delay <<<"$d")ms" || { bad "Mihomo $tag: $d"; tail -5 "$WORK/mh.log"; }
 done
@@ -158,7 +163,7 @@ for ua in "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" "SFI/1.14.3 (Build 1
   curl -fsS -A "$ua" -o "$WORK/cl.json" "$clash"
   "$SINGBOX" check -c "$WORK/cl.json" 2>/dev/null && ok "Clash URL + ${ua%% *} → valid sing-box config" || bad "Clash URL + ${ua%% *}: $(head -c 40 "$WORK/cl.json")"
 done
-jq --arg tag "${NAME[tuic]:-test-tuic}" '.inbounds=[{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
+jq --arg tag "$(sb_tag "$WORK/cl.json" "${NAME[tuic]:-test-tuic}")" '.inbounds=[{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
   | (.outbounds[]|select(.tag=="proxy")).default=$tag | del(.route.auto_detect_interface)' "$WORK/cl.json" > "$WORK/clr.json"
 "$SINGBOX" run -c "$WORK/clr.json" >"$WORK/sb.log" 2>&1 & pid=$!; sleep 3
 r=$(probe); kill $pid; wait $pid 2>/dev/null; pid=""
