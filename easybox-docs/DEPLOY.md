@@ -57,6 +57,10 @@ sudo XUI_NONINTERACTIVE=1 XUI_SSL_MODE=ip XUI_DB_TYPE=sqlite XUI_PANEL_PORT=2221
 | `XUI_PANEL_PORT` | 面板端口；不设置就随机分配 |
 | `XUI_USERNAME`、`XUI_PASSWORD`、`XUI_WEB_BASE_PATH` | 自己指定登录信息；不设置就随机生成 |
 | `XUI_ACME_EMAIL` | 申请证书时登记的邮箱 |
+| `XUI_ENABLE_BBR` | 默认 `true`：开启 BBR + fq。设为 `false` 跳过 |
+| `XUI_ENABLE_SWAP` | 默认 `true`：内存小于 2 GB 且没有 swap 时，加一个 1 GB 的 `/swapfile`。设为 `false` 跳过 |
+
+两种安装方式都会顺带做网络优化：开启 BBR + fq（大陆到海外线路丢包多，TCP 线路会明显提速；HY2、TUIC 不受影响），小内存机器再加 1 GB swap，避免内存耗尽时 Xray 被系统杀掉、所有节点一起断开。在容器里安装时这两步会跳过。想关掉 BBR，运行 `x-ui`，在 BBR 菜单里选 Disable BBR，会恢复成安装前的设置。
 
 安装完成后服务会自动启动，开机也会自动启动（systemd `x-ui.service`，状态为 `enabled`，异常退出后 5 秒自动重启）。证书续期由 acme.sh 的 cron 任务负责，每天检查 4 次。
 
