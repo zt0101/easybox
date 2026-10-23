@@ -1444,6 +1444,74 @@ setup_fail2ban() {
     return 0
 }
 
+# setup_network_tuning turns on BBR + fq and, on small VMs, a swap file, so a
+# fresh install is tuned without a second trip into the x-ui menu. BBR writes
+# the same /etc/sysctl.d/99-bbr-x-ui.conf (first line = previous qdisc:cc) as
+# `x-ui` -> Enable BBR, so its Disable BBR restores the old values. Opt out with
+# XUI_ENABLE_BBR=false / XUI_ENABLE_SWAP=false. Never fatal.
+setup_network_tuning() {
+    if command -v systemd-detect-virt > /dev/null 2>&1 && systemd-detect-virt --container --quiet; then
+        echo -e "${yellow}Running in a container; skipping BBR and swap setup (they belong to the host).${plain}"
+        return 0
+    fi
+
+    if [[ "${XUI_ENABLE_BBR:-true}" != "true" ]]; then
+        echo -e "${yellow}XUI_ENABLE_BBR=${XUI_ENABLE_BBR}, skipping BBR setup.${plain}"
+    elif [[ $(sysctl -n net.ipv4.tcp_congestion_control 2> /dev/null) == "bbr" ]] && [[ $(sysctl -n net.core.default_qdisc 2> /dev/null) =~ ^(fq|cake)$ ]]; then
+        echo -e "${green}BBR is already enabled.${plain}"
+    else
+        modprobe tcp_bbr > /dev/null 2>&1
+        if ! grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2> /dev/null; then
+            echo -e "${yellow}This kernel has no BBR; keeping $(sysctl -n net.ipv4.tcp_congestion_control 2> /dev/null).${plain}"
+        else
+            {
+                echo "#$(sysctl -n net.core.default_qdisc):$(sysctl -n net.ipv4.tcp_congestion_control)"
+                echo "net.core.default_qdisc = fq"
+                echo "net.ipv4.tcp_congestion_control = bbr"
+            } > /etc/sysctl.d/99-bbr-x-ui.conf
+            if [ -f /etc/sysctl.conf ]; then
+                sed -i 's/^net.core.default_qdisc/# &/' /etc/sysctl.conf
+                sed -i 's/^net.ipv4.tcp_congestion_control/# &/' /etc/sysctl.conf
+            fi
+            sysctl -q -p /etc/sysctl.d/99-bbr-x-ui.conf > /dev/null 2>&1
+            if [[ $(sysctl -n net.ipv4.tcp_congestion_control) == "bbr" ]]; then
+                echo -e "${green}BBR + fq enabled (undo: x-ui -> Disable BBR).${plain}"
+            else
+                rm -f /etc/sysctl.d/99-bbr-x-ui.conf
+                echo -e "${yellow}Could not enable BBR; continuing without it.${plain}"
+            fi
+        fi
+    fi
+
+    local mem_mb
+    mem_mb=$(awk '/^MemTotal:/ {print int($2 / 1024)}' /proc/meminfo)
+    if [[ "${XUI_ENABLE_SWAP:-true}" != "true" ]]; then
+        echo -e "${yellow}XUI_ENABLE_SWAP=${XUI_ENABLE_SWAP}, skipping swap setup.${plain}"
+    elif [[ -z "$mem_mb" || "$mem_mb" -ge 2048 ]]; then
+        :
+    elif [[ -n "$(swapon --show --noheadings 2> /dev/null)" ]]; then
+        echo -e "${green}Swap already present.${plain}"
+    elif [[ -e /swapfile ]]; then
+        echo -e "${yellow}/swapfile exists but is not active; leaving it alone.${plain}"
+    elif [[ $(df -Pm / | awk 'NR == 2 {print $4}') -lt 3072 ]]; then
+        echo -e "${yellow}Less than 3 GB free on /; skipping the 1 GB swap file.${plain}"
+    else
+        echo -e "${green}${mem_mb} MB RAM and no swap: adding a 1 GB /swapfile...${plain}"
+        if { fallocate -l 1G /swapfile 2> /dev/null || dd if=/dev/zero of=/swapfile bs=1M count=1024 status=none; } \
+            && chmod 600 /swapfile && mkswap /swapfile > /dev/null 2>&1 && swapon /swapfile 2> /dev/null; then
+            grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+            echo "vm.swappiness = 10" > /etc/sysctl.d/99-swap-x-ui.conf
+            sysctl -q -p /etc/sysctl.d/99-swap-x-ui.conf > /dev/null 2>&1
+            echo -e "${green}Swap enabled (1 GB, swappiness 10).${plain}"
+        else
+            swapoff /swapfile > /dev/null 2>&1
+            rm -f /swapfile
+            echo -e "${yellow}Could not create a swap file on this filesystem; continuing without it.${plain}"
+        fi
+    fi
+    return 0
+}
+
 # Major version of the local systemd, 0 when it cannot be determined. The
 # SystemCallFilter=@system-service group only exists from systemd 239 on (other
 # @-named groups exist since 231); on older versions an unknown group is not
@@ -2030,6 +2098,9 @@ install_x-ui() {
     # IP Limit relies on fail2ban; install + configure it now so the feature
     # works out of the box (no-op when XUI_ENABLE_FAIL2BAN=false). Never fatal.
     setup_fail2ban
+
+    # BBR + fq, and a swap file on small VMs (XUI_ENABLE_BBR / XUI_ENABLE_SWAP=false to skip). Never fatal.
+    setup_network_tuning
 
     echo -e "${green}x-ui ${tag_version}${plain} installation finished, it is running now..."
     echo -e ""

@@ -3,7 +3,7 @@
 # run from the dev container:
 #   VPS=203.0.113.10 SSH_KEY=/root/.cache/ssh/easybox_vps bash devenv/smoke-vps.sh
 # Reads the panel credentials over SSH (install.sh's /etc/x-ui/install-result.env) into
-# variables and never prints them. Creates (or reuses) lines test-<template> and leaves
+# variables and never prints them. Reuses one line per template (any name) or creates test-<template> and leaves
 # them in place for device tests. The first Shadowsocks line on an older panel upgrades
 # the shared password, so devices must refresh the subscription afterwards.
 # See easybox-docs/UPSTREAM_SYNC.md.
@@ -158,11 +158,11 @@ for ua in "SFA/1.14.3 (8; sing-box 1.14.3; language en_US)" "SFI/1.14.3 (Build 1
   curl -fsS -A "$ua" -o "$WORK/cl.json" "$clash"
   "$SINGBOX" check -c "$WORK/cl.json" 2>/dev/null && ok "Clash URL + ${ua%% *} → valid sing-box config" || bad "Clash URL + ${ua%% *}: $(head -c 40 "$WORK/cl.json")"
 done
-jq --arg tag test-tuic '.inbounds=[{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
+jq --arg tag "${NAME[tuic]:-test-tuic}" '.inbounds=[{type:"mixed",tag:"mixed-in",listen:"127.0.0.1",listen_port:10808}]
   | (.outbounds[]|select(.tag=="proxy")).default=$tag | del(.route.auto_detect_interface)' "$WORK/cl.json" > "$WORK/clr.json"
 "$SINGBOX" run -c "$WORK/clr.json" >"$WORK/sb.log" 2>&1 & pid=$!; sleep 3
 r=$(probe); kill $pid; wait $pid 2>/dev/null; pid=""
-[[ $r == "204 $VPS" ]] && ok "sing-box via Clash URL → test-tuic → $r" || bad "sing-box via Clash URL: $r"
+[[ $r == "204 $VPS" ]] && ok "sing-box via Clash URL → ${NAME[tuic]:-test-tuic} → $r" || bad "sing-box via Clash URL: $r"
 head -c 9 "$WORK/sub.yaml" | grep -q "proxies:" && ok "Clash URL + mihomo UA still YAML" || bad "mihomo UA no longer YAML"
 
 # 5) eb.3: no empty fp= in Hysteria2 links, x-ui settings without warning
