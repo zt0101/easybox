@@ -28,6 +28,11 @@ var testReality = RealityParams{
 func initTestDB(t *testing.T) {
 	t.Helper()
 	dbtest.InitDB(t, filepath.Join(t.TempDir(), "x-ui.db"))
+	// Tests that check node names compare plain line names; tier_test.go
+	// switches the tier tags back on.
+	if err := setSetting(tierLabelsKey, "false"); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func addBuiltInbound(t *testing.T, name string, port int) {

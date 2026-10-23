@@ -19,6 +19,8 @@ type SubscriptionView struct {
 	CdnSubURL      string `json:"cdnSubUrl" example:"https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e"`
 	CdnClashURL    string `json:"cdnClashUrl" example:"https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e"`
 	CdnUnavailable string `json:"cdnUnavailable" example:""`
+	// TierLabels: node names start with the line's tier tag (tier.go).
+	TierLabels bool `json:"tierLabels" example:"true"`
 }
 
 // GetSubscription builds the URLs the same way the panel's own settings do: an
@@ -51,6 +53,9 @@ func (s *Service) GetSubscription(host string) (*SubscriptionView, error) {
 		view.CdnSubURL = cdnBase + subPath + id.SubID
 	}
 	view.CdnUnavailable = subCDNUnavailable()
+	if view.TierLabels, err = TierLabelsEnabled(); err != nil {
+		return nil, err
+	}
 
 	clashOn, err := settings.GetSubClashEnable()
 	if err != nil {

@@ -18,13 +18,16 @@ const (
 	initSeeder       = "EasyBoxSubscriptionDefaults"
 	subTLSSeeder     = "EasyBoxSubTLSFromPanel"
 	hostRemarkSeeder = "EasyBoxRemarkHostToken"
+	tierRemarkSeeder = "EasyBoxRemarkTierToken"
 	preferredSeeder  = "EasyBoxPreferredStandalone"
 	// cdnXhttpModeSeeder moves eb.12-eb.14 CDN XHTTP lines from mode auto to
 	// packet-up (cdn_xhttp.go).
 	cdnXhttpModeSeeder = "EasyBoxCdnXhttpPacketUp"
-	// lineNameRemarkTemplate makes every subscription link show only the line
-	// name, plus a Host's own suffix (a CDN preferred address: "<line>-优选1").
-	lineNameRemarkTemplate = "{{INBOUND}}{{HOST}}"
+	// lineNameRemarkTemplate makes every subscription link show the line's tier
+	// tag (tier.go) and name, plus a Host's own suffix (a CDN preferred address: "<line>-优选1").
+	lineNameRemarkTemplate = "{{TIER}}{{INBOUND}}{{HOST}}"
+	// hostRemarkTemplate is what EasyBox set before tier tags (eb.10-eb.17).
+	hostRemarkTemplate = "{{INBOUND}}{{HOST}}"
 	// oldLineNameRemarkTemplate is what EasyBox set before Host suffixes.
 	oldLineNameRemarkTemplate = "{{INBOUND}}"
 )
@@ -33,6 +36,7 @@ const (
 // starts (it reads settings once); HistoryOfSeeders rows keep each one-time.
 func Init() error {
 	sub.SubRequestHostOverride = subCDNRequestHost
+	sub.InboundTiers = inboundTiers
 	if _, err := EnsureDefaultSubscription(); err != nil {
 		return err
 	}
@@ -40,6 +44,9 @@ func Init() error {
 		return err
 	}
 	if err := applyHostRemarkToken(); err != nil {
+		return err
+	}
+	if err := applyTierRemarkToken(); err != nil {
 		return err
 	}
 	if err := movePreferredToSettings(); err != nil {
@@ -69,6 +76,25 @@ func applyHostRemarkToken() error {
 		}
 	}
 	return markSeeded(hostRemarkSeeder)
+}
+
+// applyTierRemarkToken adds the tier tag to panels on EasyBox's eb.10-eb.17
+// remark template; a template the admin changed stays as it is.
+func applyTierRemarkToken() error {
+	if done, err := seeded(tierRemarkSeeder); err != nil || done {
+		return err
+	}
+	settings := &service.SettingService{}
+	tmpl, err := settings.GetRemarkTemplate()
+	if err != nil {
+		return err
+	}
+	if tmpl == hostRemarkTemplate {
+		if err := settings.SetRemarkTemplate(lineNameRemarkTemplate); err != nil {
+			return err
+		}
+	}
+	return markSeeded(tierRemarkSeeder)
 }
 
 // No surrounding transactions here: SettingService writes on its own handle and

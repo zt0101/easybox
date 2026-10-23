@@ -277,6 +277,18 @@ export function useEasyboxMutations() {
     onSettled: () => invalidate(),
   });
 
+  const tierLabelsMut = useMutation({
+    mutationFn: async (enable: boolean) => {
+      const msg = await HttpUtil.post(
+        '/panel/api/easybox/subscription/tierLabels',
+        { enable },
+        { ...JSON_HEADERS, silent: true },
+      );
+      return { ok: Boolean(msg?.success), message: msg?.msg ?? '' };
+    },
+    onSettled: () => invalidate(),
+  });
+
   const renameMut = useMutation({
     mutationFn: async ({ id, name }: { id: number; name: string }) => {
       const msg = await HttpUtil.post(
@@ -311,6 +323,8 @@ export function useEasyboxMutations() {
     renaming: renameMut.isPending,
     setSubscriptionCdn: subscriptionCdnMut.mutateAsync,
     settingSubscriptionCdn: subscriptionCdnMut.isPending,
+    setTierLabels: tierLabelsMut.mutateAsync,
+    settingTierLabels: tierLabelsMut.isPending,
   };
 }
 

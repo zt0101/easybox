@@ -131,7 +131,7 @@ Quick Node
 系统自动完成：
 
 ```
-生成节点名称（没填时：<地区>-<协议>-<传输/安全>[-CDN|-Tunnel]，如 HK-VLESS-Reality、HK-VLESS-WS-CDN；重名加 -2）
+生成节点名称（没填时：<地区>-<协议>-<传输/安全>[-CDN|-Tunnel]，如 HK-VLESS-Reality、HK-VLESS-WS-CDN；重名加 -2；订阅里前面再加分级，如 🟢推荐|HK-VLESS-Reality，可在订阅页关闭）
 生成端口
 生成用户凭据
 生成 UUID / Password

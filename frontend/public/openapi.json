@@ -4936,6 +4936,11 @@
             "example": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
             "type": "string"
           },
+          "tierLabels": {
+            "description": "TierLabels: node names start with the line's tier tag (tier.go).",
+            "example": true,
+            "type": "boolean"
+          },
           "updateInterval": {
             "example": "12",
             "type": "string"
@@ -4949,6 +4954,7 @@
           "lines",
           "subId",
           "subUrl",
+          "tierLabels",
           "updateInterval"
         ],
         "type": "object"
@@ -17598,6 +17604,7 @@
                     ],
                     "subId": "3dllwqwd8kpj3i5e",
                     "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "tierLabels": true,
                     "updateInterval": "12"
                   }
                 }
@@ -17833,6 +17840,68 @@
                     ],
                     "subId": "3dllwqwd8kpj3i5e",
                     "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "tierLabels": true,
+                    "updateInterval": "12"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/easybox/subscription/tierLabels": {
+      "post": {
+        "tags": [
+          "EasyBox"
+        ],
+        "summary": "Start node names with the line tier (🟢推荐 / 🔵备用 / 🟠易识别, the Quick Create tiers) through the {{TIER}} remark token, or stop. Nodes are listed by tier either way. Answers with the subscription view (tierLabels).",
+        "operationId": "post_panel_api_easybox_subscription_tierLabels",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "enable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {
+                      "$ref": "#/components/schemas/SubscriptionView"
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "cdnClashUrl": "https://sub-k3x9q2.example.com:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "cdnSubUrl": "https://sub-k3x9q2.example.com:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "cdnUnavailable": "",
+                    "clashUrl": "https://203.0.113.10:2096/3zxrphzqdxumbq7i/3dllwqwd8kpj3i5e",
+                    "lines": [
+                      null
+                    ],
+                    "subId": "3dllwqwd8kpj3i5e",
+                    "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "tierLabels": true,
                     "updateInterval": "12"
                   }
                 }
@@ -17880,6 +17949,7 @@
                     ],
                     "subId": "3dllwqwd8kpj3i5e",
                     "subUrl": "https://203.0.113.10:2096/p2z29sqh4lk5cmdg/3dllwqwd8kpj3i5e",
+                    "tierLabels": true,
                     "updateInterval": "12"
                   }
                 }

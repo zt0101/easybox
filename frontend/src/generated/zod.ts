@@ -1203,6 +1203,7 @@ export const SubscriptionViewSchema = z.object({
   lines: z.array(z.lazy(() => EndpointViewSchema).nullable()),
   subId: z.string(),
   subUrl: z.string(),
+  tierLabels: z.boolean(),
   updateInterval: z.string(),
 });
 export type SubscriptionView = z.infer<typeof SubscriptionViewSchema>;

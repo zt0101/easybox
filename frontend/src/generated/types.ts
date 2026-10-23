@@ -1127,6 +1127,7 @@ export interface SubscriptionView {
   lines: EndpointView | null[];
   subId: string;
   subUrl: string;
+  tierLabels: boolean;
   updateInterval: string;
 }
 
